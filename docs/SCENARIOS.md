@@ -46,7 +46,8 @@ face down (exactly slots 1..`struggles`, see V4); the instability discs on the b
 `"unstable"` entries); the card-play total (V7).
 
 `reference_board` has the shape `{"regions": {...count maps...}, "region_state": {...}}` and is only
-allowed when `last_card.type` is `manoeuvre` or `outmanoeuvre` (R-216).
+allowed when `last_card.type` is `manoeuvre` or `outmanoeuvre` (R-216). Omitting it for such a card
+means B* is void (D22): nothing is blocked.
 
 A `setup` scenario may use only `format`, `kind`, `description`, `players`, `slots`, `regions`, `courts`,
 `example`; everything else takes its R-014 value.
@@ -82,7 +83,7 @@ A scenario is rejected, with the failing rule, unless all of these hold.
   their hand (a null entry is also allowed after a Negotiate that had no effect, R-213), and names a region; no two players name the same region. A card carrying a disc may be
   face up or face down.
 - **V7** (R-102, R-401) Card-play total = Σ over players of (8 − hand size). `last_play` values are
-  distinct integers in 1..total, `null` exactly for a player who has played nothing; the largest one
+  distinct integers in 1..total, each at least the number of cards that player has played (8 − hand size), `null` exactly for a player who has played nothing; the largest one
   equals the total and belongs to the player who played the most recent card. `hand_empty` is non-null exactly for a player
   with an empty hand, and equals that player's `last_play`.
 - **V8** (R-008) Each hand is a sub-multiset of the starting hand.

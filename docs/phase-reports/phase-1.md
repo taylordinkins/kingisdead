@@ -40,4 +40,3 @@ cards has only PASS (R-101), a power struggle does not lift the undo block (R-21
 supply asks for no region (R-211), and D20's no-op case (R-216). Also the region index order (R-001)
 and the pass-count reset rule (R-104), which are my choices.
 
-Before you set APPROVED, check the spec edits are committed (they are, as of this report).

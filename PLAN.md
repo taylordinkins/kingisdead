@@ -61,6 +61,7 @@ A faithful, well-tested implementation of *The King is Dead* as a **Python OpenS
 | D19 | Type stub (2026-10-30) | pyspiel type stub in `typings/` keeps pyright strict on engine code | Only signatures confirmed against the installed 2.0.2; extend as needed |
 | D20 | Undo block edge cases (2026-10-30) | A no-op same-faction Manoeuvre swap is blocked like any exact reverse; an exact 1-for-1 Outmanoeuvre reverse is blocked | User-confirmed; R-216 |
 | D21 | Undo block is board-based (2026-10-30) | A same-type play is blocked if its result equals the board before the previous Manoeuvre/Outmanoeuvre with that play's summoned follower removed; lifted by the next card played. Supersedes D20's pick-based wording; D20's no-op case still holds | User-confirmed; R-216, R-217. Needs a reference board in state/observation |
+| D22 | B* void case (2026-10-30) | If L's summoned follower's region held none of that faction before L's effect, B* is void and nothing is blocked | User-confirmed in close-phase; amends R-216 (needs spec unlock), ACTIONS §5, SCENARIOS |
 
 ## 4. Rules clarifications
 
@@ -315,7 +316,6 @@ Opus runs at phase close and as spot audits only on units touching scoring, powe
 ## 9. Open questions (deferred)
 
 - Phase 6: team returns and tiebreak presentation for partners.
-- Phase 1 (R-216, found by close-phase review): B* = pre-L board minus L's summoned follower is undefined when L's summon takes a follower that L just moved in and the pre-L region held none of that faction there (count would go to −1). Needs an amendment: proposed rule is that B* is void (nothing blocked) in that case.
 - Phase 7: Spy copying Negotiate when your disc is already used; Spy and the undo block; Plot interaction with draws (D9).
 - Phase 8: algorithm (AlphaZero vs PPO-style), training budget, whether a C++ port is needed for speed.
 
@@ -327,7 +327,6 @@ Should-fix and minor findings, tagged with the phase that found them. `/close-ph
 - Phase 0: Bash blocks standalone `kingisdead` tokens such as `-k kingisdead` (false positive).
 - Phase 0: the spec backstop trips if the user sets APPROVED while spec edits are still uncommitted; commit spec edits before approving.
 - Phase 0: GitHub branch protection on `master` needs GitHub Pro on a private repo (user's call).
-- Phase 1 (minor, from close-phase review; ACTIONS/SCENARIOS wording, fix with the amendment if one is made): ACTIONS §4 TURN_START entry list omits a card whose summon is skipped; ACTIONS §4 should say 1-for-1 Outmanoeuvre uses OUT_SINGLE → OUT_FIRST and add "follower present" to OUT_FIRST; ACTIONS §5 Assemble parenthetical reads as contradictory; SCENARIOS V7 should require last_play[p] ≥ 8 − |hands[p]|.
 
 ## 10. Risks
 

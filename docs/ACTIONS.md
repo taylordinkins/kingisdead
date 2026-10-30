@@ -54,7 +54,7 @@ decision nodes; chance nodes use the chance player.
 
 | Phase | Entered after | Legal actions (mask) |
 |---|---|---|
-| TURN_START | setup; a summon; a pass (no struggle); a struggle | `PASS` always (R-101, R-103); `PLAY(c)` for each card still in hand (R-101). With an empty hand only `PASS`. |
+| TURN_START | setup; a summon; a card play or its last sub-step when the summon is skipped; a pass (no struggle); a struggle | `PASS` always (R-101, R-103); `PLAY(c)` for each card still in hand (R-101). With an empty hand only `PASS`. |
 | SUPPORT_TARGET | `PLAY(1..3)` when ≥1 eligible region and supply of that faction ≥1 (R-210, R-211) | `REGION(r)` for each eligible region *r* (R-210) |
 | ASSEMBLE_S, ASSEMBLE_W, ASSEMBLE_E | `PLAY(4)`; then each next phase in S → W → E order, skipping a faction with empty supply (R-212) | `REGION(r)` for every open region *r* |
 | NEG_FIRST | `PLAY(5)` when ≥2 eligible cards (R-213) | `REGION(r)` for each eligible card that has an eligible partner with a higher region index |
@@ -62,8 +62,8 @@ decision nodes; chance nodes use the chance player.
 | NEG_DISC | NEG_SECOND | the two chosen regions: `REGION(first)`, `REGION(second)` |
 | MAN_FIRST | `PLAY(6)` when a legal swap exists (R-214, R-216) | `FOLLOWER(r1, f1)` with a legal canonical completion |
 | MAN_SECOND | MAN_FIRST | `FOLLOWER(r2, f2)` with *r2* > *r1*, followers present, and the swap not blocked by R-216 |
-| OUT_SINGLE | `PLAY(7)` when a legal swap exists (R-215) | `FOLLOWER(r1, f)` that has a legal completion in the mode below |
-| OUT_FIRST | OUT_SINGLE | `FOLLOWER(r2, f)` with *r2* bordering *r1* (R-002); in 1-for-1 mode also *r2* > *r1* and the swap not blocked by R-216 |
+| OUT_SINGLE | `PLAY(7)` when a legal swap exists (R-215); in 1-for-1 mode this first pick is not a "single" but keeps the name | `FOLLOWER(r1, f)` that has a legal completion in the mode below (in 1-for-1 mode a completion with *r2* > *r1*) |
+| OUT_FIRST | OUT_SINGLE | `FOLLOWER(r2, f)`, a follower present, with *r2* bordering *r1* (R-002); 1-for-1 mode uses OUT_SINGLE → OUT_FIRST only; in 1-for-1 mode also *r2* > *r1* and the swap not blocked by R-216 |
 | OUT_SECOND | OUT_FIRST, 1-for-2 mode only | `FOLLOWER(r2, f')` with the same *r2*, *f'* ≥ *f* of the first pair pick, a follower available (two if *f'* = *f*), swap not blocked (R-216) |
 | SUMMON | after every card's effect, if any follower is on a region (R-201) | `FOLLOWER(r, f)` for each (region, faction) present on the board |
 | TERMINAL | R-304 | none; returns by R-405 |
@@ -80,7 +80,7 @@ eligible region or the supply is 0.
 ### Assemble (R-212)
 `PLAY(4)` → `REGION` for the Scottish follower → `REGION` for the Welsh → `REGION` for the English.
 A faction with an empty supply gets no sub-step. At least one open region always exists when a card is
-playable, so Assemble always has a target (with an empty supply across all factions it has none).
+playable, so Assemble always has a target; if every faction's supply is empty it has no sub-steps.
 
 ### Negotiate (R-213)
 `PLAY(5)` → `REGION(r1)` → `REGION(r2)` with *r2* > *r1*, both eligible (face up, no disc) → `REGION`
@@ -107,7 +107,7 @@ When the card is played the **mode** is fixed from the position at that moment:
 Earlier picks are legal only if they have a legal completion in the current mode.
 
 ### Undo block (R-216, R-217)
-The state stores the reference board B* (region contents and states, R-004) as defined in R-216:
+The state stores the reference board B* (region contents and states, R-004) as defined in R-216 (D22: if the summoned follower's region held none of that faction before L's effect, B* is void and nothing is blocked):
 the position before L's effect with L's summoned follower removed. It is captured when L's effect starts,
 completed when L's summon is made, and cleared by any other card play (R-217). Every mask above that says "not blocked" applies only when the card being resolved is the same type as L (Manoeuvre vs Manoeuvre, Outmanoeuvre vs Outmanoeuvre; otherwise nothing is blocked, R-216) and compares the candidate swap's resulting board
 (before its own summon) with B*. The observation must expose enough of B* for this to be reproduced.
