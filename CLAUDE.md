@@ -21,7 +21,7 @@ The main session orchestrates; it delegates rather than writing large changes it
 - IMPORTANT: no rule behaviour without a `docs/RULES_SPEC.md` entry. Ambiguity → stop, add it to
   PLAN.md §9, ask the user. Never resolve a rules question by guessing.
 - Once the spec's Status is APPROVED it is locked (a hook enforces this). Propose amendments to the user.
-- Tests written ahead of code carry `@pytest.mark.pending("R-012")`; remove the marker when the rule lands.
+- Tests written ahead of code carry `@pytest.mark.pending("R-012")` (rules) or `@pytest.mark.regression("<report id>")` (playtest bugs, strict xfail); remove the marker when the rule or fix lands.
 - Never edit a test to make it pass, and never regenerate `tests/playthroughs/` golden files without
   saying why in the commit message.
 - Action IDs are frozen once Phase 2 closes: replays and playtest reports depend on them.

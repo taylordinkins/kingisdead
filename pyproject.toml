@@ -27,6 +27,7 @@ pythonpath = ["."]
 addopts = "--import-mode=importlib -m 'not slow'"
 markers = [
     "pending(rule_id): test written from the spec ahead of the implementation; runs as non-strict xfail until the implementer removes the marker",
+    "regression(report_id): regression test for a playtest report; runs as strict xfail, so it XPASSes (suite red) once the bug is fixed and the implementer must remove the marker",
     "slow: long simulation runs (CI and /close-phase only; run with -m slow)",
 ]
 

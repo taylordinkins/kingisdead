@@ -17,8 +17,9 @@ params, seats, full action history, the user's note, and the state at report tim
    - **Not a bug:** the rules work as the spec says; explain which rule and why.
 3. Act on the class:
    - Engine bug: `spec-test-writer` adds a failing regression test in
-     `tests/regressions/test_report_<id>.py` built from the report's history; then `implementer`
-     fixes it; then `sim-runner` runs the full suite.
+     `tests/regressions/test_report_<id>.py` built from the report's history and marked
+     `@pytest.mark.regression("<id>")` (strict xfail, so the gate stays green while it fails); then
+     `implementer` fixes it and removes the marker once the test passes; then `sim-runner` runs the full suite.
    - Spec gap: stop. Present the situation and the candidate readings with AskUserQuestion. After
      the user decides, record it in PLAN.md (§3 or §4) and, if the spec is APPROVED, ask them to set
      it to AMENDING so the rule can be added.

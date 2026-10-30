@@ -8,12 +8,12 @@ edit uses it. Never blocks.
 from __future__ import annotations
 
 import json
-import os
 import shutil
 import subprocess
 import sys
+from pathlib import Path
 
-ROOT = os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
+ROOT = Path(__file__).resolve().parents[2]
 
 
 def main() -> int:

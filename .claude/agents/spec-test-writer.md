@@ -28,9 +28,11 @@ For each rule ID you're given:
   partial actions), and at least one case where the action must NOT be legal.
 - Put board setups in `tests/scenarios/*.json` when reused; keep one-off ones inline.
 - Mark every new test `@pytest.mark.pending("R-012")` unless told the rule is already implemented.
-  Regression tests for a playtest report go in `tests/regressions/` without the marker: they must fail.
+  Regression tests for a playtest report go in `tests/regressions/` and carry
+  `@pytest.mark.regression("<report id>")` instead (strict xfail): they must fail until the bug is
+  fixed, and the suite goes red if one passes while the marker is still there.
 
-Run `uv run pytest -q` before finishing; tests must collect and run (pending ones show as xfail).
+Run `uv run pytest -q` before finishing; tests must collect and run (pending and regression ones show as xfail).
 
 Report:
 - Tests added, grouped by rule ID

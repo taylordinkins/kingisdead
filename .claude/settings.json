@@ -20,10 +20,10 @@
       "Bash(npm test *)"
     ],
     "deny": [
-      "Bash(git push --force *)",
-      "Bash(git push -f *)",
-      "Bash(git push origin master *)",
-      "Bash(git push origin main *)"
+      "Bash(git push *master*)",
+      "Bash(git push *+*)",
+      "Bash(git push *--force*)",
+      "Bash(git push * -f*)"
     ]
   },
   "hooks": {
