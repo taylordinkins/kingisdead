@@ -1,0 +1,25 @@
+{
+  "format": 1,
+  "kind": "state",
+  "description": "Terminal coronation, 3 players. Scottish and Welsh both control 3 regions; Scottish won the last struggle so rank 1 = S, rank 2 = W. P0 and P1 tie on 2 Scottish followers; P1 has more Welsh (2 vs 1) and wins.",
+  "players": 3,
+  "slots": ["Devon", "Moray", "Gwynedd", "Warwick", "Essex", "Lancaster", "Northumbria", "Strathclyde"],
+  "courts": [{"S": 2, "W": 1}, {"S": 2, "W": 2}, {"S": 1, "E": 1}],
+  "struggles": 8,
+  "region_state": {
+    "Devon": "S", "Moray": "W", "Gwynedd": "unstable", "Warwick": "E",
+    "Essex": "W", "Lancaster": "S", "Northumbria": "W", "Strathclyde": "S"
+  },
+  "recent_win": {"S": 8, "W": 7, "E": 4},
+  "hands": [
+    ["negotiate", "assemble"],
+    ["negotiate", "assemble", "manoeuvre"],
+    ["negotiate", "outmanoeuvre"]
+  ],
+  "last_play": [15, 16, 17],
+  "last_card": {"type": "assemble"},
+  "example": {
+    "actions": [],
+    "expect": {"terminal": true, "winners": [1], "returns": [-0.5, 1.0, -0.5]}
+  }
+}

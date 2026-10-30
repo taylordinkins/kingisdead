@@ -1,0 +1,33 @@
+{
+  "format": 1,
+  "kind": "state",
+  "description": "R-216 example 2, just after player 0's Outmanoeuvre and summon. Player 1's only 1-for-2 swap reproduces B*, so it is blocked and 1-for-1 is forced.",
+  "players": 2,
+  "slots": ["Moray", "Strathclyde", "Lancaster", "Northumbria", "Gwynedd", "Warwick", "Essex", "Devon"],
+  "regions": {
+    "Moray":       {"W": 2},
+    "Strathclyde": {"S": 1}
+  },
+  "courts": [{"E": 1}, {}],
+  "to_play": 1,
+  "hands": [
+    ["scottish_support", "welsh_support", "english_support", "assemble", "assemble", "negotiate", "manoeuvre"],
+    ["scottish_support", "welsh_support", "english_support", "assemble", "assemble", "negotiate", "manoeuvre", "outmanoeuvre"]
+  ],
+  "last_play": [1, null],
+  "last_card": {
+    "type": "outmanoeuvre",
+    "reference_board": {
+      "regions": {"Moray": {"S": 1}, "Strathclyde": {"W": 2}},
+      "region_state": {}
+    }
+  },
+  "example": {
+    "actions": [7, 17, 19],
+    "expect": {
+      "legal_after": {"1": [17], "2": [19]},
+      "regions": {"Moray": {"S": 1, "W": 1}, "Strathclyde": {"W": 1}},
+      "phase": "SUMMON"
+    }
+  }
+}
