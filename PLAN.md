@@ -146,11 +146,12 @@ kingisdead/                   # repository root
 
 Tooling: `uv`, `pytest` + `hypothesis`, `ruff`; `npm` + Vite + Vitest; one Playwright smoke test.
 
-### 5.2 OpenSpiel game definition (to be confirmed in Phase 0 against 2.0.2)
+### 5.2 OpenSpiel game definition (confirmed against 2.0.2, see docs/OPENSPIEL_NOTES.md)
 
 - `short_name="python_king_is_dead"`, `dynamics=SEQUENTIAL`, `chance_mode=EXPLICIT_STOCHASTIC`, `information=PERFECT_INFORMATION`, `utility=ZERO_SUM`, `reward_model=TERMINAL`, `min_num_players=2`, `max_num_players=3` (→ 4 in Phase 6).
-- Parameters: `players` (int).
-- `num_distinct_actions=40`, `max_chance_outcomes=8`, `max_game_length` computed from bounds (setup chance nodes + ≤8 cards × sub-steps per player + bounded passes).
+- Parameters: `players` (int, default 2), declared via `parameter_specification={"players": 2}`. `load_game` does not enforce the player-count range for Python games, so `Game.__init__` validates it and builds `GameInfo(num_players=…)` from the parameter.
+- `num_distinct_actions=40`, `max_chance_outcomes=8`, `max_game_length` computed from bounds and counting **player decisions only** (≤8 cards × sub-steps per player + bounded passes). Chance nodes are not counted in 2.0.2 (`random_sim_test` enforces this); bound them separately by overriding `Game.max_chance_nodes_in_history()` (setup draws).
+- Observation via `Game.make_py_observer` (flat float32 `tensor` + named `dict` views + `set_from`/`string_from`); state serialization is the default (history + pickled `__dict__`), so all state attributes must be picklable.
 
 ### 5.3 Turn phase machine
 
