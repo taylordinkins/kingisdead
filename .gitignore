@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.hypothesis/
+.coverage
+htmlcov/
+
+# Node / web
+node_modules/
+web/dist/
+web/playwright-report/
+web/test-results/
+
+# Rulebook and other copyrighted reference material (see docs/rules/README.md)
+docs/rules/*
+!docs/rules/README.md
+
+# Claude Code: personal settings and non-shared agent memory
+.claude/settings.local.json
+.claude/agent-memory-local/
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/
