@@ -1,7 +1,7 @@
 # Phase 1 report: rules spec
 
-Branch `phase-1/rules-spec`. Status: **awaiting your review** (spec Status is still DRAFT; only you
-set APPROVED).
+Branch `phase-1/rules-spec`. Status: **spec APPROVED by the user on 2026-10-30** (the user authorised
+the Status change; the spec, ACTIONS.md and SCENARIOS.md are locked, amendments go through the user).
 
 ## Deliverables
 
@@ -28,7 +28,12 @@ set APPROVED).
 D20 (no-op swap and 1-for-1 Outmanoeuvre blocked) and D21 (board-based undo block: reference board =
 pre-L board minus L's summoned follower), both user-confirmed.
 
-## For your review
+## Reviewed and approved
+
+The user reviewed the spec and approved everything below: the ⚑ defaults, the region index order and
+the pass-count reset.
+
+## Defaults reviewed
 
 Defaults the rulebook does not state, marked ⚑ in the spec: player 0 starts (R-014), a player with no
 cards has only PASS (R-101), a power struggle does not lift the undo block (R-217), Support with an empty
