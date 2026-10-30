@@ -278,12 +278,14 @@ Example: Moray [S S S S], Strathclyde [W W W W]: swap (Moray, S) with {W, W}: Mo
 Strathclyde [W W S]. 1-for-2 swaps exist anywhere, so a 1-for-1 swap is not allowed.
 
 ### R-216 — Undo block
-Source: rulebook "Manoeuvre", "Outmanoeuvre" p9; PLAN.md C2, D20, D21
+Source: rulebook "Manoeuvre", "Outmanoeuvre" p9; PLAN.md C2, D20, D21, D22
 Statement: Let L be the most recent card played in the game. If L is a Manoeuvre or an
 Outmanoeuvre that made a swap, including a same-faction swap that changes nothing (each player holds one of each, so a play of the same type as L is
 always by another player in the base game), the state retains a reference board B*: the position of
 all regions (followers per faction in each region, and each region's state, R-004) immediately
-before L's effect, with L's summoned follower removed (if L's player summoned one). A play of the same
+before L's effect, with L's summoned follower removed (if L's player summoned one). If that follower
+was taken from a region that held no follower of its faction before L's effect (L's swap had just moved
+it there), B* is void and nothing is blocked (D22). A play of the same
 card type as L is not legal if its resulting board (before its own summon) equals B*; this
 applies to every form of the card (Manoeuvre; Outmanoeuvre 1-for-2 and 1-for-1) and whichever
 region is picked first. Manoeuvre and Outmanoeuvre do not block each other. If L made no swap (no legal swap existed, R-202), or L
@@ -305,6 +307,10 @@ Example 3: Moray [S E], Strathclyde [S W E], Devon [W W W W]. L = Outmanoeuvre s
 for {S, W}, summoning a W from Devon: Moray [E S W], Strathclyde [E S]. B* = Moray [S E],
 Strathclyde [S W E], Devon [W W W]. The next player's swap of (Strathclyde, E) for {E, W} from
 Moray gives B* and is blocked, although it is not the same picks reversed.
+Example 4: Moray [S S S S], Essex [E E E E]. L = Manoeuvre swapping (Moray, S) with (Essex, E),
+summoning the E that is now in Moray. Moray held no E before L, so B* is void: Moray [S S S],
+Essex [S E E E] and the next player's Manoeuvre has no blocked picks (see
+tests/scenarios/undo_block_void.json).
 
 ### R-217 — Undo block lifetime
 Source: rulebook "Manoeuvre" p9; PLAN.md C2, D21
