@@ -364,9 +364,10 @@ unstable → invasion.
 ### R-400 — End triggers
 Source: rulebook "Game end" p7; PLAN.md C4
 Statement: The game ends immediately, with no further action, summon or struggle, when R-304
-says so. Invasion ends it the moment the third instability disc is placed; coronation ends it after
+says so. Invasion ends it when the struggle that places the third instability disc has finished (R-304); coronation ends it after
 the eighth struggle if no invasion occurred. A game that has ended has no legal actions and its
-outcome is computed by R-401 or R-403 from the final state.
+outcome is computed from the final state by R-402 (invasion) or R-403 and R-404 (coronation), with
+returns by R-405.
 Example: The third unstable region is placed → invasion, even though struggles remain.
 
 ### R-401 — Tie-break records
@@ -389,10 +390,11 @@ Example: Courts P0 [S S W E], P1 [S W E E]: both have 1 set. P1 played the later
 ### R-403 — Coronation ranking
 Source: rulebook "Coronation" p7; PLAN.md C3
 Statement: Factions are ranked by (number of regions they control, descending), then by recent-win
-value (descending, R-303). Total controlled regions at coronation is at least 6 (at most two
-regions are unstable, since a third ends the game, R-304), so two factions can only tie after both
-criteria if both control 0 regions (both recent-win −1). The rank of such tied factions is
-undefined. At coronation rank 1 is always defined.
+value (descending, R-303). Each struggle number is recorded for at most one faction, so two factions
+that both control at least 1 region always differ on recent-win; a tie after both criteria needs
+both to control 0 regions (both recent-win −1), and the rank of such tied factions is undefined.
+At least 6 regions are controlled at coronation (at most two are unstable, since a third ends the
+game, R-304), so at most two factions can tie this way and rank 1 is always defined.
 Example: S controls 4, W 2, E 2: W and E tie on regions → the one whose recent-win is larger ranks 2nd.
 Example: S controls 6, W 0, E 0 (two unstable): rank 1 = S; ranks 2 and 3 are undefined.
 

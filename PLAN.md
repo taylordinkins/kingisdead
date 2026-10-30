@@ -245,7 +245,7 @@ Each phase starts with a short plan and task list and ends with its exit criteri
 Task list (approved 2026-10-30, branch `phase-1/rules-spec`):
 - [x] 1. Components, setup and turn flow (regions, C1, factions, counts, setup, turn order, PASS, C4) → `docs/RULES_SPEC.md`
 - [x] 2. Six action cards plus summon (C7, C10, C9, C2, C8, C6) → `docs/RULES_SPEC.md`
-- [ ] 3. Power struggle, end of game, scoring (C5, C3, D8, D9) → `docs/RULES_SPEC.md`
+- [x] 3. Power struggle, end of game, scoring (C5, C3, D8, D9) → `docs/RULES_SPEC.md`
 - [ ] 4. Action catalogue: IDs, phase machine, canonical ordering, masks → `docs/ACTIONS.md`
 - [ ] 5. Scenario JSON format plus 2–3 examples → `docs/ACTIONS.md` or `docs/SCENARIOS.md`, `tests/scenarios/*.json`
 - [ ] 6. Independent audit vs rulebook (`rules-auditor`)
