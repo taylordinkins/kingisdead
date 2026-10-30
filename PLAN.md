@@ -239,6 +239,15 @@ Each phase starts with a short plan and task list and ends with its exit criteri
 - Independent audit of the spec against the rulebook.
 - *Exit:* you approve the spec. After approval, behaviour changes require a spec change you sign off.
 
+Task list (approved 2026-10-30, branch `phase-1/rules-spec`):
+- [ ] 1. Components, setup and turn flow (regions, C1, factions, counts, setup, turn order, PASS, C4) → `docs/RULES_SPEC.md`
+- [ ] 2. Six action cards plus summon (C7, C10, C9, C2, C8, C6) → `docs/RULES_SPEC.md`
+- [ ] 3. Power struggle, end of game, scoring (C5, C3, D8, D9) → `docs/RULES_SPEC.md`
+- [ ] 4. Action catalogue: IDs, phase machine, canonical ordering, masks → `docs/ACTIONS.md`
+- [ ] 5. Scenario JSON format plus 2–3 examples → `docs/ACTIONS.md` or `docs/SCENARIOS.md`, `tests/scenarios/*.json`
+- [ ] 6. Independent audit vs rulebook (`rules-auditor`)
+- [ ] 7. Fix round, Phase 1 report, ✋ user review and approval
+
 **Phase 2 — Engine (2–3 players, base game)**
 - `constants`, `rules`, `actions`, `game`, `observer`; tests first per rule ID; invariant checker; `tools/play_text.py` for agent self-play debugging; golden playthroughs for 3 seeds; card-by-card independent review.
 - *Exit:* all rule tests green; `random_sim_test` passes; 10,000 random games with zero invariant violations; `sim_stats` report (end-type mix, game length) recorded.
