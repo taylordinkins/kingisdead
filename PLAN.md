@@ -313,6 +313,7 @@ Opus runs at phase close and as spot audits only on units touching scoring, powe
 ## 9. Open questions (deferred)
 
 - Phase 6: team returns and tiebreak presentation for partners.
+- Phase 1 (R-216): is "undo" pick-based (draft) or board-based? They differ for a 1-for-2 Outmanoeuvre whose single's faction also appears in its pair (auditor example: Moray [S E], Strathclyde [S W E]; L swaps (Moray,S) for {S,W}; then (Strathclyde,E) for {E,W} restores the pre-L board but is not blocked by the pick rule).
 - Phase 7: Spy copying Negotiate when your disc is already used; Spy and the undo block; Plot interaction with draws (D9).
 - Phase 8: algorithm (AlphaZero vs PPO-style), training budget, whether a C++ port is needed for speed.
 

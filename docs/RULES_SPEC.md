@@ -164,7 +164,9 @@ Source: rulebook "Taking actions" p6
 Statement: Playing a card removes it from the player's hand for the rest of the game (a player
 therefore plays at most 8 cards), resolves its effect (R-210..R-215), then the player summons a follower
 (R-201). Then the turn passes to the next player (R-100). The card is recorded in the
-player's play history in order, and the identity of the most recent card played is retained.
+player's play history in order. For the most recent card played the state also retains who played
+it and, for Manoeuvre and Outmanoeuvre, its form (1-for-1 or 1-for-2) and its picks (R-216), or that
+it had no effect.
 Example: After playing Manoeuvre and summoning, the player's hand has 7 cards.
 
 ### R-103 — Pass
@@ -227,9 +229,8 @@ Statement: Let F be the card's faction and H its home region (R-003). A region r
 F's Support when r is open and either (a) r borders a region controlled by F, or (b) H is open
 (no control or instability disc) and r borders H. H itself is eligible only through (a). Closed
 regions are never eligible (R-200).
-Example: Scottish Support, Moray open, nothing controlled: eligible = {Strathclyde}. If Moray holds
-a Welsh control disc and Strathclyde is open and borders no Scottish-controlled region, nothing
-is eligible.
+Example: Scottish Support, no discs on the board: eligible = {Strathclyde}. If Moray holds a Welsh
+control disc and no region is Scottish-controlled, nothing is eligible.
 
 ### R-211 — Support cards: effect
 Source: rulebook "Scottish/Welsh/English Support" p9; PLAN.md C7
@@ -250,7 +251,7 @@ Example: Supply has no Welsh followers: Assemble places only a Scottish and an E
 Source: rulebook "Negotiate" p9; PLAN.md C9
 Statement: A region card is eligible for Negotiate when it is face up and carries no negotiation
 disc. If at least two are eligible, the player chooses two distinct eligible cards and swaps their
-slots (each card keeps its own disc, if any), then
+slots, then
 places their own negotiation disc on one of the two cards of their choice (R-006: the disc is then
 spent). If fewer than two are eligible there is no effect and the disc stays unused.
 Example: Slots 1..8 face up, none with discs: Negotiate swapping slots 3 and 5, disc on the card
@@ -279,17 +280,24 @@ Strathclyde [W W S]. 1-for-2 swaps exist anywhere, so a 1-for-1 swap is not allo
 ### R-216 — Undo block
 Source: rulebook "Manoeuvre", "Outmanoeuvre" p9; PLAN.md C2
 Statement: Let L be the most recent card played in the game, if it was a Manoeuvre or an
-Outmanoeuvre by another player (in the base game every earlier play is by another player, since each
-player has one of each). A play of the same card type may not be an exact reverse of L:
-- Manoeuvre. L picked {(r1, f1), (r2, f2)}. The blocked play picks {(r1, f2), (r2, f1)}.
+Outmanoeuvre (each player holds one of each, so a play of the same type as L is always by another
+player in the base game). If L had no effect, nothing is blocked. A play of the same card type may not be an exact reverse of L:
+- Manoeuvre. L picked {(r1, f1), (r2, f2)}. The blocked play picks {(r1, f2), (r2, f1)}. Picks are unordered: the block holds whichever
+  region is picked first, and likewise for 1-for-1 Outmanoeuvre.
   With f1 = f2 this is L's own picks, so an identical no-op swap is blocked (⚑ PLAN.md D20).
 - Outmanoeuvre. L swapped a single (r1, fx) with a pair {fy, fz} in r2. The blocked play swaps a
   single (r2, fx) with a pair {fy, fz} in r1 (1-for-2 reverse). For a 1-for-1 L, picking (r1, f1)
   and (r2, f2), the blocked play is the 1-for-1 picking (r1, f2) and (r2, f1) (⚑ no rulebook text
   covers this form; PLAN.md D20).
 A blocked play is not legal (R-214, R-215). Manoeuvre and Outmanoeuvre do not block each other.
-Example: L = Manoeuvre swapping (Moray, S) with (Essex, E). The next player may not pick
-(Moray, E) with (Essex, S), but may pick (Moray, S) with (Essex, E) again or any other pair.
+Example 1: Moray [S S S S], Essex [E E E E]; L = Manoeuvre swapping (Moray, S) with (Essex, E),
+leaving Moray [S S S E], Essex [E E E S]. The next player (nobody has summoned from these regions)
+may not pick (Moray, E) with (Essex, S), but may pick (Moray, S) with (Essex, E) again.
+Example 2: Moray [S], Strathclyde [W W], Devon [E], all other regions empty. Player 0 plays
+Outmanoeuvre (the only 1-for-2 swap is (Moray, S) for {W, W}: Moray [W W], Strathclyde [S]) and
+summons Devon's E. Player 1 plays Outmanoeuvre: the only 1-for-2 swap, (Strathclyde, S) for {W, W}
+from Moray, is the exact reverse, so it is blocked and player 1 must use 1-for-1, e.g. (Moray, W)
+with (Strathclyde, S) → Moray [W S], Strathclyde [W].
 
 ### R-217 — Undo block lifetime
 Source: rulebook "Manoeuvre" p9; PLAN.md C2
@@ -298,4 +306,5 @@ does not clear it, and a power struggle does not clear it (⚑ C2: the rulebook 
 other action"; a struggle is not an action). If L is replaced by a card other than Manoeuvre or
 Outmanoeuvre there is no block.
 Example: 3 players: player 0 Manoeuvres, 1 and 2 and 0 pass, a struggle resolves, player 1 acts:
-still blocked. If instead player 1 plays Assemble, player 2 is not blocked.
+still blocked (assuming the struggle was in neither swapped region and no summon emptied them). If
+instead player 1 plays Assemble, player 2 is not blocked.
