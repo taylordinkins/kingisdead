@@ -58,8 +58,8 @@ Source: rulebook "Taking actions" p6 ("regions with a control disc or an instabi
 Statement: Each region is in exactly one state: open (no disc), controlled by a faction
 (that faction's control disc), or unstable (an instability disc). Controlled and unstable regions
 are together called closed. A region only ever moves open → controlled or open → unstable, and
-never changes again (see Power struggle). Followers can be on open regions only, except in the
-moment of a power struggle (R-3xx).
+never changes again (R-301). Followers can be on open regions only, except in the
+moment of a power struggle (R-302).
 Example: A region with a Welsh control disc is closed and controlled by the Welsh.
 
 ### R-005 — Follower pool
@@ -138,7 +138,7 @@ Example: A 3-player game starts with 16 followers in the supply and player 0 to 
 Source: derived from R-005, R-013
 Statement: At every state, for each faction, followers in regions + courts + supply equal the
 faction's pool (R-005). A closed region holds 0 followers (a struggle returns them all to the supply
-as it closes the region, R-3xx), so followers are only ever on open regions. There is no per-region
+as it closes the region, R-302), so followers are only ever on open regions. There is no per-region
 follower limit after setup.
 Example: After any action, Σ Scottish in regions, courts and supply = 16 (2-player).
 
@@ -183,7 +183,7 @@ Example: Passes by players 0 and 1, then player 2 plays Assemble → count 0.
 ### R-105 — Power struggle trigger
 Source: rulebook "Turns", "Power struggles" p6; PLAN.md C4
 Statement: When the consecutive-pass count reaches the number of players, a power struggle is
-resolved immediately and automatically (no player decision; resolution is R-3xx), the count is
+resolved immediately and automatically (no player decision; resolution is R-300..R-304), the count is
 reset to 0, and the player to act next is the player after the one who made the last pass. If
 the game has not ended, play then continues as normal.
 Example: 3 players: player 1 plays a card; 2, 0, 1 pass → struggle; player 2 acts next.
@@ -243,7 +243,7 @@ Source: rulebook "Assemble" p9; PLAN.md C10
 Statement: The player places one Scottish, then one Welsh, then one English follower from the
 supply, each into any open region chosen separately (the regions may be equal). A faction with no
 followers in the supply is skipped and the other factions are still placed. At least one open
-region exists whenever a card can be played (the eighth struggle ends the game, R-4xx).
+region exists whenever a card can be played (the eighth struggle ends the game, R-304).
 Example: Supply has no Welsh followers: Assemble places only a Scottish and an English follower.
 
 ### R-213 — Negotiate
@@ -315,3 +315,101 @@ no later play can reproduce B* where that region's state or followers differ.
 Example: 3 players: player 0 Manoeuvres, 1 and 2 and 0 pass, a struggle resolves in a region that was
 open in B* (now closed), player 1 acts: nothing can match B*, so no play is blocked. If instead
 player 1 plays Assemble, player 2 is not blocked.
+
+### Power struggle
+
+### R-300 — Contested region
+Source: rulebook "Power struggles" p6
+Statement: The contested region is the region of the face-up region card in the lowest-numbered slot
+(1–8). Negotiate (R-213) changes which region is in which slot, so it changes the order in which
+regions are contested. At least one face-up card exists whenever a struggle is resolved, because the
+game ends after the eighth struggle.
+Example: Face-up cards in slots 3, 5, 8 → the region of slot 3 is contested.
+
+### R-301 — Winner of a struggle
+Source: rulebook "Power struggles" p6; PLAN.md C5
+Statement: Count the followers of each faction in the contested region. If one faction has strictly
+more than each other faction (and so at least 1), that faction controls the region: the region
+becomes controlled by it (a control disc of that faction is placed). Otherwise (a tie for most
+followers, including no followers at all) the region becomes unstable: an instability disc is
+moved from France onto it.
+Example: [S S W E] → Scottish control. [S S W W] → unstable. [] → unstable. [S W E] → unstable.
+
+### R-302 — Followers leave
+Source: rulebook "Power struggles" p6; PLAN.md C5
+Statement: Once the region's state is set (R-301), all of its followers are returned to the supply.
+Example: A region [S S W E] controlled by the Scots: supply gains 2 Scottish, 1 Welsh, 1 English.
+
+### R-303 — Flip and record
+Source: rulebook "Power struggles", "Coronation" p6–7; PLAN.md C3, C5
+Statement: The contested region's card is turned face down (it stays in its slot and can no longer
+be contested or negotiated, R-213). The number of struggles resolved increases by 1 (so the first
+struggle is number 1). If a faction took control, the struggle's number is recorded as that
+faction's most recent win; an unstable result records nothing. A faction that never won has
+recent-win value −1.
+Example: The third struggle gives the Welsh control: Welsh recent-win = 3.
+
+### R-304 — After a struggle
+Source: rulebook "Power struggles", "Game end" p6–7; PLAN.md C4
+Statement: After R-300..R-303 the consecutive-pass count is reset (R-105). Then: if three
+instability discs are on the board the game ends as an invasion (R-400); otherwise if the eighth
+struggle has now been resolved the game ends as a coronation (R-400); otherwise play continues
+(R-105). The invasion check comes first: if the eighth struggle makes the third instability disc, the
+game is an invasion.
+Example: Eight struggles with two unstable regions → coronation. The eighth struggle is the third
+unstable → invasion.
+
+### Game end and scoring
+
+### R-400 — End triggers
+Source: rulebook "Game end" p7; PLAN.md C4
+Statement: The game ends immediately, with no further action, summon or struggle, when R-304
+says so. Invasion ends it the moment the third instability disc is placed; coronation ends it after
+the eighth struggle if no invasion occurred. A game that has ended has no legal actions and its
+outcome is computed by R-401 or R-403 from the final state.
+Example: The third unstable region is placed → invasion, even though struggles remain.
+
+### R-401 — Tie-break records
+Source: rulebook "Game end" p7; PLAN.md C3
+Statement: The state records, for tie-breaks: for each player the number of the most recent card they
+played, counting card plays across the game in order from 1 (none if they never played); the number
+of the card play at which each player's hand became empty (none if it never did); and each faction's
+recent-win value (R-303).
+Example: Player 1 played the 9th card overall, and it was their 8th card → their hand-empty time = 9.
+
+### R-402 — Invasion winner
+Source: rulebook "Invasion" p7; PLAN.md C3
+Statement: Each player's number of complete sets is the minimum over the three factions of that
+faction's follower count in the player's court. The player with the most sets wins. Among tied
+players, the one with the highest last-play number (R-401, most recently played an action card)
+wins; a player who never played has none and loses to any tied player who did. If none of the tied
+players ever played a card the tied players share the win (R-405).
+Example: Courts P0 [S S W E], P1 [S W E E]: both have 1 set. P1 played the later card → P1 wins.
+
+### R-403 — Coronation ranking
+Source: rulebook "Coronation" p7; PLAN.md C3
+Statement: Factions are ranked by (number of regions they control, descending), then by recent-win
+value (descending, R-303). Total controlled regions at coronation is at least 6 (at most two
+regions are unstable, since a third ends the game, R-304), so two factions can only tie after both
+criteria if both control 0 regions (both recent-win −1). The rank of such tied factions is
+undefined. At coronation rank 1 is always defined.
+Example: S controls 4, W 2, E 2: W and E tie on regions → the one whose recent-win is larger ranks 2nd.
+Example: S controls 6, W 0, E 0 (two unstable): rank 1 = S; ranks 2 and 3 are undefined.
+
+### R-404 — Coronation winner
+Source: rulebook "Coronation" p7; PLAN.md C3
+Statement: Step 1: the player with the most followers of the rank-1 faction in court wins; if unique,
+done. Step 2: among the tied players, the one with the most followers of the rank-2 faction wins;
+if the rank-2 faction is undefined this step is skipped. Step 3: among the players still tied, the
+one whose hand became empty earliest (lowest hand-empty number, R-401) wins; a player whose hand
+never became empty loses to any tied player whose hand did. If none of the still-tied players ever
+emptied their hand, they share the win (R-405). Each step is applied only to players still tied.
+Example: Rank 1 = S, rank 2 = W. Courts P0 [S S W], P1 [S S E], P2 [S]. P0 and P1 tie on S (2); W: P0 1,
+P1 0 → P0 wins.
+
+### R-405 — Returns
+Source: PLAN.md D8, D9
+Statement: Returns are computed only at the end of the game and are zero for every player at every
+earlier state. If k of the n players win (k = 1 for a sole winner, k > 1 for a shared win), each winner
+gets (n − k) / (k·(n − 1)) and each non-winner gets −1/(n − 1). Returns always sum to 0.
+Example: n = 3, one winner: +1, −1/2, −1/2. n = 3, k = 2: +1/4, +1/4, −1/2. n = 2, k = 2: 0, 0.
