@@ -154,7 +154,7 @@ Example: 3 players: 0, 1, 2, 0, 1, 2, …, unless a power struggle intervenes (R
 Source: rulebook "Turns", "Taking actions" p6; PLAN.md C4, C8
 Statement: The player to act either passes or plays one card from their hand. Every card in hand
 is always playable, even if its effect would be wholly or partly impossible (partial actions are
-defined per card in R-2xx). A player with no cards in hand has exactly one legal choice, pass
+defined in R-202 and per card). A player with no cards in hand has exactly one legal choice, pass
 (⚑ C4: the rulebook does not address this case).
 Example: A player holding only Negotiate when fewer than two cards are eligible may still play it
 (no effect, summon still happens).
@@ -162,8 +162,8 @@ Example: A player holding only Negotiate when fewer than two cards are eligible 
 ### R-102 — Playing a card
 Source: rulebook "Taking actions" p6
 Statement: Playing a card removes it from the player's hand for the rest of the game (a player
-therefore plays at most 8 cards), resolves its effect (R-2xx), then the player summons a follower
-(Summon, R-2xx). Then the turn passes to the next player (R-100). The card is recorded in the
+therefore plays at most 8 cards), resolves its effect (R-210..R-215), then the player summons a follower
+(R-201). Then the turn passes to the next player (R-100). The card is recorded in the
 player's play history in order, and the identity of the most recent card played is retained.
 Example: After playing Manoeuvre and summoning, the player's hand has 7 cards.
 
@@ -193,3 +193,109 @@ Statement: A player with no cards passes automatically (R-101) and that pass cou
 R-105. A game in which all hands are empty therefore still terminates (every n passes resolves a
 struggle, and at most 8 struggles occur).
 Example: 2 players, both with empty hands: pass, pass → struggle.
+
+### Actions and summon
+
+### R-200 — Placement restriction
+Source: rulebook "Taking actions" p6; PLAN.md C7
+Statement: An action can place or move followers into open regions only, never into controlled or
+unstable regions. Because followers are only on open regions (R-015), every follower move or swap
+in this section is between open regions.
+Example: A region with an English control disc can never receive a follower from Assemble.
+
+### R-201 — Summon
+Source: rulebook "Summoning followers to court" p6; PLAN.md C6
+Statement: Immediately after resolving a card's effect, even a card with no effect, the acting
+player chooses any one follower on any region and moves it to their own court. The choice is a
+(region, faction) pair that is present on the board. A follower can never be taken from the supply
+or from another court, and it need not be from a region the action touched. If no follower is on
+any region, the summon is skipped. Summon never follows a pass.
+Example: Regions hold Moray [2 Scots] and Essex [1 English]; summoning English leaves Essex empty.
+
+### R-202 — Partial actions
+Source: rulebook "Partial actions" p6; PLAN.md C8
+Statement: A card is resolved as fully as possible. If it cannot be fully resolved it is resolved
+as far as possible, and if nothing can be done it has no effect. The card is still played (R-102)
+and the summon (R-201) still happens. Where a card says "if there is at least one instance where
+you can ..., you must", the engine offers only the choices that achieve the most complete form of
+the effect that is available at that moment (the card's own rule gives the ordering of forms).
+Example: Outmanoeuvre with a full 1-for-2 swap available may not be played as 1-for-1 (R-215).
+
+### R-210 — Support cards: eligible regions
+Source: rulebook "Scottish/Welsh/English Support" p9; PLAN.md C7
+Statement: Let F be the card's faction and H its home region (R-003). A region r is eligible for
+F's Support when r is open and either (a) r borders a region controlled by F, or (b) H is open
+(no control or instability disc) and r borders H. H itself is eligible only through (a). Closed
+regions are never eligible (R-200).
+Example: Scottish Support, Moray open, nothing controlled: eligible = {Strathclyde}. If Moray holds
+a Welsh control disc and Strathclyde is open and borders no Scottish-controlled region, nothing
+is eligible.
+
+### R-211 — Support cards: effect
+Source: rulebook "Scottish/Welsh/English Support" p9; PLAN.md C7
+Statement: The player chooses one eligible region and places min(2, supply of F) followers of F from
+the supply into it; both go to the same region. If no region is eligible or the supply of F is 0,
+the card has no effect and no region is chosen (⚑ the choice would not change the outcome).
+Example: Supply holds 1 Welsh follower: Welsh Support places that one follower.
+
+### R-212 — Assemble
+Source: rulebook "Assemble" p9; PLAN.md C10
+Statement: The player places one Scottish, then one Welsh, then one English follower from the
+supply, each into any open region chosen separately (the regions may be equal). A faction with no
+followers in the supply is skipped and the other factions are still placed. At least one open
+region exists whenever a card can be played (the eighth struggle ends the game, R-4xx).
+Example: Supply has no Welsh followers: Assemble places only a Scottish and an English follower.
+
+### R-213 — Negotiate
+Source: rulebook "Negotiate" p9; PLAN.md C9
+Statement: A region card is eligible for Negotiate when it is face up and carries no negotiation
+disc. If at least two are eligible, the player chooses two distinct eligible cards and swaps their
+slots (each card keeps its own disc, if any), then
+places their own negotiation disc on one of the two cards of their choice (R-006: the disc is then
+spent). If fewer than two are eligible there is no effect and the disc stays unused.
+Example: Slots 1..8 face up, none with discs: Negotiate swapping slots 3 and 5, disc on the card
+now in slot 3, leaves slots 3 and 5 exchanged and a disc on slot 3.
+
+### R-214 — Manoeuvre
+Source: rulebook "Manoeuvre" p9; PLAN.md C2, C8
+Statement: The player chooses a follower (r1, f1) and a follower (r2, f2) with r1 ≠ r2, both on
+regions, and swaps them: the faction-f1 follower moves to r2 and the faction-f2 follower moves to r1.
+f1 may equal f2 (the board is unchanged but the card is played). If at least one swap is legal the
+player must make one; a swap blocked by R-216 is not legal. If none is legal there is no effect.
+Example: Moray [S S S S], Essex [E E E E]: swap (Moray, S) with (Essex, E) → Moray [S S S E],
+Essex [E E E S].
+
+### R-215 — Outmanoeuvre
+Source: rulebook "Outmanoeuvre" p9; PLAN.md C2, C8
+Statement: Two regions r1, r2 are a bordering pair (R-002). Form 1-for-2: the player chooses one
+follower in r1 and two followers in r2 (a pair of factions present in r2; both of one faction
+needs two of it) and swaps them: the single goes to r2, the two go to r1. Form 1-for-1: one
+follower in r1 and one in r2, swapped. The player must use form 1-for-2 if any legal 1-for-2 swap
+exists, else form 1-for-1 if any legal 1-for-1 swap exists, else the card has no effect. A swap
+blocked by R-216 is not legal. Same-faction swaps are allowed.
+Example: Moray [S S S S], Strathclyde [W W W W]: swap (Moray, S) with {W, W}: Moray [S S S W W],
+Strathclyde [W W S]. 1-for-2 swaps exist anywhere, so a 1-for-1 swap is not allowed.
+
+### R-216 — Undo block
+Source: rulebook "Manoeuvre", "Outmanoeuvre" p9; PLAN.md C2
+Statement: Let L be the most recent card played in the game, if it was a Manoeuvre or an
+Outmanoeuvre by another player (in the base game every earlier play is by another player, since each
+player has one of each). A play of the same card type may not be an exact reverse of L:
+- Manoeuvre. L picked {(r1, f1), (r2, f2)}. The blocked play picks {(r1, f2), (r2, f1)}.
+  With f1 = f2 this is L's own picks, so an identical no-op swap is blocked (⚑ PLAN.md D20).
+- Outmanoeuvre. L swapped a single (r1, fx) with a pair {fy, fz} in r2. The blocked play swaps a
+  single (r2, fx) with a pair {fy, fz} in r1 (1-for-2 reverse). For a 1-for-1 L, picking (r1, f1)
+  and (r2, f2), the blocked play is the 1-for-1 picking (r1, f2) and (r2, f1) (⚑ no rulebook text
+  covers this form; PLAN.md D20).
+A blocked play is not legal (R-214, R-215). Manoeuvre and Outmanoeuvre do not block each other.
+Example: L = Manoeuvre swapping (Moray, S) with (Essex, E). The next player may not pick
+(Moray, E) with (Essex, S), but may pick (Moray, S) with (Essex, E) again or any other pair.
+
+### R-217 — Undo block lifetime
+Source: rulebook "Manoeuvre" p9; PLAN.md C2
+Statement: L (R-216) is replaced when any player plays any card. Passes do not clear it, a summon
+does not clear it, and a power struggle does not clear it (⚑ C2: the rulebook says "at least one
+other action"; a struggle is not an action). If L is replaced by a card other than Manoeuvre or
+Outmanoeuvre there is no block.
+Example: 3 players: player 0 Manoeuvres, 1 and 2 and 0 pass, a struggle resolves, player 1 acts:
+still blocked. If instead player 1 plays Assemble, player 2 is not blocked.

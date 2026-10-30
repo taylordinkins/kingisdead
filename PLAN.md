@@ -59,6 +59,7 @@ A faithful, well-tested implementation of *The King is Dead* as a **Python OpenS
 | D17 | Test independence (2026-10-30) | `spec-test-writer` can't read `kingisdead/` source (hook-enforced); it writes against the spec and `tests/harness.py` | Disagreements between tests and code surface bugs or spec ambiguities |
 | D18 | Persistence (2026-10-30) | Persist action histories, never `serialize()` strings; never deserialize client input | Deserialization unpickles `__dict__` without replaying history (docs/OPENSPIEL_NOTES.md) |
 | D19 | Type stub (2026-10-30) | pyspiel type stub in `typings/` keeps pyright strict on engine code | Only signatures confirmed against the installed 2.0.2; extend as needed |
+| D20 | Undo block edge cases (2026-10-30) | A no-op same-faction Manoeuvre swap is blocked like any exact reverse; an exact 1-for-1 Outmanoeuvre reverse is blocked | User-confirmed; R-216 |
 
 ## 4. Rules clarifications
 
