@@ -60,6 +60,7 @@ A faithful, well-tested implementation of *The King is Dead* as a **Python OpenS
 | D18 | Persistence (2026-10-30) | Persist action histories, never `serialize()` strings; never deserialize client input | Deserialization unpickles `__dict__` without replaying history (docs/OPENSPIEL_NOTES.md) |
 | D19 | Type stub (2026-10-30) | pyspiel type stub in `typings/` keeps pyright strict on engine code | Only signatures confirmed against the installed 2.0.2; extend as needed |
 | D20 | Undo block edge cases (2026-10-30) | A no-op same-faction Manoeuvre swap is blocked like any exact reverse; an exact 1-for-1 Outmanoeuvre reverse is blocked | User-confirmed; R-216 |
+| D21 | Undo block is board-based (2026-10-30) | A same-type play is blocked if its result equals the board before the previous Manoeuvre/Outmanoeuvre with that play's summoned follower removed; lifted by the next card played. Supersedes D20's pick-based wording; D20's no-op case still holds | User-confirmed; R-216, R-217. Needs a reference board in state/observation |
 
 ## 4. Rules clarifications
 
@@ -83,6 +84,7 @@ Home regions: Scots → Moray, Welsh → Gwynedd, English → Essex.
 **C2 — Manoeuvre / Outmanoeuvre "undo" block.** An undo is the exact reverse swap of the most recent action, when that action was another player's Manoeuvre (or Outmanoeuvre):
 - Manoeuvre undo: swapping the same two regions so the same two factions move back.
 - Outmanoeuvre undo: the original moved faction *x* from R1→R2 and factions {*y*,*z*} from R2→R1; the undo is taking *x* from R2 and {*y*,*z*} from R1.
+- **Superseded by D21 (2026-10-30):** the block is board-based, defined in R-216 (reference board = pre-L board minus L's summoned follower); the pick-based description above is the intuition only.
 - The block lasts until any player plays a card. Passes don't lift it; the original player's summon doesn't lift it. ⚑ Power struggles also don't lift it (literal reading: only *actions* count).
 
 **C3 — Winner determination and fallbacks**
@@ -242,7 +244,7 @@ Each phase starts with a short plan and task list and ends with its exit criteri
 
 Task list (approved 2026-10-30, branch `phase-1/rules-spec`):
 - [x] 1. Components, setup and turn flow (regions, C1, factions, counts, setup, turn order, PASS, C4) → `docs/RULES_SPEC.md`
-- [ ] 2. Six action cards plus summon (C7, C10, C9, C2, C8, C6) → `docs/RULES_SPEC.md`
+- [x] 2. Six action cards plus summon (C7, C10, C9, C2, C8, C6) → `docs/RULES_SPEC.md`
 - [ ] 3. Power struggle, end of game, scoring (C5, C3, D8, D9) → `docs/RULES_SPEC.md`
 - [ ] 4. Action catalogue: IDs, phase machine, canonical ordering, masks → `docs/ACTIONS.md`
 - [ ] 5. Scenario JSON format plus 2–3 examples → `docs/ACTIONS.md` or `docs/SCENARIOS.md`, `tests/scenarios/*.json`
@@ -313,7 +315,6 @@ Opus runs at phase close and as spot audits only on units touching scoring, powe
 ## 9. Open questions (deferred)
 
 - Phase 6: team returns and tiebreak presentation for partners.
-- Phase 1 (R-216): is "undo" pick-based (draft) or board-based? They differ for a 1-for-2 Outmanoeuvre whose single's faction also appears in its pair (auditor example: Moray [S E], Strathclyde [S W E]; L swaps (Moray,S) for {S,W}; then (Strathclyde,E) for {E,W} restores the pre-L board but is not blocked by the pick rule).
 - Phase 7: Spy copying Negotiate when your disc is already used; Spy and the undo block; Plot interaction with draws (D9).
 - Phase 8: algorithm (AlphaZero vs PPO-style), training budget, whether a C++ port is needed for speed.
 

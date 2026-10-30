@@ -164,9 +164,8 @@ Source: rulebook "Taking actions" p6
 Statement: Playing a card removes it from the player's hand for the rest of the game (a player
 therefore plays at most 8 cards), resolves its effect (R-210..R-215), then the player summons a follower
 (R-201). Then the turn passes to the next player (R-100). The card is recorded in the
-player's play history in order. For the most recent card played the state also retains who played
-it and, for Manoeuvre and Outmanoeuvre, its form (1-for-1 or 1-for-2) and its picks (R-216), or that
-it had no effect.
+player's play history in order. For the most recent card played the state also retains its type and,
+for an effective Manoeuvre or Outmanoeuvre, the reference board B* (R-216).
 Example: After playing Manoeuvre and summoning, the player's hand has 7 cards.
 
 ### R-103 — Pass
@@ -278,33 +277,41 @@ Example: Moray [S S S S], Strathclyde [W W W W]: swap (Moray, S) with {W, W}: Mo
 Strathclyde [W W S]. 1-for-2 swaps exist anywhere, so a 1-for-1 swap is not allowed.
 
 ### R-216 — Undo block
-Source: rulebook "Manoeuvre", "Outmanoeuvre" p9; PLAN.md C2
-Statement: Let L be the most recent card played in the game, if it was a Manoeuvre or an
-Outmanoeuvre (each player holds one of each, so a play of the same type as L is always by another
-player in the base game). If L had no effect, nothing is blocked. A play of the same card type may not be an exact reverse of L:
-- Manoeuvre. L picked {(r1, f1), (r2, f2)}. The blocked play picks {(r1, f2), (r2, f1)}. Picks are unordered: the block holds whichever
-  region is picked first, and likewise for 1-for-1 Outmanoeuvre.
-  With f1 = f2 this is L's own picks, so an identical no-op swap is blocked (⚑ PLAN.md D20).
-- Outmanoeuvre. L swapped a single (r1, fx) with a pair {fy, fz} in r2. The blocked play swaps a
-  single (r2, fx) with a pair {fy, fz} in r1 (1-for-2 reverse). For a 1-for-1 L, picking (r1, f1)
-  and (r2, f2), the blocked play is the 1-for-1 picking (r1, f2) and (r2, f1) (⚑ no rulebook text
-  covers this form; PLAN.md D20).
-A blocked play is not legal (R-214, R-215). Manoeuvre and Outmanoeuvre do not block each other.
-Example 1: Moray [S S S S], Essex [E E E E]; L = Manoeuvre swapping (Moray, S) with (Essex, E),
-leaving Moray [S S S E], Essex [E E E S]. The next player (nobody has summoned from these regions)
-may not pick (Moray, E) with (Essex, S), but may pick (Moray, S) with (Essex, E) again.
+Source: rulebook "Manoeuvre", "Outmanoeuvre" p9; PLAN.md C2, D20, D21
+Statement: Let L be the most recent card played in the game. If L is a Manoeuvre or an
+Outmanoeuvre that had an effect (each player holds one of each, so a play of the same type as L is
+always by another player in the base game), the state retains a reference board B*: the position of
+all regions (followers per faction in each region, and each region's state, R-004) immediately
+before L's effect, with L's summoned follower removed (if L's player summoned one). A play of the same
+card type as L is not legal if its resulting board (before its own summon) equals B*; this
+applies to every form of the card (Manoeuvre; Outmanoeuvre 1-for-2 and 1-for-1) and whichever
+region is picked first. Manoeuvre and Outmanoeuvre do not block each other. If L had no effect, or L
+is any other card, nothing is blocked. A blocked play drops out of the mandatory-form choice
+(R-214, R-215).
+- A pure reverse swap always reproduces B*, so it is blocked. So is any other swap with the
+  same result (e.g. the 1-for-2 case below). A same-faction no-op swap L leaves B* equal to the
+  current board, so every no-op swap is blocked (⚑ PLAN.md D20).
+Example 1: Moray [S S S S], Essex [E E E E], Devon [W W W W]. L = Manoeuvre swapping (Moray, S) with
+(Essex, E), summoning a W from Devon. B* = Moray [S S S S], Essex [E E E E], Devon [W W W]. Now
+Moray [S S S E], Essex [E E E S]. The next player may not pick (Moray, E) with (Essex, S), but may
+pick (Moray, S) with (Essex, E).
 Example 2: Moray [S], Strathclyde [W W], Devon [E], all other regions empty. Player 0 plays
-Outmanoeuvre (the only 1-for-2 swap is (Moray, S) for {W, W}: Moray [W W], Strathclyde [S]) and
-summons Devon's E. Player 1 plays Outmanoeuvre: the only 1-for-2 swap, (Strathclyde, S) for {W, W}
-from Moray, is the exact reverse, so it is blocked and player 1 must use 1-for-1, e.g. (Moray, W)
-with (Strathclyde, S) → Moray [W S], Strathclyde [W].
+Outmanoeuvre (the only 1-for-2 swap: (Moray, S) for {W, W}, giving Moray [W W], Strathclyde [S]) and
+summons Devon's E, so B* = Moray [S], Strathclyde [W W], Devon []. Player 1 plays Outmanoeuvre: the
+only 1-for-2 swap, (Strathclyde, S) for {W, W} from Moray, reproduces B* and is blocked, so player 1
+must use 1-for-1, e.g. (Moray, W) with (Strathclyde, S) → Moray [W S], Strathclyde [W].
+Example 3: Moray [S E], Strathclyde [S W E], Devon [W W W W]. L = Outmanoeuvre swapping (Moray, S)
+for {S, W}, summoning a W from Devon: Moray [E S W], Strathclyde [E S]. B* = Moray [S E],
+Strathclyde [S W E], Devon [W W W]. The next player's swap of (Strathclyde, E) for {E, W} from
+Moray gives B* and is blocked, although it is not the same picks reversed.
 
 ### R-217 — Undo block lifetime
-Source: rulebook "Manoeuvre" p9; PLAN.md C2
-Statement: L (R-216) is replaced when any player plays any card. Passes do not clear it, a summon
-does not clear it, and a power struggle does not clear it (⚑ C2: the rulebook says "at least one
-other action"; a struggle is not an action). If L is replaced by a card other than Manoeuvre or
-Outmanoeuvre there is no block.
-Example: 3 players: player 0 Manoeuvres, 1 and 2 and 0 pass, a struggle resolves, player 1 acts:
-still blocked (assuming the struggle was in neither swapped region and no summon emptied them). If
-instead player 1 plays Assemble, player 2 is not blocked.
+Source: rulebook "Manoeuvre" p9; PLAN.md C2, D21
+Statement: The block applies only until another card is played: when any player plays any card, L
+and B* are replaced (by the new card's data, or nothing, R-216). Passes do not clear it and a
+summon is part of L, not a new card. A power struggle does not clear it (⚑ C2: the rulebook says
+"at least one other action"; a struggle is not an action), but the struggle closes a region, so
+no later play can reproduce B* where that region's state or followers differ.
+Example: 3 players: player 0 Manoeuvres, 1 and 2 and 0 pass, a struggle resolves in a region that was
+open in B* (now closed), player 1 acts: nothing can match B*, so no play is blocked. If instead
+player 1 plays Assemble, player 2 is not blocked.
