@@ -7,7 +7,7 @@
 
 ### Progress
 - [x] Phase 0 — Scaffold & OpenSpiel API spike (closed 2026-10-30, see docs/phase-reports/phase-0.md)
-- [ ] Phase 1 — Rules spec ✋ *you review*
+- [x] Phase 1 — Rules spec ✋ *you review* (closed 2026-10-30, see docs/phase-reports/phase-1.md)
 - [ ] Phase 2 — Engine (2–3 players, base game)
 - [ ] Phase 3 — Server + web shell ✋ *playtest #1*
 - [ ] Phase 4 — Board UI + setup editor ✋ *playtest #2*
@@ -59,6 +59,9 @@ A faithful, well-tested implementation of *The King is Dead* as a **Python OpenS
 | D17 | Test independence (2026-10-30) | `spec-test-writer` can't read `kingisdead/` source (hook-enforced); it writes against the spec and `tests/harness.py` | Disagreements between tests and code surface bugs or spec ambiguities |
 | D18 | Persistence (2026-10-30) | Persist action histories, never `serialize()` strings; never deserialize client input | Deserialization unpickles `__dict__` without replaying history (docs/OPENSPIEL_NOTES.md) |
 | D19 | Type stub (2026-10-30) | pyspiel type stub in `typings/` keeps pyright strict on engine code | Only signatures confirmed against the installed 2.0.2; extend as needed |
+| D20 | Undo block edge cases (2026-10-30) | A no-op same-faction Manoeuvre swap is blocked like any exact reverse; an exact 1-for-1 Outmanoeuvre reverse is blocked | User-confirmed; R-216 |
+| D21 | Undo block is board-based (2026-10-30) | A same-type play is blocked if its result equals the board before the previous Manoeuvre/Outmanoeuvre with that play's summoned follower removed; lifted by the next card played. Supersedes D20's pick-based wording; D20's no-op case still holds | User-confirmed; R-216, R-217. Needs a reference board in state/observation |
+| D22 | B* void case (2026-10-30) | If L's summoned follower's region held none of that faction before L's effect, B* is void and nothing is blocked | User-confirmed in close-phase; amends R-216 (needs spec unlock), ACTIONS §5, SCENARIOS |
 
 ## 4. Rules clarifications
 
@@ -82,6 +85,7 @@ Home regions: Scots → Moray, Welsh → Gwynedd, English → Essex.
 **C2 — Manoeuvre / Outmanoeuvre "undo" block.** An undo is the exact reverse swap of the most recent action, when that action was another player's Manoeuvre (or Outmanoeuvre):
 - Manoeuvre undo: swapping the same two regions so the same two factions move back.
 - Outmanoeuvre undo: the original moved faction *x* from R1→R2 and factions {*y*,*z*} from R2→R1; the undo is taking *x* from R2 and {*y*,*z*} from R1.
+- **Superseded by D21 (2026-10-30):** the block is board-based, defined in R-216 (reference board = pre-L board minus L's summoned follower); the pick-based description above is the intuition only.
 - The block lasts until any player plays a card. Passes don't lift it; the original player's summon doesn't lift it. ⚑ Power struggles also don't lift it (literal reading: only *actions* count).
 
 **C3 — Winner determination and fallbacks**
@@ -93,7 +97,7 @@ Home regions: Scots → Moray, Welsh → Gwynedd, English → Essex.
 - Turn order is increasing player index (= clockwise). ⚑ Player 0 starts; the UI lets you choose who sits in seat 0 ("most recently visited a castle").
 - A power struggle triggers when the consecutive-pass count reaches the number of players. It resolves automatically (no decision), the count resets, and play continues with the next player in rotation.
 - ⚑ A player with no cards left has exactly one legal action, PASS. The UI and bots auto-submit it.
-- The game ends **immediately** when the third instability disc is placed (invasion), otherwise after the 8th power struggle (coronation).
+- The game ends when the struggle that places the third instability disc has finished (invasion, R-304), otherwise after the 8th power struggle (coronation).
 
 **C5 — Power struggle.** The faction with strictly the most followers takes control. A tie for most, or an empty region, makes the region unstable. All followers in the region return to the supply. The region card is flipped face down; the order of resolved struggles is recorded for C3.
 
@@ -160,7 +164,7 @@ Tooling: `uv`, `pytest` + `hypothesis`, `ruff`; `npm` + Vite + Vitest; one Playw
 ```
 SETUP (chance) ──► TURN_START ──PASS──► (n consecutive passes → resolve struggle) ──► TURN_START / TERMINAL
                         │
-                        └─PLAY_CARD──► card sub-steps (0–4 decisions) ──► SUMMON (0–1) ──► TURN_START / TERMINAL
+                        └─PLAY_CARD──► card sub-steps (0–3 decisions) ──► SUMMON (0–1) ──► TURN_START  (struggles, and so TERMINAL, follow only a PASS; see docs/ACTIONS.md §4)
 ```
 
 Card sub-steps:
@@ -239,6 +243,15 @@ Each phase starts with a short plan and task list and ends with its exit criteri
 - Independent audit of the spec against the rulebook.
 - *Exit:* you approve the spec. After approval, behaviour changes require a spec change you sign off.
 
+Task list (approved 2026-10-30, branch `phase-1/rules-spec`):
+- [x] 1. Components, setup and turn flow (regions, C1, factions, counts, setup, turn order, PASS, C4) → `docs/RULES_SPEC.md`
+- [x] 2. Six action cards plus summon (C7, C10, C9, C2, C8, C6) → `docs/RULES_SPEC.md`
+- [x] 3. Power struggle, end of game, scoring (C5, C3, D8, D9) → `docs/RULES_SPEC.md`
+- [x] 4. Action catalogue: IDs, phase machine, canonical ordering, masks → `docs/ACTIONS.md`
+- [x] 5. Scenario JSON format plus 2–3 examples → `docs/ACTIONS.md` or `docs/SCENARIOS.md`, `tests/scenarios/*.json`
+- [x] 6. Independent audit vs rulebook (`rules-auditor`)
+- [x] 7. Fix round, Phase 1 report, ✋ user review and approval
+
 **Phase 2 — Engine (2–3 players, base game)**
 - `constants`, `rules`, `actions`, `game`, `observer`; tests first per rule ID; invariant checker; `tools/play_text.py` for agent self-play debugging; golden playthroughs for 3 seeds; card-by-card independent review.
 - *Exit:* all rule tests green; `random_sim_test` passes; 10,000 random games with zero invariant violations; `sim_stats` report (end-type mix, game length) recorded.
@@ -314,6 +327,8 @@ Should-fix and minor findings, tagged with the phase that found them. `/close-ph
 - Phase 0: Bash blocks standalone `kingisdead` tokens such as `-k kingisdead` (false positive).
 - Phase 0: the spec backstop trips if the user sets APPROVED while spec edits are still uncommitted; commit spec edits before approving.
 - Phase 0: GitHub branch protection on `master` needs GitHub Pro on a private repo (user's call).
+- Phase 1: R-216 Example 4 (locked spec) is a Manoeuvre case but points at `tests/scenarios/undo_block_void.json`, which is an Outmanoeuvre case exercising the same D22 rule; fix the reference at the next spec amendment.
+- Phase 1: the `protect_spec.py` hook also fires on Bash commands that only mention the spec's filename (false positive; use Edit/Write for other files).
 
 ## 10. Risks
 
