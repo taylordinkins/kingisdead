@@ -1,6 +1,6 @@
 # The King is Dead — Rules Specification
 
-**Status:** DRAFT
+**Status:** APPROVED
 
 This is the contract between the rulebook and the code: every behaviour the engine implements has a
 numbered rule here, and every rule has at least one test that cites its ID. It is written in Phase 1

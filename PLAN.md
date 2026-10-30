@@ -249,7 +249,7 @@ Task list (approved 2026-10-30, branch `phase-1/rules-spec`):
 - [x] 4. Action catalogue: IDs, phase machine, canonical ordering, masks → `docs/ACTIONS.md`
 - [x] 5. Scenario JSON format plus 2–3 examples → `docs/ACTIONS.md` or `docs/SCENARIOS.md`, `tests/scenarios/*.json`
 - [x] 6. Independent audit vs rulebook (`rules-auditor`)
-- [ ] 7. Fix round, Phase 1 report, ✋ user review and approval
+- [x] 7. Fix round, Phase 1 report, ✋ user review and approval
 
 **Phase 2 — Engine (2–3 players, base game)**
 - `constants`, `rules`, `actions`, `game`, `observer`; tests first per rule ID; invariant checker; `tools/play_text.py` for agent self-play debugging; golden playthroughs for 3 seeds; card-by-card independent review.

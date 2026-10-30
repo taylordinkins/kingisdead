@@ -1,6 +1,6 @@
 # The King is Dead — Scenario Format
 
-**Status:** DRAFT. Companion to `docs/RULES_SPEC.md` and `docs/ACTIONS.md`. Scenarios are JSON files
+**Status:** APPROVED with the spec (2026-10-30). Companion to `docs/RULES_SPEC.md` and `docs/ACTIONS.md`. Scenarios are JSON files
 (`tests/scenarios/*.json`) that describe a position. Two users share one format:
 
 - **Rule tests** load a scenario as a start state (`kingisdead/scenario.py`, Phase 2) and check legal

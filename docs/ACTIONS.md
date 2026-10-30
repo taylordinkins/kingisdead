@@ -1,6 +1,6 @@
 # The King is Dead — Action Catalogue
 
-**Status:** DRAFT. Companion to `docs/RULES_SPEC.md` (R-IDs below refer to it). Written in Phase 1
+**Status:** APPROVED with the spec (2026-10-30). Companion to `docs/RULES_SPEC.md` (R-IDs below refer to it). Written in Phase 1
 (PLAN.md §5.3, §5.4); **action IDs freeze when Phase 2 closes** (replays and playtest reports depend
 on them). If this file and the spec disagree, the spec wins and this file is fixed.
 
