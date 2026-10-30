@@ -7,7 +7,7 @@
 
 ### Progress
 - [x] Phase 0 — Scaffold & OpenSpiel API spike (closed 2026-10-30, see docs/phase-reports/phase-0.md)
-- [ ] Phase 1 — Rules spec ✋ *you review*
+- [x] Phase 1 — Rules spec ✋ *you review* (closed 2026-10-30, see docs/phase-reports/phase-1.md)
 - [ ] Phase 2 — Engine (2–3 players, base game)
 - [ ] Phase 3 — Server + web shell ✋ *playtest #1*
 - [ ] Phase 4 — Board UI + setup editor ✋ *playtest #2*
@@ -327,6 +327,8 @@ Should-fix and minor findings, tagged with the phase that found them. `/close-ph
 - Phase 0: Bash blocks standalone `kingisdead` tokens such as `-k kingisdead` (false positive).
 - Phase 0: the spec backstop trips if the user sets APPROVED while spec edits are still uncommitted; commit spec edits before approving.
 - Phase 0: GitHub branch protection on `master` needs GitHub Pro on a private repo (user's call).
+- Phase 1: R-216 Example 4 (locked spec) is a Manoeuvre case but points at `tests/scenarios/undo_block_void.json`, which is an Outmanoeuvre case exercising the same D22 rule; fix the reference at the next spec amendment.
+- Phase 1: the `protect_spec.py` hook also fires on Bash commands that only mention the spec's filename (false positive; use Edit/Write for other files).
 
 ## 10. Risks
 

@@ -122,4 +122,5 @@ Only listed keys are checked.
 |---|---|
 | `setup_basic.json` | R-010..R-014 (setup constraints), R-210/R-211 (Scottish Support) |
 | `undo_block_outmanoeuvre.json` | R-215, R-216, R-217, R-102 (a blocked 1-for-2 forces 1-for-1) |
+| `undo_block_void.json` | R-216 (D22 void B*), R-215 (a void B* blocks nothing; starts before L) |
 | `coronation_tiebreak.json` | R-403, R-404, R-405 (rank by recent win, rank-2 tiebreak) |

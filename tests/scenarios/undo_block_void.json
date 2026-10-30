@@ -1,88 +1,19 @@
 {
   "format": 1,
   "kind": "state",
-  "description": "D22: player 0 swapped (Moray,S) with (Essex,E) from Moray [S S S S], Essex [E E E E] and summoned the E that had just moved into Moray. Moray held no E before the swap, so B* is void (reference_board omitted) and nothing is blocked for player 1's Manoeuvre.",
+  "description": "D22 void reference board. Player 0 plays Outmanoeuvre 1-for-2, (Moray,S) for {E,E}, then summons an E from Moray. Moray held no E before the card, so B* is void. Player 1's Outmanoeuvre is forced to 1-for-1 (no region holds two followers) and is NOT blocked, although it gives Moray [S], Strathclyde [E]: the board a clamped or physical-origin B* would have blocked.",
   "players": 2,
-  "slots": [
-    "Moray",
-    "Strathclyde",
-    "Lancaster",
-    "Northumbria",
-    "Gwynedd",
-    "Warwick",
-    "Essex",
-    "Devon"
-  ],
+  "slots": ["Moray", "Strathclyde", "Lancaster", "Northumbria", "Gwynedd", "Warwick", "Essex", "Devon"],
   "regions": {
-    "Moray": {
-      "S": 3
-    },
-    "Essex": {
-      "S": 1,
-      "E": 3
-    }
+    "Moray": {"S": 1},
+    "Strathclyde": {"E": 2}
   },
-  "courts": [
-    {
-      "E": 1
-    },
-    {}
-  ],
-  "to_play": 1,
-  "hands": [
-    [
-      "scottish_support",
-      "welsh_support",
-      "english_support",
-      "assemble",
-      "assemble",
-      "negotiate",
-      "outmanoeuvre"
-    ],
-    [
-      "scottish_support",
-      "welsh_support",
-      "english_support",
-      "assemble",
-      "assemble",
-      "negotiate",
-      "manoeuvre",
-      "outmanoeuvre"
-    ]
-  ],
-  "last_play": [
-    1,
-    null
-  ],
-  "last_card": {
-    "type": "manoeuvre"
-  },
+  "courts": [{}, {}],
   "example": {
-    "actions": [
-      6,
-      16,
-      36
-    ],
+    "actions": [7, 16, 21, 21, 18, 7, 18, 19],
     "expect": {
-      "legal_after": {
-        "1": [
-          16
-        ],
-        "2": [
-          34,
-          36
-        ]
-      },
-      "regions": {
-        "Moray": {
-          "S": 2,
-          "E": 1
-        },
-        "Essex": {
-          "S": 2,
-          "E": 2
-        }
-      },
+      "legal_after": {"1": [16], "2": [21], "3": [21], "4": [18, 19], "6": [18], "7": [19]},
+      "regions": {"Moray": {"S": 1}, "Strathclyde": {"E": 1}},
       "phase": "SUMMON"
     }
   }
