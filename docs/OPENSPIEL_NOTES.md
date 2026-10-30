@@ -1,8 +1,8 @@
 # OpenSpiel 2.0.2 notes for a Python game
 
-Findings from the Phase 0 spike. Everything here was checked against the installed 2.0.2 source
-(`.venv/lib/python3.12/site-packages/open_spiel/`) and exercised by `tests/test_openspiel_api.py`
-using the toy game `tests/support/toy_chance_game.py` (`python_kid_toy`, shaped like our game:
+Findings from the Phase 0 spike, checked against the installed 2.0.2 (`.venv/lib/python3.12/site-packages/open_spiel/`).
+Most claims are exercised by `tests/test_openspiel_api.py`; the few that are not are labelled
+"checked in source (file:line)" (paths relative to `open_spiel/python/`). The tests use the toy game `tests/support/toy_chance_game.py` (`python_kid_toy`, shaped like our game:
 2-3 players, bag-draw setup chance nodes, two consecutive decisions by one player, shared win).
 
 ## Registration
@@ -56,7 +56,8 @@ pyspiel.register_game(GAME_TYPE, MyGame)  # at import time
 - `GameInfo.num_players` must be set from the parameter, so `GameInfo` is built inside
   `__init__`, not at module level, when the player count is a parameter
   (the iterated-prisoner's-dilemma example does the same).
-- Registering the same game twice does not raise (harmless under pytest's importlib mode).
+- Registering the same game twice does not raise (harmless under pytest's importlib mode). Checked
+  by hand, no test; the registry is C++ and not in the wheel (call site: `pybind11/python_games.cc:241`).
 - Python games are "global Python objects": game and state classes must stay importable for
   pickling (see serialization).
 
@@ -69,7 +70,13 @@ pyspiel.register_game(GAME_TYPE, MyGame)  # at import time
 game may override it as a method on the `Game` subclass (`PyGame` forwards it; the toy game does).
 Derived: `max_history_length() = max_game_length + max_chance_nodes_in_history`, and
 `max_move_number()` is the same sum. Declare both exactly so tensors/buffers sized from them
-(e.g. in RL code) are correct. Counting setup chance nodes into
+(e.g. in RL code) are correct.
+
+**`max_chance_nodes_in_history` is not enforced by anything.** Overriding it to 1 still passes
+`random_sim_test(serialize=True)`. The Phase 2 sim tests must therefore assert
+`len(history) <= game.max_history_length()` and that the chance-node count stays within the
+declared bound. The toy game's test asserts `==` only because its game length is fixed; ours
+varies, so use `<=`. Counting setup chance nodes into
 `max_game_length` (as PLAN.md originally assumed) is wrong in 2.0.2.
 
 ## State API (what `pyspiel.State` subclasses implement)
@@ -89,13 +96,20 @@ public `legal_actions()`/`apply_action()`/`action_to_string()`.
   outcomes. Chance actions share the action-id space with nothing else: ids only need to be
   `< max_chance_outcomes`, and apply via `apply_action` like any other action. The history
   records them as `-1:<action>`.
-- `returns()` must be defined before terminal too; return zeros. `rewards()` defaults to zeros.
-  With `RewardModel.TERMINAL` MCTS and `random_sim_test` only read returns at the end.
+- `returns()` must be defined before terminal too; return zeros. The default `rewards()` is zeros
+  before terminal and equals `returns()` at terminal (e.g. `[1.0, -0.5, -0.5]` for a 3-player sole
+  win; asserted in the tests); `rl_environment` relies on that. With `RewardModel.TERMINAL` MCTS and
+  `random_sim_test` only read returns at the end.
 - `clone()` has a working default for Python states and the clone is independent (the toy game's
   lists are not shared); no override is needed for correctness. We may override for speed later.
+  The default builds `game.new_initial_state()` and then `copy.deepcopy`s every entry of the state's
+  `__dict__` (`pybind11/python_games.cc:156-165`). **Static tables (adjacency, action tables) must
+  live on the game or at module level, never on the state**, or every MCTS clone copies them.
 - `history()`, `move_number()`, `is_chance_node()`, `legal_actions_mask()` etc. are provided.
 - `information_state_string/tensor` fall back to the observation even when
-  `provides_information_state_*` is False; harmless, don't rely on it.
+  `provides_information_state_*` is False; harmless, don't rely on it. Checked in source
+  (`pybind11/python_games.cc:90-93,312-316`: the info-state observer is the same
+  `make_py_observer`), not tested.
 - Optional (tic_tac_toe shows them): `_to_struct`, `_action_to_struct`, `_struct_to_actions`,
   `_to_observation_struct`, and `new_initial_state(self, state=None)` for struct/JSON round
   trips. Not needed for Kuhn-style games; skip unless the server wants them.
@@ -111,8 +125,16 @@ public `legal_actions()`/`apply_action()`/`action_to_string()`.
   `pyspiel.deserialize_game_and_state(text)` rebuilds the game via `load_game` and the state from
   the pickled `__dict__`. Consequence: every attribute on the state must be picklable. The deserialized
   state keeps playing identically (tested). `pickle.dumps` of states and games also works.
+- **Deserialization does not replay the history.** It parses the history into the C++ list and
+  assigns the unpickled `__dict__` entries onto a fresh initial state; `_apply_action` is never
+  called (`pybind11/python_games.cc:419-441`). An edited attribute survives the round trip. So: a
+  serialized string is not checked against its own history; it breaks when state attributes are
+  renamed between versions; and unpickling untrusted text runs arbitrary code.
+  **Persist action histories (not `serialize()` output) for playtest reports and server replays,
+  and never deserialize client-supplied strings.** (PLAN D18.)
 - Playthrough text (`generate_playthrough`) only emits `SerializeState()` for
-  `SAMPLED_STOCHASTIC` games; ours is `EXPLICIT_STOCHASTIC`.
+  `SAMPLED_STOCHASTIC` games; ours is `EXPLICIT_STOCHASTIC`. Checked in source
+  (`python/algorithms/generate_playthrough.py:390-391`), not tested.
 
 ## Observer pattern (PyObserver)
 
@@ -173,7 +195,9 @@ text = generate_playthrough.playthrough(
 )
 ```
 
-- `MCTSBot` requires TERMINAL rewards and SEQUENTIAL dynamics; it needs `game.max_utility()`.
+- `MCTSBot` requires TERMINAL rewards and SEQUENTIAL dynamics (checked in source,
+  `python/algorithms/mcts.py:247-250`, raises `ValueError` otherwise; not tested); it needs
+  `game.max_utility()`.
   Zero-sum n-player is handled as max^n. It plays consecutive same-player decisions fine (each
   `step` call searches from the current state). With `solve=True` terminal children are proven,
   so a last-move choice is found even with ~30 simulations.

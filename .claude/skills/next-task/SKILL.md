@@ -16,8 +16,7 @@ write the code. Keep your own context small: delegate reading and long commands.
 4. **Check:** delegate the full fast suite to `sim-runner` (`uv run pytest -q -rxX`, plus
    `uv run pyright`). If anything fails, send the failure summary back to `implementer` (resume it
    with SendMessage if it is still available). Two failed rounds → stop and report to the user.
-5. **Spot-audit (engine units only, every third unit or when a unit touched scoring, struggles or
-   the undo block):** delegate to `rules-auditor` scoped to that unit's rule IDs. Blockers go back
+5. **Spot-audit (only units that touch scoring, power struggles or the undo block):** delegate to `rules-auditor` scoped to that unit's rule IDs. Blockers go back
    to `implementer`; disagreements about what a rule means go to the user.
 6. **Commit** on the phase branch: `<unit summary> (R-0xx, R-0yy)`. Tick the box in PLAN.md.
 7. Report in three lines or fewer: what landed, test totals, anything the user needs to decide.

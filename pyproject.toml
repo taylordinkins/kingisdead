@@ -39,7 +39,8 @@ target-version = "py312"
 select = ["E", "F", "I", "B", "UP", "SIM"]
 
 [tool.pyright]
-include = ["kingisdead"]
+include = ["kingisdead", "tests/support"]
+stubPath = "typings"
 pythonVersion = "3.12"
 typeCheckingMode = "strict"
 reportMissingTypeStubs = false

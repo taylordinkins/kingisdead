@@ -6,7 +6,7 @@
 **Target framework:** OpenSpiel `open-spiel==2.0.2` (Python ≥ 3.11; wheels for macOS arm64, Linux, Windows)
 
 ### Progress
-- [ ] Phase 0 — Scaffold & OpenSpiel API spike *(scaffold + agent workflow done 2026-10-30; API spike next)*
+- [x] Phase 0 — Scaffold & OpenSpiel API spike (closed 2026-10-30, see docs/phase-reports/phase-0.md)
 - [ ] Phase 1 — Rules spec ✋ *you review*
 - [ ] Phase 2 — Engine (2–3 players, base game)
 - [ ] Phase 3 — Server + web shell ✋ *playtest #1*
@@ -57,6 +57,8 @@ A faithful, well-tested implementation of *The King is Dead* as a **Python OpenS
 | D15 | Spec lock (2026-10-30) | `docs/RULES_SPEC.md` Status line DRAFT → APPROVED → AMENDING; a hook blocks edits while APPROVED | Only the user changes the Status line |
 | D16 | Tests ahead of code (2026-10-30) | Spec tests carry `@pytest.mark.pending("R-0xx")` and run as non-strict xfail until the implementer removes the marker | Keeps the suite green so the stop gate can be strict |
 | D17 | Test independence (2026-10-30) | `spec-test-writer` can't read `kingisdead/` source (hook-enforced); it writes against the spec and `tests/harness.py` | Disagreements between tests and code surface bugs or spec ambiguities |
+| D18 | Persistence (2026-10-30) | Persist action histories, never `serialize()` strings; never deserialize client input | Deserialization unpickles `__dict__` without replaying history (docs/OPENSPIEL_NOTES.md) |
+| D19 | Type stub (2026-10-30) | pyspiel type stub in `typings/` keeps pyright strict on engine code | Only signatures confirmed against the installed 2.0.2; extend as needed |
 
 ## 4. Rules clarifications
 
@@ -229,7 +231,7 @@ Each phase starts with a short plan and task list and ends with its exit criteri
 
 **Phase 0 — Scaffold & API spike**
 - ✅ `uv` project, pinned `open-spiel==2.0.2`, ruff, pytest, pyright, CI, `CLAUDE.md`, agents, skills, hooks (2026-10-30; OpenSpiel 2.0.2 installs and runs on Python 3.12).
-- Register a toy Python game with chance nodes and confirm, on 2.0.2: `register_game`/`GameType` fields, observer API, `random_sim_test`, playthrough generation, `MCTSBot` on a Python game. Record findings in §5.2.
+- ✅ Register a toy Python game with chance nodes and confirm, on 2.0.2: `register_game`/`GameType` fields, observer API, `random_sim_test`, playthrough generation, `MCTSBot` on a Python game. Record findings in §5.2.
 - *Exit:* `uv run pytest` green; spike notes committed.
 
 **Phase 1 — Rules spec ✋**
@@ -271,13 +273,13 @@ Each phase starts with a short plan and task list and ends with its exit criteri
 | QA | `rules-auditor` | Opus, high effort, project memory | Spec vs rulebook (Phase 1); code and tests vs spec (spot checks, phase close) |
 | QA | `code-reviewer` | Opus, high effort | Correctness review of the phase diff before it merges |
 
-Opus runs at phase close and as occasional spot audits (every third engine unit, or units touching scoring, power struggles or the undo block), never on routine units. For a high-stakes planning conversation, such as drafting the spec, you can switch the main session with `/model opus`.
+Opus runs at phase close and as spot audits only on units touching scoring, power struggles or the undo block, never on routine units. For a high-stakes planning conversation, such as drafting the spec, you can switch the main session with `/model opus`.
 
 ### The loop
 
 1. **`/start-phase N`** — branch `phase-N/<slug>`, break the phase into agent-sized units (one rule group or component, ≲300 changed lines), you approve the list.
-2. **`/next-task`** per unit — `spec-test-writer` writes pending tests from the spec → `implementer` makes them pass → `sim-runner` runs the suite → occasional `rules-auditor` spot check → commit, tick the box.
-3. **`/close-phase`** — full run including slow sims, `rules-auditor` + `code-reviewer` in parallel, at most two fix rounds, `docs/phase-reports/phase-N.md`, PR to `master`. ✋ phases stop for you; you merge.
+2. **`/next-task`** per unit — `spec-test-writer` writes pending tests from the spec → `implementer` makes them pass → `sim-runner` runs the suite → `rules-auditor` spot check (scoring, struggles, undo block only) → commit, tick the box.
+3. **`/close-phase`** — full run including slow sims, `rules-auditor` + `code-reviewer` in parallel, one fix round (only blocker or must-fix findings block the merge; the rest go to the §9 Backlog), `docs/phase-reports/phase-N.md`, PR to `master`. ✋ phases stop for you; you merge.
 4. **`/triage-report <file>`** — for each playtest report: reproduce, classify (engine bug / spec gap / UI bug / not a bug), regression test, fix or ask you.
 
 ### Rules for every session
@@ -303,6 +305,15 @@ Opus runs at phase close and as occasional spot audits (every third engine unit,
 - Phase 6: team returns and tiebreak presentation for partners.
 - Phase 7: Spy copying Negotiate when your disc is already used; Spy and the undo block; Plot interaction with draws (D9).
 - Phase 8: algorithm (AlphaZero vs PPO-style), training budget, whether a C++ port is needed for speed.
+
+### Backlog
+Should-fix and minor findings, tagged with the phase that found them. `/close-phase` appends here.
+
+- Phase 0: `spec-test-writer` can still see engine source via `git diff`, `git log -p`, `git show <rev>`, `king*` globs and `inspect.getsource` (low risk with a cooperative agent).
+- Phase 0: `git merge/pull/rebase` aren't in the spec-revert list (the Stop-time backstop catches the result).
+- Phase 0: Bash blocks standalone `kingisdead` tokens such as `-k kingisdead` (false positive).
+- Phase 0: the spec backstop trips if the user sets APPROVED while spec edits are still uncommitted; commit spec edits before approving.
+- Phase 0: GitHub branch protection on `master` needs GitHub Pro on a private repo (user's call).
 
 ## 10. Risks
 

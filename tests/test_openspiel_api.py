@@ -277,6 +277,7 @@ def test_sole_winner_and_three_way_tie() -> None:
     sole = play(load(n).new_initial_state(), [0, 1, 0, 1, 0, 1])
     play(sole, [0, 5, 0, 4, 0, 3, 1, 5, 1, 4, 1, 3])
     assert sole.returns() == [1.0, -0.5, -0.5]
+    assert sole.rewards() == sole.returns()  # default rewards() mirror returns() at terminal
     tie = play(load(n).new_initial_state(), [0, 1, 0, 1, 0, 1])
     play(tie, [0, 3, 0, 3, 0, 3, 1, 3, 1, 3, 1, 3])
     assert tie.returns() == [0.0, 0.0, 0.0]  # k = n -> (n-k)/... = 0

@@ -16,13 +16,16 @@ Rules (invented for the spike):
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
+import numpy.typing as npt
 import pyspiel
 
 NUM_COLOURS = 3
 NUM_TARGETS = 3
 TOKENS_PER_PLAYER = 2
-BAG_COUNTS = (3, 3, 3)
+BAG_COUNTS: tuple[int, ...] = (3, 3, 3)
 MIN_PLAYERS = 2
 MAX_PLAYERS = 3
 DEFAULT_PLAYERS = 2
@@ -64,7 +67,7 @@ def observation_size(num_players: int) -> int:
 
 
 class ToyGame(pyspiel.Game):
-    def __init__(self, params: dict | None = None) -> None:
+    def __init__(self, params: dict[str, Any] | None = None) -> None:
         params = dict(params or {})
         num_players = int(params.get("players", DEFAULT_PLAYERS))
         # load_game does not enforce min/max_num_players for Python games; validate here.
@@ -90,7 +93,9 @@ class ToyGame(pyspiel.Game):
     def new_initial_state(self) -> ToyState:
         return ToyState(self)
 
-    def make_py_observer(self, iig_obs_type=None, params=None) -> ToyObserver:
+    def make_py_observer(
+        self, iig_obs_type: object = None, params: dict[str, Any] | None = None
+    ) -> ToyObserver:
         return ToyObserver(self.n, params)
 
 
@@ -107,7 +112,7 @@ class ToyState(pyspiel.State):
         self.draws = 0
 
     # -- flow -------------------------------------------------------------------------------
-    def _setup_done(self) -> bool:
+    def setup_done(self) -> bool:
         return self.draws >= self.n * TOKENS_PER_PLAYER
 
     def is_terminal(self) -> bool:
@@ -116,7 +121,7 @@ class ToyState(pyspiel.State):
     def current_player(self) -> int:
         if self.is_terminal():
             return pyspiel.PlayerId.TERMINAL
-        if not self._setup_done():
+        if not self.setup_done():
             return pyspiel.PlayerId.CHANCE
         return self.to_move
 
@@ -130,7 +135,7 @@ class ToyState(pyspiel.State):
         return [(c, n / total) for c, n in enumerate(self.bag) if n > 0]
 
     def _apply_action(self, action: int) -> None:
-        if not self._setup_done():
+        if not self.setup_done():
             self.bag[action] -= 1
             self.hands[self.draws // TOKENS_PER_PLAYER][action] += 1
             self.draws += 1
@@ -174,12 +179,12 @@ class ToyState(pyspiel.State):
 class ToyObserver:
     """PyObserver: one flat float32 ``tensor`` plus named reshaped views in ``dict``."""
 
-    def __init__(self, num_players: int, params: dict | None) -> None:
+    def __init__(self, num_players: int, params: dict[str, Any] | None) -> None:
         if params:
             raise ValueError(f"Observation parameters not supported; passed {params}")
         self.n = num_players
         self.tensor = np.zeros(observation_size(num_players), np.float32)
-        self.dict: dict[str, np.ndarray] = {}
+        self.dict: dict[str, npt.NDArray[np.float32]] = {}
         index = 0
         for name, shape in [
             ("hands", (num_players, NUM_COLOURS)),
@@ -205,7 +210,7 @@ class ToyObserver:
         self.dict["bag"][:] = state.bag
         if state.pending_colour is not None:
             self.dict["pending"][state.pending_colour] = 1
-        if not state.is_terminal() and state._setup_done():
+        if not state.is_terminal() and state.setup_done():
             self.dict["to_move"][self._seat(player, state.to_move)] = 1
 
     def string_from(self, state: ToyState, player: int) -> str:

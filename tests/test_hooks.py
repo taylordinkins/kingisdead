@@ -21,6 +21,9 @@ from types import ModuleType
 
 import pytest
 
+# Slow (~10s) and hooks rarely change: runs in CI and /close-phase, not in the stop gate.
+pytestmark = pytest.mark.slow
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 HOOKS_SRC = REPO_ROOT / ".claude" / "hooks"
 
