@@ -1,0 +1,46 @@
+[project]
+name = "kingisdead"
+version = "0.0.1"
+description = "The King is Dead (2nd ed.) as an OpenSpiel game, with a web UI for human play."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.12,<3.15"
+dependencies = [
+    "open-spiel==2.0.2",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "hypothesis>=6",
+    "ruff>=0.8",
+    "pyright>=1.1.390",
+]
+
+[tool.uv]
+# Not packaged for distribution yet; tests import the package from the repo root.
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "--import-mode=importlib -m 'not slow'"
+markers = [
+    "pending(rule_id): test written from the spec ahead of the implementation; runs as non-strict xfail until the implementer removes the marker",
+    "regression(report_id): regression test for a playtest report; runs as strict xfail, so it XPASSes (suite red) once the bug is fixed and the implementer must remove the marker",
+    "slow: long simulation runs (CI and /close-phase only; run with -m slow)",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+
+[tool.pyright]
+include = ["kingisdead", "tests/support"]
+stubPath = "typings"
+pythonVersion = "3.12"
+typeCheckingMode = "strict"
+reportMissingTypeStubs = false
