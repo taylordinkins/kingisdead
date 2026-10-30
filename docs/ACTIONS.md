@@ -109,7 +109,7 @@ Earlier picks are legal only if they have a legal completion in the current mode
 ### Undo block (R-216, R-217)
 The state stores the reference board B* (region contents and states, R-004) as defined in R-216:
 the position before L's effect with L's summoned follower removed. It is captured when L's effect starts,
-completed when L's summon is made, and cleared by any other card play (R-217). Every mask above that says "not blocked" compares the candidate swap's resulting board
+completed when L's summon is made, and cleared by any other card play (R-217). Every mask above that says "not blocked" applies only when the card being resolved is the same type as L (Manoeuvre vs Manoeuvre, Outmanoeuvre vs Outmanoeuvre; otherwise nothing is blocked, R-216) and compares the candidate swap's resulting board
 (before its own summon) with B*. The observation must expose enough of B* for this to be reproduced.
 
 ### Summon (R-201)
@@ -119,6 +119,9 @@ completed when L's summon is made, and cleared by any other card play (R-217). E
 
 | Rule | Where it surfaces |
 |---|---|
+| R-007 | game construction (player count validated) |
+| R-100, R-106 | `current_player` after every transition (including after a struggle); an empty hand has only `PASS` at TURN_START |
+| R-015 | invariant checker, run after every action and chance node |
 | R-101, R-103 | TURN_START mask |
 | R-102, R-401 | transition on `PLAY`: hand update, play counter, hand-empty time |
 | R-104, R-105 | transition on `PASS` / `PLAY`: pass count; struggle trigger |

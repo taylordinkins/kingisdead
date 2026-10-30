@@ -66,7 +66,7 @@ Example: A region with a Welsh control disc is closed and controlled by the Wels
 Source: rulebook "Contents" p2, "Two-player" p4; PLAN.md D3
 Statement: Each faction has 18 followers in a 3- (or 4-) player game and 16 in a 2-player game,
 so 54 or 48 followers in total. Every follower is always in exactly one place: in a region, in a
-player's court, or in the supply. A follower's identity is its faction only; followers of the same
+player's court, or in the supply (during setup, followers not yet drawn count as supply). A follower's identity is its faction only; followers of the same
 faction are interchangeable. The total number of followers of each faction never changes.
 Example: In a 2-player game there are 16 Scottish followers across regions, courts and supply.
 
@@ -88,7 +88,8 @@ Source: rulebook "Cards" p4
 Statement: Each player starts with exactly eight action cards: Scottish Support, Welsh Support,
 English Support, Negotiate, Manoeuvre, Outmanoeuvre, and two copies of Assemble. Cunning action
 cards are not used. The two Assemble copies are interchangeable. Hands are public in the base game
-(perfect information).
+(perfect information, PLAN.md D4, D10); the rulebook's rule that other players' discard piles may not be
+examined (p6) is deliberately not modelled, which is equivalent under perfect recall.
 Example: A fresh player's hand contains 2 Assemble and 1 of every other card.
 
 ### Setup
@@ -121,8 +122,8 @@ Example: In a 2-player game the bag starts with 14 followers of each faction; se
 Source: rulebook "Followers" p4
 Statement: After court draws, regions are filled in index order (0..7). Each region is topped up
 from the bag, one uniform draw at a time, until it holds exactly 4 followers (so Moray, Gwynedd
-and Essex receive 2 draws, and every other region 4). The bag is then empty of what was drawn;
-all remaining followers form the supply.
+and Essex receive 2 draws, and every other region 4). All followers
+not drawn form the supply.
 Example: After the fill, every region holds exactly 4 followers.
 
 ### R-014 — Post-setup state
@@ -165,14 +166,14 @@ Statement: Playing a card removes it from the player's hand for the rest of the 
 therefore plays at most 8 cards), resolves its effect (R-210..R-215), then the player summons a follower
 (R-201). Then the turn passes to the next player (R-100). The card is recorded in the
 player's play history in order. For the most recent card played the state also retains its type and,
-for an effective Manoeuvre or Outmanoeuvre, the reference board B* (R-216).
+for a Manoeuvre or Outmanoeuvre that made a swap, the reference board B* (R-216).
 Example: After playing Manoeuvre and summoning, the player's hand has 7 cards.
 
 ### R-103 — Pass
 Source: rulebook "Turns" p6
 Statement: Passing changes no board state, increments the consecutive-pass count by 1, and ends
 the turn. A passing player may pass again or act on their next turn.
-Example: Count 0, player 1 passes → count 1, player 2 to act.
+Example: 3 players: count 0, player 1 passes → count 1, player 2 to act.
 
 ### R-104 — Playing a card resets the pass count
 Source: rulebook "Turns" p6 ("all the players pass in sequence"); PLAN.md C4
@@ -190,7 +191,7 @@ Example: 3 players: player 1 plays a card; 2, 0, 1 pass → struggle; player 2 a
 
 ### R-106 — Empty hands still count
 Source: PLAN.md C4
-Statement: A player with no cards passes automatically (R-101) and that pass counts toward
+Statement: A player with no cards has only PASS legal (R-101; the UI and bots submit it automatically, C4) and that pass counts toward
 R-105. A game in which all hands are empty therefore still terminates (every n passes resolves a
 struggle, and at most 8 struggles occur).
 Example: 2 players, both with empty hands: pass, pass → struggle.
@@ -279,13 +280,13 @@ Strathclyde [W W S]. 1-for-2 swaps exist anywhere, so a 1-for-1 swap is not allo
 ### R-216 — Undo block
 Source: rulebook "Manoeuvre", "Outmanoeuvre" p9; PLAN.md C2, D20, D21
 Statement: Let L be the most recent card played in the game. If L is a Manoeuvre or an
-Outmanoeuvre that had an effect (each player holds one of each, so a play of the same type as L is
+Outmanoeuvre that made a swap, including a same-faction swap that changes nothing (each player holds one of each, so a play of the same type as L is
 always by another player in the base game), the state retains a reference board B*: the position of
 all regions (followers per faction in each region, and each region's state, R-004) immediately
 before L's effect, with L's summoned follower removed (if L's player summoned one). A play of the same
 card type as L is not legal if its resulting board (before its own summon) equals B*; this
 applies to every form of the card (Manoeuvre; Outmanoeuvre 1-for-2 and 1-for-1) and whichever
-region is picked first. Manoeuvre and Outmanoeuvre do not block each other. If L had no effect, or L
+region is picked first. Manoeuvre and Outmanoeuvre do not block each other. If L made no swap (no legal swap existed, R-202), or L
 is any other card, nothing is blocked. A blocked play drops out of the mandatory-form choice
 (R-214, R-215).
 - A pure reverse swap always reproduces B*, so it is blocked. So is any other swap with the

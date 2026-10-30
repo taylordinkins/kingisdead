@@ -96,7 +96,7 @@ Home regions: Scots → Moray, Welsh → Gwynedd, English → Essex.
 - Turn order is increasing player index (= clockwise). ⚑ Player 0 starts; the UI lets you choose who sits in seat 0 ("most recently visited a castle").
 - A power struggle triggers when the consecutive-pass count reaches the number of players. It resolves automatically (no decision), the count resets, and play continues with the next player in rotation.
 - ⚑ A player with no cards left has exactly one legal action, PASS. The UI and bots auto-submit it.
-- The game ends **immediately** when the third instability disc is placed (invasion), otherwise after the 8th power struggle (coronation).
+- The game ends when the struggle that places the third instability disc has finished (invasion, R-304), otherwise after the 8th power struggle (coronation).
 
 **C5 — Power struggle.** The faction with strictly the most followers takes control. A tie for most, or an empty region, makes the region unstable. All followers in the region return to the supply. The region card is flipped face down; the order of resolved struggles is recorded for C3.
 
@@ -163,7 +163,7 @@ Tooling: `uv`, `pytest` + `hypothesis`, `ruff`; `npm` + Vite + Vitest; one Playw
 ```
 SETUP (chance) ──► TURN_START ──PASS──► (n consecutive passes → resolve struggle) ──► TURN_START / TERMINAL
                         │
-                        └─PLAY_CARD──► card sub-steps (0–4 decisions) ──► SUMMON (0–1) ──► TURN_START / TERMINAL
+                        └─PLAY_CARD──► card sub-steps (0–3 decisions) ──► SUMMON (0–1) ──► TURN_START  (struggles, and so TERMINAL, follow only a PASS; see docs/ACTIONS.md §4)
 ```
 
 Card sub-steps:
@@ -248,7 +248,7 @@ Task list (approved 2026-10-30, branch `phase-1/rules-spec`):
 - [x] 3. Power struggle, end of game, scoring (C5, C3, D8, D9) → `docs/RULES_SPEC.md`
 - [x] 4. Action catalogue: IDs, phase machine, canonical ordering, masks → `docs/ACTIONS.md`
 - [x] 5. Scenario JSON format plus 2–3 examples → `docs/ACTIONS.md` or `docs/SCENARIOS.md`, `tests/scenarios/*.json`
-- [ ] 6. Independent audit vs rulebook (`rules-auditor`)
+- [x] 6. Independent audit vs rulebook (`rules-auditor`)
 - [ ] 7. Fix round, Phase 1 report, ✋ user review and approval
 
 **Phase 2 — Engine (2–3 players, base game)**

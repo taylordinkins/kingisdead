@@ -28,10 +28,9 @@ Unknown keys are an error.
 | `slots` | both | 8 region names | the region shown on the card in slot 1, 2, …, 8 (R-010); a permutation of the 8 regions | required |
 | `regions` | both | map region → count map | followers on each region | empty region |
 | `courts` | both | list of `players` count maps | each player's court | required |
-| `to_play` | state | int | player to act (at TURN_START) | 0 |
+| `to_play` | state | int 0..players−1 | player to act (at TURN_START) | 0 |
 | `struggles` | state | int 0..8 | struggles resolved so far (R-303) | 0 |
 | `region_state` | state | map region → `"S"` \| `"W"` \| `"E"` \| `"unstable"` | closed regions and how they closed (R-004) | open |
-| `recent_win` | state | map faction → int | struggle number of each faction's latest win, −1 if none (R-303) | −1 each |
 | `negotiation` | state | list of `players` entries, each a region name or `null` | the region whose card carries that player's spent disc, or `null` if unspent (R-006) | all `null` |
 | `hands` | state | list of `players` lists of card names (repeats allowed for `assemble`) | cards still in hand (R-008) | the full starting hand |
 | `pass_count` | state | int 0..players−1 | consecutive passes (R-103) | 0 |
@@ -40,7 +39,9 @@ Unknown keys are an error.
 | `last_card` | state | `null` or `{"type": <card>, "reference_board"?: {...}}` | the most recent card played (R-102); `reference_board` is B* (R-216) | `null` |
 | `example` | both | object | optional worked example: see §4 | none |
 
-Derived, never written: `supply` (each faction's pool, R-005, minus regions minus courts); which slots are
+Derived, never written: `recent_win` (each faction's most recent win, R-303: the highest slot number
+≤ `struggles` whose region the faction controls, −1 if none; valid because struggle *k* is always in slot *k*,
+V4), `supply` (each faction's pool, R-005, minus regions minus courts); which slots are
 face down (exactly slots 1..`struggles`, see V4); the instability discs on the board (the number of
 `"unstable"` entries); the card-play total (V7).
 
@@ -70,19 +71,19 @@ A scenario is rejected, with the failing rule, unless all of these hold.
 - **V1** (R-005) For each faction, followers in `regions` + `courts` is at most the pool (18, or 16 with 2
   players); the supply is the difference.
 - **V2** (R-004, R-302) Every region in `region_state` holds 0 followers.
-- **V3** (R-304) Fewer than 3 regions are `"unstable"` unless the scenario is terminal (`struggles` may
-  then be below 8; use `example.expect.terminal` to document it).
+- **V3** (R-304) Fewer than 3 regions are `"unstable"`, unless the scenario is terminal by invasion: exactly
+  3 are unstable, the region in slot `struggles` is one of them, and `struggles` may be below 8
+  (document it with `example.expect.terminal`).
 - **V4** (R-300, R-303) `struggles` equals the number of closed regions, and the closed regions are exactly
   the regions in slots 1..`struggles`.
-- **V5** (R-303) Each `recent_win` value is −1 or a struggle number 1..`struggles`; non-negative values
-  are distinct; a faction has −1 exactly when it controls no region; if a faction's value is *s*, the
-  region in slot *s* is controlled by that faction.
-- **V6** (R-006, R-213) A player's `negotiation` entry is non-null exactly when `negotiate` is not in
-  their hand, and names a region; no two players name the same region. A card carrying a disc may be
+- **V5** (R-303) Each region in `region_state` is `"S"`, `"W"`, `"E"` or `"unstable"`; with `recent_win`
+  derived (see the derived list above), no further constraint is needed.
+- **V6** (R-006, R-213) A player's `negotiation` entry, when non-null, requires `negotiate` to be out of
+  their hand (a null entry is also allowed after a Negotiate that had no effect, R-213), and names a region; no two players name the same region. A card carrying a disc may be
   face up or face down.
 - **V7** (R-102, R-401) Card-play total = Σ over players of (8 − hand size). `last_play` values are
   distinct integers in 1..total, `null` exactly for a player who has played nothing; the largest one
-  belongs to the player who played the most recent card. `hand_empty` is non-null exactly for a player
+  equals the total and belongs to the player who played the most recent card. `hand_empty` is non-null exactly for a player
   with an empty hand, and equals that player's `last_play`.
 - **V8** (R-008) Each hand is a sub-multiset of the starting hand.
 - **V9** (R-103) `pass_count` < `players`.

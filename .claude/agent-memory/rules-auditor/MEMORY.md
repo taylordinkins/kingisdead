@@ -1,2 +1,2 @@
-- [Audit patterns](audit_patterns.md) — recurring spec defects: global-vs-local examples, pick-based undo gap, complete-swap legality, "controlled" terminology, wrong-target refs, end timing
+- [Audit patterns](audit_patterns.md) — recurring defects: local examples, played-vs-effect, companion-doc drift, derived fields, terminology, end timing
 - [Rulebook source](rulebook_source.md) — PDF location, extraction reliability, page map
