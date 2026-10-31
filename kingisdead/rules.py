@@ -180,3 +180,18 @@ def swap_next_picks(
 def swap_length(mode: int) -> int:
     """Number of FOLLOWER picks of a swap in `mode`."""
     return 3 if mode == MODE_ONE_FOR_TWO else 2
+
+
+# -- Power struggle (R-300..R-304) -------------------------------------------------------------
+def struggle_winner(counts: Sequence[int]) -> int | None:
+    """Implements R-301: the faction with strictly the most followers, else None (unstable)."""
+    best = max(counts)
+    if best <= 0 or list(counts).count(best) > 1:
+        return None
+    return list(counts).index(best)
+
+
+def game_over(region_states: Sequence[int], struggles: int) -> bool:
+    """Implements R-304: three instability discs placed, or the eighth struggle resolved."""
+    unstable = sum(1 for s in region_states if s == C.REGION_UNSTABLE)
+    return unstable >= C.INSTABILITY_DISCS or struggles >= C.NUM_REGIONS

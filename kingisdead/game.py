@@ -154,15 +154,22 @@ class KingIsDeadState(pyspiel.State):
 
     # -- flow -------------------------------------------------------------------------------
     def is_terminal(self) -> bool:
-        return False  # game end (R-304, R-400) arrives with the struggle unit
+        """Implements R-304/R-400: third instability disc (invasion) or eighth struggle."""
+        return self.stage == STAGE_DONE and rules.game_over(
+            self.region_states, self.struggles_resolved
+        )
 
     def current_player(self) -> int:
+        if self.is_terminal():
+            return pyspiel.PlayerId.TERMINAL
         if self.stage != STAGE_DONE:
             return pyspiel.PlayerId.CHANCE
         return self.to_move
 
     def _legal_actions(self, player: int) -> list[int]:
         """Mask per phase: TURN_START (R-101, R-103), SUPPORT_TARGET (R-210), SUMMON (R-201)."""
+        if self.is_terminal():
+            return []
         if self.phase == PHASE_SUPPORT_TARGET:
             return [act.region_action(r) for r in self._support_targets(self.pending_card)]
         if self.phase == PHASE_ASSEMBLE:
@@ -236,10 +243,12 @@ class KingIsDeadState(pyspiel.State):
         if self.stage != STAGE_DONE:
             self._apply_chance(action)
             return
+        if action not in self._legal_actions(self.to_move):
+            raise ValueError(f"action {action} is not legal in phase {self.phase}")
         if action == act.PASS:
             self.pass_count += 1
             if self.pass_count >= self.n:
-                raise NotImplementedError("power struggle (R-105, R-300..R-304): later unit")
+                self._power_struggle()
             self.to_move = (self.to_move + 1) % self.n
             return
         d = act.decode_action(action)
@@ -268,6 +277,24 @@ class KingIsDeadState(pyspiel.State):
         if d.kind != "PLAY" or d.card is None:
             raise ValueError(f"action {action} is not legal at turn start")
         self._play_card(d.card)
+
+    def _power_struggle(self) -> None:
+        """Implements R-105, R-300..R-304. The caller advances to_move past the last passer."""
+        slot = self.struggles_resolved
+        region = self.slot_regions[slot]
+        assert region is not None
+        winner = rules.struggle_winner(self.region_counts[region])
+        if winner is None:
+            self.region_states[region] = C.REGION_UNSTABLE  # R-301
+        else:
+            self.region_states[region] = C.REGION_CONTROLLED
+            self.region_control[region] = winner
+            self.recent_win[winner] = slot + 1  # R-303
+        for f in range(C.NUM_FACTIONS):  # R-302
+            self.supply[f] += self.region_counts[region][f]
+            self.region_counts[region][f] = 0
+        self.struggles_resolved += 1
+        self.pass_count = 0  # R-304
 
     def _neg_pool(self) -> list[int]:
         """Implements R-213: eligible cards."""
@@ -418,7 +445,7 @@ class KingIsDeadState(pyspiel.State):
 
     # -- outcome ----------------------------------------------------------------------------
     def returns(self) -> list[float]:
-        return [0.0] * self.n  # R-405: zero until the game ends
+        return [0.0] * self.n  # TODO(unit 9): R-400..R-405 scoring at terminal
 
     def __str__(self) -> str:
         return (

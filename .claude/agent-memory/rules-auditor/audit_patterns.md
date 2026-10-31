@@ -38,6 +38,26 @@ Recurring patterns seen in spec audits (first seen 2026-10-30, Phase 1 units 2-5
 - **Tiebreak arguments: right conclusion, wrong justification.** Verify the reasoning, not just the
   claim. (Coronation/invasion tiebreak chains were otherwise sound.)
 
+
+Code/test audit patterns (first seen 2026-10-30, Phase 2 unit 7 spot audit):
+
+- **pyspiel Python apply_action does not check legality.** Probe illegal actions per sub-step
+  phase with a quick script (e.g. PASS mid-swap was accepted in unit 7 because game.py handles
+  PASS before dispatching on phase). Masks being right is not enough.
+- **Follower-total argument for undo-block tests.** Swaps preserve totals and each summon removes 1,
+  so an old B* is unreachable after any later play except Assemble/Support with a 1-follower supply
+  (net 0). Tests of "B* replaced by no-swap M/O" or "D22 void vs naive negative count" are
+  inherently non-discriminating via masks; only a physical-origin B* alternative (undo_block_void)
+  or a net-0 Assemble discriminates. Don't flag the engine for these; note the test as weak at most.
+  Unit 8 (struggle) escalated it: a mid-card PASS can trigger a struggle mid-Assemble, and PASS
+  after terminal runs extra struggles (4th instability disc; IndexError after the 8th). Also probe
+  apply_action on a terminal state every unit. Tracked in PLAN.md §9 ("Fix before Phase 3").
+- **Tests that silently rely on the lenient apply_action.** Loops like `while not terminal: PASS;
+  PASS` apply a PASS to a terminal state; they'll break when legality is enforced. Check that
+  multi-action loop bodies re-test is_terminal between actions.
+- Run spec examples end to end (pre-L board → L → summon → next play) in a scratch script; tests
+  often inject B* via scenario and skip the capture path.
+
 **Why:** these recur because spec authors reason from the card text locally and companion docs
 paraphrase the spec.
 **How to apply:** on every audit of examples, masks, validators or action legality, run these first.

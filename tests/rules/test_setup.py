@@ -486,7 +486,6 @@ def test_R015_conservation_at_every_setup_node(players):
         assert all(_conserved(st, players) for st in states)
 
 
-@pytest.mark.pending("R-015")
 def test_R015_conservation_after_setup_and_passes():
     """R-015: still holds after setup and after a run of passes (3p) resolves a struggle."""
     _, s, _, _ = _random_setup(3, 7)
@@ -530,7 +529,6 @@ def test_R100_passes_advance_in_seat_order_3p():
     assert s.pass_count == 2
 
 
-@pytest.mark.pending("R-100")
 def test_R100_wraps_after_struggle_to_player_after_last_passer():
     """R-100 / R-105: 3 players all pass -> struggle -> player 0 acts (after last passer 2)."""
     _, s, _, _ = _random_setup(3, 3)
@@ -541,7 +539,6 @@ def test_R100_wraps_after_struggle_to_player_after_last_passer():
     assert s.current_player() == 0
 
 
-@pytest.mark.pending("R-100")
 def test_R100_two_player_wrap():
     """R-100: 2 players: 0 passes, 1 passes -> struggle, player 0 is next."""
     _, s, _, _ = _random_setup(2, 3)

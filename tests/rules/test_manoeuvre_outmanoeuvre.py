@@ -903,7 +903,6 @@ def test_R217_passes_do_not_clear_block():
     assert F(6, E) in s2.legal_actions()
 
 
-@pytest.mark.pending("R-217")
 def test_R217_struggle_does_not_clear_but_nothing_can_match():
     """R-217 example: seat 0 Manoeuvres (L), 1, 2, 0 pass, a struggle resolves in Moray (slot 1,
     open in B*; Scottish 3 vs English 1: Scottish control) and seat 1 acts: Moray is now closed

@@ -282,7 +282,6 @@ def test_R105_no_struggle_before_n_passes(players):
     assert not s.is_terminal()
 
 
-@pytest.mark.pending("R-105")
 @pytest.mark.parametrize("players", [2, 3])
 def test_R105_nth_pass_starts_struggle_and_resets_count(players):
     """R-105 (struggle is unit 8/9, count reset is the observable here): the nth consecutive pass
@@ -294,7 +293,6 @@ def test_R105_nth_pass_starts_struggle_and_resets_count(players):
     assert s.pass_count == 0
 
 
-@pytest.mark.pending("R-105")
 def test_R105_example_player_after_last_passer_acts_3p():
     """R-105 example (struggle part: unit 8/9): 3 players: seat 0 plays a card; 1, 2, 0 pass ->
     struggle. The player after the last passer (seat 1) acts next. (The spec text of the example
@@ -323,7 +321,6 @@ def test_R105_struggle_needs_consecutive_passes():
     assert s.struggles_resolved == 0
 
 
-@pytest.mark.pending("R-105")
 def test_R105_struggle_does_not_change_hands():
     """R-105 (struggle is unit 8/9): a triggered struggle leaves every hand unchanged."""
     s = _new(2)
@@ -346,7 +343,6 @@ def test_R106_empty_hand_only_pass_legal(players):
     assert s.legal_actions() == [PASS]
 
 
-@pytest.mark.pending("R-106")
 def test_R106_only_the_empty_player_is_restricted():
     """R-106: with seat 0 empty and seat 1 still holding cards, seat 1 keeps all its options."""
     s = _new(2)
@@ -370,7 +366,6 @@ def test_R106_empty_hand_pass_increments_count():
     assert s.struggles_resolved == 0
 
 
-@pytest.mark.pending("R-106")
 def test_R106_all_empty_two_players_pass_pass_is_struggle():
     """R-106 example (struggle: unit 8/9): 2 players, empty hands: pass, pass -> struggle."""
     s = _new(2)
@@ -381,7 +376,6 @@ def test_R106_all_empty_two_players_pass_pass_is_struggle():
     assert s.pass_count == 0
 
 
-@pytest.mark.pending("R-106")
 def test_R106_all_empty_game_terminates_within_eight_struggles():
     """R-106 (needs units 8/9 and R-304): with every hand empty, repeated passing ends the game
     after at most 8 struggles."""

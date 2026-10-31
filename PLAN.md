@@ -264,7 +264,7 @@ Task list (approved 2026-10-30, branch `phase-2/engine`; each unit: `spec-test-w
 - [x] 5. Support cards, summon and placement (R-200–R-202, R-210, R-211)
 - [x] 6. Assemble and Negotiate (R-212, R-213)
 - [x] 7. Manoeuvre, Outmanoeuvre and undo block (R-214–R-217); `rules-auditor` spot check
-- [ ] 8. Power struggle (R-300–R-304); `rules-auditor` spot check
+- [x] 8. Power struggle (R-300–R-304); `rules-auditor` spot check
 - [ ] 9. End of game and scoring (R-400–R-405); `rules-auditor` spot check
 - [ ] 10. Observer (§5.5) → `observer.py`
 - [ ] 11. Scenario loader and invariant checker → `scenario.py`, `tests/support/invariants.py`
@@ -344,7 +344,7 @@ Should-fix and minor findings, tagged with the phase that found them. `/close-ph
 - Phase 0: GitHub branch protection on `master` needs GitHub Pro on a private repo (user's call).
 - Phase 1: R-216 Example 4 (locked spec) is a Manoeuvre case but points at `tests/scenarios/undo_block_void.json`, which is an Outmanoeuvre case exercising the same D22 rule; fix the reference at the next spec amendment.
 - Phase 1: the `protect_spec.py` hook also fires on Bash commands that only mention the spec's filename (false positive; use Edit/Write for other files).
-- Phase 2 (unit 7 audit): `apply_action` in game.py doesn't check legality; PASS is accepted mid-card (Manoeuvre then PASS, SUMMON, ASSEMBLE, NEG_*, SUPPORT_TARGET) because it is handled before the phase check. Masks never offer it, but the server will forward whatever a client submits. Fix before Phase 3 (reject actions not in `legal_actions()`).
+- Phase 2 (unit 8 audit): `rules.game_over` is a yes/no flag; unit 9 must add a test that an eighth struggle that also leaves a third unstable region scores as an invasion (R-304 ordering), since `test_R304_third_disc_at_the_eighth_struggle_is_still_terminal` only checks termination.
 - Phase 2 (unit 7 audit): `test_R217_no_swap_play_clears_block` starts with no B* so it can't show a no-swap play replacing B*; has a vacuous `or True` assertion at ~line 957; examples 2 and 3 inject B* through the scenario instead of playing L. Strengthen once the observer exposes B* (unit 10).
 
 ## 10. Risks
