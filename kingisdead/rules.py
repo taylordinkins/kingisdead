@@ -195,3 +195,80 @@ def game_over(region_states: Sequence[int], struggles: int) -> bool:
     """Implements R-304: three instability discs placed, or the eighth struggle resolved."""
     unstable = sum(1 for s in region_states if s == C.REGION_UNSTABLE)
     return unstable >= C.INSTABILITY_DISCS or struggles >= C.NUM_REGIONS
+
+
+# -- Game end and scoring (R-400..R-405) -------------------------------------------------------
+def is_invasion(region_states: Sequence[int]) -> bool:
+    """Implements R-304/R-400: three instability discs are on the board (checked first)."""
+    return sum(1 for s in region_states if s == C.REGION_UNSTABLE) >= C.INSTABILITY_DISCS
+
+
+def complete_sets(court: Sequence[int]) -> int:
+    """Implements R-402: minimum over the factions of the follower count in the court."""
+    return min(court)
+
+
+def _best_record(tied: list[int], key: Sequence[int | None], best: str) -> list[int]:
+    """Players among `tied` with the best record; None (never) loses; all if nobody has one."""
+    have = [p for p in tied if key[p] is not None]
+    if not have:
+        return tied
+    values = [v for v in (key[p] for p in have) if v is not None]
+    target = max(values) if best == "max" else min(values)
+    return [p for p in have if key[p] == target]
+
+
+def _most(tied: list[int], values: Sequence[int]) -> list[int]:
+    top = max(values[p] for p in tied)
+    return [p for p in tied if values[p] == top]
+
+
+def invasion_winners(courts: Sequence[Sequence[int]], last_play: Sequence[int | None]) -> list[int]:
+    """Implements R-402: most complete sets, then highest last-play number; all share if none."""
+    tied = _most(list(range(len(courts))), [complete_sets(c) for c in courts])
+    return _best_record(tied, last_play, "max")
+
+
+def coronation_ranking(
+    region_states: Sequence[int], region_control: Sequence[int], recent_win: Sequence[int]
+) -> list[int | None]:
+    """Implements R-403: factions by regions controlled then recent-win, both descending.
+
+    Returns [rank 1, rank 2, rank 3]; a rank is None where tied factions leave it undefined.
+    """
+    nf = C.NUM_FACTIONS
+    keys = [
+        (
+            sum(
+                1
+                for r, s in enumerate(region_states)
+                if s == C.REGION_CONTROLLED and region_control[r] == f
+            ),
+            recent_win[f],
+        )
+        for f in range(nf)
+    ]
+    order = sorted(range(nf), key=lambda f: keys[f], reverse=True)
+    return [None if any(keys[g] == keys[f] for g in order if g != f) else f for f in order]
+
+
+def coronation_winners(
+    courts: Sequence[Sequence[int]],
+    ranking: Sequence[int | None],
+    hand_empty: Sequence[int | None],
+) -> list[int]:
+    """Implements R-404: rank-1 followers, then rank-2 (if defined), then earliest empty hand."""
+    tied = list(range(len(courts)))
+    for f in ranking[:2]:
+        if f is not None and len(tied) > 1:
+            tied = _most(tied, [c[f] for c in courts])
+    if len(tied) > 1:
+        tied = _best_record(tied, hand_empty, "min")
+    return tied
+
+
+def game_returns(n: int, winners: Sequence[int]) -> list[float]:
+    """Implements R-405: k winners of n get (n-k)/(k(n-1)), the others -1/(n-1)."""
+    k = len(winners)
+    win = (n - k) / (k * (n - 1))
+    return [win if p in winners else -1.0 / (n - 1) for p in range(n)]

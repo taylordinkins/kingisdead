@@ -58,6 +58,15 @@ Code/test audit patterns (first seen 2026-10-30, Phase 2 unit 7 spot audit):
 - Run spec examples end to end (pre-L board → L → summon → next play) in a scratch script; tests
   often inject B* via scenario and skip the capture path.
 
+- **Mutation probes beat reading for test strength** (unit 9, 2026-10-30): a pytest plugin in the
+  scratchpad that monkeypatches `rules.*` / `KingIsDeadState.*` per `MUT` env var, run with
+  `PYTHONPATH=<scratch> uv run pytest -p mutplug <file>`. game.py calls `rules.x` by attribute, so
+  patches take. Tie-break chains are typically under-tested at the step *after* the last spec step
+  (e.g. using rank-3 followers before hand-empty survived: tied courts never differ on rank 3).
+- **Tooling quirk:** the protect_spec PreToolUse hook rejected a Bash heredoc that wrote a scratch
+  script (no spec path in it). Write scratch scripts with the Write tool; run them with
+  `PYTHONPATH=/home/xdink/code/kingisdead uv run python <script>`.
+
 **Why:** these recur because spec authors reason from the card text locally and companion docs
 paraphrase the spec.
 **How to apply:** on every audit of examples, masks, validators or action legality, run these first.

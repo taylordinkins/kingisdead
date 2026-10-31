@@ -1,2 +1,2 @@
-- [Audit patterns](audit_patterns.md) — recurring defects: local examples, played-vs-effect, companion-doc drift, derived fields, terminology, end timing; code: unchecked illegal/post-terminal actions, tests leaning on them, B* reachability
+- [Audit patterns](audit_patterns.md) — recurring defects: local examples, played-vs-effect, companion-doc drift, derived fields, terminology, end timing; code: unchecked illegal/post-terminal actions, tests leaning on them, B* reachability; mutation-probe recipe; hook quirk
 - [Rulebook source](rulebook_source.md) — PDF location, extraction reliability, page map

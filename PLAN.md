@@ -265,7 +265,7 @@ Task list (approved 2026-10-30, branch `phase-2/engine`; each unit: `spec-test-w
 - [x] 6. Assemble and Negotiate (R-212, R-213)
 - [x] 7. Manoeuvre, Outmanoeuvre and undo block (R-214–R-217); `rules-auditor` spot check
 - [x] 8. Power struggle (R-300–R-304); `rules-auditor` spot check
-- [ ] 9. End of game and scoring (R-400–R-405); `rules-auditor` spot check
+- [x] 9. End of game and scoring (R-400–R-405); `rules-auditor` spot check
 - [ ] 10. Observer (§5.5) → `observer.py`
 - [ ] 11. Scenario loader and invariant checker → `scenario.py`, `tests/support/invariants.py`
 - [ ] 12. Tools, sims, golden playthroughs (`play_text.py`, `sim_stats.py`, 10,000-game slow test, 3 seeds)
@@ -345,6 +345,7 @@ Should-fix and minor findings, tagged with the phase that found them. `/close-ph
 - Phase 1: R-216 Example 4 (locked spec) is a Manoeuvre case but points at `tests/scenarios/undo_block_void.json`, which is an Outmanoeuvre case exercising the same D22 rule; fix the reference at the next spec amendment.
 - Phase 1: the `protect_spec.py` hook also fires on Bash commands that only mention the spec's filename (false positive; use Edit/Write for other files).
 - Phase 2 (unit 8 audit): `rules.game_over` is a yes/no flag; unit 9 must add a test that an eighth struggle that also leaves a third unstable region scores as an invasion (R-304 ordering), since `test_R304_third_disc_at_the_eighth_struggle_is_still_terminal` only checks termination.
+- Phase 2 (unit 9 audit): test gaps, should-fix at close-phase. (a) R-404: no test shows rank-3 followers are NOT a tie-break (a mutant using them before step 3 passes); add P0/P1 tied on S and W, P1 with more E, only P0 emptied hand, P0 wins. (b) R-405: `test_R405_formula_values` checks the test helper `_exp`, not the engine; add literal assertions on `s.returns()` incl. n=2 shared (0, 0). Minor: `_rec` accepts 0/-1 as "none" (engine uses None); unused `pend` helper in test_game_end.py.
 - Phase 2 (unit 7 audit): `test_R217_no_swap_play_clears_block` starts with no B* so it can't show a no-swap play replacing B*; has a vacuous `or True` assertion at ~line 957; examples 2 and 3 inject B* through the scenario instead of playing L. Strengthen once the observer exposes B* (unit 10).
 
 ## 10. Risks

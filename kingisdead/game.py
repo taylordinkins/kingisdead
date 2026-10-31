@@ -382,6 +382,9 @@ class KingIsDeadState(pyspiel.State):
             raise ValueError(f"card {card} is not in hand")
         hand[card] -= 1
         self.plays_total += 1
+        self.last_play[self.to_move] = self.plays_total  # R-401
+        if not any(hand.values()):
+            self.hand_empty[self.to_move] = self.plays_total
         self.pass_count = 0
         # R-217: any card play replaces L and B*; only a same-type play is blocked by the old B*.
         old_ref, old_card = self.reference_board, self.last_card
@@ -445,7 +448,20 @@ class KingIsDeadState(pyspiel.State):
 
     # -- outcome ----------------------------------------------------------------------------
     def returns(self) -> list[float]:
-        return [0.0] * self.n  # TODO(unit 9): R-400..R-405 scoring at terminal
+        """Implements R-400..R-405: zero until the game ends, then the shared-win returns."""
+        if not self.is_terminal():
+            return [0.0] * self.n
+        return rules.game_returns(self.n, self.winners())
+
+    def player_return(self, player: int) -> float:
+        return self.returns()[player]
+
+    def winners(self) -> list[int]:
+        """Implements R-402 (invasion) or R-403/R-404 (coronation) at a terminal state."""
+        if rules.is_invasion(self.region_states):
+            return rules.invasion_winners(self.courts, self.last_play)
+        ranking = rules.coronation_ranking(self.region_states, self.region_control, self.recent_win)
+        return rules.coronation_winners(self.courts, ranking, self.hand_empty)
 
     def __str__(self) -> str:
         return (
