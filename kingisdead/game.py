@@ -195,7 +195,24 @@ class KingIsDeadState(pyspiel.State):
                 raise NotImplementedError("power struggle (R-105, R-300..R-304): later unit")
             self.to_move = (self.to_move + 1) % self.n
             return
-        raise NotImplementedError("card play (R-102, R-210..R-216): later unit")
+        d = act.decode_action(action)
+        if d.kind != "PLAY" or d.card is None:
+            raise ValueError(f"action {action} is not legal at turn start")
+        self._play_card(d.card)
+
+    def _play_card(self, card: int) -> None:
+        """Implements R-102, R-104: spend one copy, count the play, reset the pass count.
+
+        TODO(units 5-7): the card effect and SUMMON sub-steps are not implemented yet; until they
+        land the play behaves as if every phase were skipped (R-202) and the turn passes on.
+        """
+        hand = self.hands[self.to_move]
+        if hand.get(card, 0) <= 0:
+            raise ValueError(f"card {card} is not in hand")
+        hand[card] -= 1
+        self.plays_total += 1
+        self.pass_count = 0
+        self.to_move = (self.to_move + 1) % self.n
 
     def _action_to_string(self, player: int, action: int) -> str:
         if player == pyspiel.PlayerId.CHANCE:
