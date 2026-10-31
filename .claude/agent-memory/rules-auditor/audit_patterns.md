@@ -82,6 +82,21 @@ Code/test audit patterns (first seen 2026-10-30, Phase 2 unit 7 spot audit):
   script (no spec path in it). Write scratch scripts with the Write tool; run them with
   `PYTHONPATH=/home/xdink/code/kingisdead uv run python <script>`.
 
+Server/UI audit patterns (first seen Phase 3 close, 2026-10-31):
+
+- **"No rule IDs" phases still owe spec statements about the UI.** R-106/C4 say "the UI and bots
+  auto-submit PASS" for an empty hand; Phase 3 built the UI but not the auto-submit, because its
+  task list said server/web units carry no rule IDs. At UI/server phase close, grep the spec and
+  PLAN.md §4 for "UI", "automatic", "auto-" and check each one.
+- **Adapter re-derivations of engine results are tested only for shape.** The scoring breakdown
+  re-runs the tie-break chain with its own copy of `_best_record`, but its "winners" field comes from
+  `state.winners()`, so the tests compared winners with winners and never checked the step chain.
+  Recipe: random games (800 in ~1 min) asserting last step "remaining" == winners, plus hand-made
+  terminal states (mutate fields on a cloned terminal state) for rank-2 undefined and the
+  all-None hand-empty share. Random games never reach rank-2 undefined, so construct it.
+- **Back/rewind built by truncating and replaying with full legality checks cannot bypass the
+  undo block** (B* is rebuilt by replay); confirm `_load` validates every action, then stop there.
+
 **Why:** these recur because spec authors reason from the card text locally and companion docs
 paraphrase the spec.
 **How to apply:** on every audit of examples, masks, validators or action legality, run these first.

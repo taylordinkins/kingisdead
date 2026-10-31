@@ -6,7 +6,9 @@ readme = "README.md"
 license = "MIT"
 requires-python = ">=3.12,<3.15"
 dependencies = [
+    "fastapi>=0.162.0",
     "open-spiel==2.0.2",
+    "uvicorn>=0.54.0",
 ]
 
 [dependency-groups]
@@ -15,6 +17,7 @@ dev = [
     "hypothesis>=6",
     "ruff>=0.8",
     "pyright>=1.1.390",
+    "httpx>=0.28.1",
 ]
 
 [tool.uv]
@@ -39,7 +42,7 @@ target-version = "py312"
 select = ["E", "F", "I", "B", "UP", "SIM"]
 
 [tool.pyright]
-include = ["kingisdead", "tests/support"]
+include = ["kingisdead", "server", "tests/support"]
 stubPath = "typings"
 pythonVersion = "3.12"
 typeCheckingMode = "strict"
