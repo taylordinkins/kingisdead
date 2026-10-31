@@ -267,7 +267,7 @@ Task list (approved 2026-10-30, branch `phase-2/engine`; each unit: `spec-test-w
 - [x] 8. Power struggle (R-300–R-304); `rules-auditor` spot check
 - [x] 9. End of game and scoring (R-400–R-405); `rules-auditor` spot check
 - [x] 10. Observer (§5.5) → `observer.py`
-- [ ] 11. Scenario loader and invariant checker → `scenario.py`, `tests/support/invariants.py`
+- [x] 11. Scenario loader and invariant checker → `scenario.py`, `tests/support/invariants.py`
 - [ ] 12. Tools, sims, golden playthroughs (`play_text.py`, `sim_stats.py`, 10,000-game slow test, 3 seeds)
 - [ ] 13. Card-by-card independent review (`rules-auditor`) and fix round
 
