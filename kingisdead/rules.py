@@ -1,4 +1,4 @@
-"""Pure rule helpers (no pyspiel, no I/O, no randomness). Implements R-200, R-201, R-210, R-211."""
+"""Pure rule helpers (no pyspiel, no I/O, no randomness). Implements R-200..R-213 helpers."""
 
 from __future__ import annotations
 
@@ -44,3 +44,31 @@ def summon_options(region_counts: Sequence[Sequence[int]]) -> list[tuple[int, in
         for f in range(C.NUM_FACTIONS)
         if region_counts[r][f] > 0
     ]
+
+
+def next_assemble_faction(supply: Sequence[int], after: int) -> int | None:
+    """Implements R-212: the next faction (S, W, E order) after `after` with followers in supply."""
+    for f in range(after + 1, C.NUM_FACTIONS):
+        if supply[f] > 0:
+            return f
+    return None
+
+
+def negotiate_eligible(
+    slot_regions: Sequence[int | None], struggles: int, discs: Sequence[int | None]
+) -> list[int]:
+    """Implements R-213: face-up regions (slots after the resolved struggles) with no disc."""
+    return sorted(r for r in slot_regions[struggles:] if r is not None and r not in discs)
+
+
+def negotiate_first_options(eligible: Sequence[int]) -> list[int]:
+    """Implements R-213: eligible regions with an eligible partner of higher region index."""
+    return [r for r in eligible if any(o > r for o in eligible)]
+
+
+def negotiate_swap(slot_regions: Sequence[int | None], a: int, b: int) -> list[int | None]:
+    """Implements R-213: exchange the slots of the cards of regions a and b."""
+    out = list(slot_regions)
+    ia, ib = out.index(a), out.index(b)
+    out[ia], out[ib] = b, a
+    return out

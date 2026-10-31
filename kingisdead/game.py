@@ -31,6 +31,13 @@ STAGE_DONE = 3
 PHASE_TURN_START = 0
 PHASE_SUPPORT_TARGET = 1
 PHASE_SUMMON = 2
+PHASE_ASSEMBLE = 3  # ASSEMBLE_S/W/E, told apart by assemble_faction
+PHASE_NEG_FIRST = 4
+PHASE_NEG_SECOND = 5
+PHASE_NEG_DISC = 6
+
+CARD_ASSEMBLE = 4
+CARD_NEGOTIATE = 5
 
 REGION_FILL_TARGET = 4  # R-013
 COURT_DRAWS_PER_PLAYER = 2  # R-012
@@ -129,6 +136,9 @@ class KingIsDeadState(pyspiel.State):
         self.to_move = 0
         self.phase = PHASE_TURN_START
         self.pending_card = 0  # card being resolved while phase != TURN_START
+        self.assemble_faction = 0  # faction being placed in PHASE_ASSEMBLE
+        self.neg_first = 0  # first chosen region in NEG_SECOND / NEG_DISC
+        self.neg_second = 0
         self.stage = STAGE_PICKS
         self.setup_picks = 0
         self.court_draws = 0
@@ -147,6 +157,18 @@ class KingIsDeadState(pyspiel.State):
         """Mask per phase: TURN_START (R-101, R-103), SUPPORT_TARGET (R-210), SUMMON (R-201)."""
         if self.phase == PHASE_SUPPORT_TARGET:
             return [act.region_action(r) for r in self._support_targets(self.pending_card)]
+        if self.phase == PHASE_ASSEMBLE:
+            return [
+                act.region_action(r)
+                for r in range(C.NUM_REGIONS)
+                if self.region_states[r] == C.REGION_OPEN
+            ]
+        if self.phase == PHASE_NEG_FIRST:
+            return [act.region_action(r) for r in rules.negotiate_first_options(self._neg_pool())]
+        if self.phase == PHASE_NEG_SECOND:
+            return [act.region_action(r) for r in self._neg_pool() if r > self.neg_first]
+        if self.phase == PHASE_NEG_DISC:
+            return [act.region_action(r) for r in (self.neg_first, self.neg_second)]
         if self.phase == PHASE_SUMMON:
             return [act.follower_action(r, f) for r, f in rules.summon_options(self.region_counts)]
         acts = [act.PASS]
@@ -208,6 +230,11 @@ class KingIsDeadState(pyspiel.State):
             self.to_move = (self.to_move + 1) % self.n
             return
         d = act.decode_action(action)
+        if self.phase in (PHASE_ASSEMBLE, PHASE_NEG_FIRST, PHASE_NEG_SECOND, PHASE_NEG_DISC):
+            if d.kind != "REGION" or d.region is None or action not in self._legal_actions(0):
+                raise ValueError(f"action {action} is not legal in phase {self.phase}")
+            self._apply_region_step(d.region)
+            return
         if self.phase == PHASE_SUPPORT_TARGET:
             if d.kind != "REGION" or d.region is None:
                 raise ValueError(f"action {action} is not a support target")
@@ -222,6 +249,39 @@ class KingIsDeadState(pyspiel.State):
         if d.kind != "PLAY" or d.card is None:
             raise ValueError(f"action {action} is not legal at turn start")
         self._play_card(d.card)
+
+    def _neg_pool(self) -> list[int]:
+        """Implements R-213: eligible cards."""
+        return rules.negotiate_eligible(
+            self.slot_regions, self.struggles_resolved, self.negotiation_discs
+        )
+
+    def _apply_region_step(self, r: int) -> None:
+        """Implements R-212 (Assemble placements) and R-213 (Negotiate choices)."""
+        if self.phase == PHASE_ASSEMBLE:
+            f = self.assemble_faction
+            self.supply[f] -= 1
+            self.region_counts[r][f] += 1
+            self._next_assemble(f)
+        elif self.phase == PHASE_NEG_FIRST:
+            self.neg_first = r
+            self.phase = PHASE_NEG_SECOND
+        elif self.phase == PHASE_NEG_SECOND:
+            self.neg_second = r
+            self.slot_regions = rules.negotiate_swap(self.slot_regions, self.neg_first, r)
+            self.phase = PHASE_NEG_DISC
+        else:
+            self.negotiation_discs[self.to_move] = r
+            self._enter_summon()
+
+    def _next_assemble(self, after: int) -> None:
+        """Implements R-212: advance to the next faction with supply, or on to the summon."""
+        f = rules.next_assemble_faction(self.supply, after)
+        if f is None:
+            self._enter_summon()
+        else:
+            self.phase = PHASE_ASSEMBLE
+            self.assemble_faction = f
 
     def _support_targets(self, card: int) -> list[int]:
         """Implements R-210/R-211: eligible regions, empty if the supply is exhausted."""
@@ -262,8 +322,8 @@ class KingIsDeadState(pyspiel.State):
     def _play_card(self, card: int) -> None:
         """Implements R-102, R-104, R-202, R-210, R-211: spend the card, then resolve it.
 
-        TODO(units 6-7): Assemble, Negotiate, Manoeuvre and Outmanoeuvre (cards 4-7) have no
-        effect yet (R-202); they go straight to the summon.
+        TODO(unit 7): Manoeuvre and Outmanoeuvre (cards 6-7) have no effect yet (R-202); they go
+        straight to the summon. Assemble and Negotiate are R-212 and R-213.
         """
         hand = self.hands[self.to_move]
         if hand.get(card, 0) <= 0:
@@ -275,6 +335,14 @@ class KingIsDeadState(pyspiel.State):
             self.phase = PHASE_SUPPORT_TARGET
             self.pending_card = card
             return
+        self.pending_card = card
+        if card == CARD_ASSEMBLE:
+            self._next_assemble(-1)
+            return
+        if card == CARD_NEGOTIATE and len(self._neg_pool()) >= 2:
+            self.phase = PHASE_NEG_FIRST
+            return
+        self.pending_card = 0
         self._enter_summon()
 
     def _action_to_string(self, player: int, action: int) -> str:
