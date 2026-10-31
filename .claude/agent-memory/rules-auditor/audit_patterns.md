@@ -63,6 +63,17 @@ Code/test audit patterns (first seen 2026-10-30, Phase 2 unit 7 spot audit):
   `PYTHONPATH=<scratch> uv run pytest -p mutplug <file>`. game.py calls `rules.x` by attribute, so
   patches take. Tie-break chains are typically under-tested at the step *after* the last spec step
   (e.g. using rank-3 followers before hand-empty survived: tied courts never differ on rank 3).
+- **Unit 13 full review (2026-10-30):** legality is now enforced in `_apply_action` (illegal and
+  post-terminal actions raise; probe found none accepted), so the unit 7/8 lenient-apply items are
+  closed. Equivalent mutants by the follower-total argument: "keep full pre-L board as B*" (D22
+  ignored) and "no-swap M/O keeps the old B*" survive every test and cannot be distinguished; don't
+  report them as gaps. A mutant killed ONLY by golden playthroughs (they embed the observer tensor,
+  which exposes internal fields) is still a rule-test gap: goldens get regenerated, not debugged.
+  Backlog test-gap items tend to survive unfixed into later units; recheck each line.
+- **Differential oracle recipe:** scratch script with an independent tracker (passes, plays,
+  hand-empty, recent-win, B*) replaying random games and asserting each struggle/score/flow step,
+  plus full sub-tree exploration (clone + legal_actions) per card at each turn start compared with
+  an oracle built from the spec. ~7 s/game for the card oracle; 40 games is enough for masks.
 - **Tooling quirk:** the protect_spec PreToolUse hook rejected a Bash heredoc that wrote a scratch
   script (no spec path in it). Write scratch scripts with the Write tool; run them with
   `PYTHONPATH=/home/xdink/code/kingisdead uv run python <script>`.

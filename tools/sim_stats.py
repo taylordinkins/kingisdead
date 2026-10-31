@@ -16,9 +16,10 @@ from kingisdead import constants as C  # noqa: E402
 
 try:
     from tests.support.invariants import InvariantViolation, check_invariants
-except ImportError:  # pragma: no cover
-    check_invariants = None
-    InvariantViolation = AssertionError
+except ImportError as exc:  # pragma: no cover
+    sys.exit(
+        f"sim_stats: cannot import tests.support.invariants ({exc}); not reporting 0 violations"
+    )
 
 
 def play(game, rng: random.Random) -> tuple[str, int, int]:
@@ -28,8 +29,6 @@ def play(game, rng: random.Random) -> tuple[str, int, int]:
     violations = 0
 
     def check() -> int:
-        if check_invariants is None:
-            return 0
         try:
             check_invariants(state)
         except InvariantViolation:

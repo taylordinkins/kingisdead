@@ -269,7 +269,7 @@ Task list (approved 2026-10-30, branch `phase-2/engine`; each unit: `spec-test-w
 - [x] 10. Observer (§5.5) → `observer.py`
 - [x] 11. Scenario loader and invariant checker → `scenario.py`, `tests/support/invariants.py`
 - [x] 12. Tools, sims, golden playthroughs (`play_text.py`, `sim_stats.py`, 10,000-game slow test, 3 seeds)
-- [ ] 13. Card-by-card independent review (`rules-auditor`) and fix round
+- [x] 13. Card-by-card independent review (`rules-auditor`) and fix round
 
 **Phase 3 — Server + web shell ✋ playtest #1**
 - FastAPI + adapter; React shell with legal-action list and a text board; human and random seats; Report and replay export; Playwright smoke test that finishes a game against the random bot.

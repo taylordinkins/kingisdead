@@ -32,7 +32,6 @@ import kingisdead.game  # noqa: F401  (registers the game)
 from kingisdead.scenario import load_scenario
 
 SCEN = Path(__file__).resolve().parent.parent / "scenarios"
-pending = pytest.mark.pending("R-216")
 
 
 def _game(n):

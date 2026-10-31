@@ -705,6 +705,39 @@ def test_R216_example2_blocked_one_for_two_forces_one_for_one():
     assert _counts(s)[0] == [1, 1, 0] and _counts(s)[1] == [0, 1, 0]
 
 
+def test_R216_example2_via_real_play_from_pre_l_board():
+    """R-216 example 2, end to end from the board before L: Moray [S], Strathclyde [W W], Devon
+    [E]. Seat 0 plays Outmanoeuvre (Moray,S) for {W,W} and summons Devon's E; seat 1's only
+    1-for-2 swap would reproduce B*, so Outmanoeuvre is 1-for-1: (Moray,W) then (Strathclyde,S)."""
+    s = _pos({0: {S: 1}, 1: {W: 2}, 7: {E: 1}}, to_play=0)
+    for a in (OUT, F(0, S), F(1, W), F(1, W), F(7, E)):
+        s.apply_action(a)
+    assert s.current_player() == 1
+    assert _counts(s)[0] == [0, 2, 0] and _counts(s)[1] == [1, 0, 0]
+    s.apply_action(OUT)
+    assert s.legal_actions() == [F(0, W)]
+    s.apply_action(F(0, W))
+    assert s.legal_actions() == [F(1, S)]
+
+
+def test_R216_example3_via_real_play_from_pre_l_board():
+    """R-216 example 3, end to end: Moray [S E], Strathclyde [S W E], Devon [W W W W]. Seat 0
+    plays Outmanoeuvre (Moray,S) for {S,W} from Strathclyde and summons a W from Devon. Seat 1
+    picks (Strathclyde,E): the only Moray first pick is S (so the {W,E} pair that reproduces B*
+    is not offered), then {S,W} or {S,E} complete the swap."""
+    s = _pos({0: {S: 1, E: 1}, 1: {S: 1, W: 1, E: 1}, 7: {W: 4}}, to_play=0)
+    for a in (OUT, F(0, S), F(1, S), F(1, W), F(7, W)):
+        s.apply_action(a)
+    assert s.current_player() == 1
+    assert _counts(s)[0] == [1, 1, 1] and _counts(s)[1] == [1, 0, 1]
+    s.apply_action(OUT)
+    assert F(1, E) in s.legal_actions()
+    s.apply_action(F(1, E))
+    assert s.legal_actions() == [F(0, S)]
+    s.apply_action(F(0, S))
+    assert s.legal_actions() == [F(0, W), F(0, E)]
+
+
 def test_R216_example2_blocked_form_is_absent_not_just_unpicked():
     """R-216 example 2: the blocked 1-for-2 sequence 7, (Strathclyde,S), (Moray,W), (Moray,W) is
     not a legal path, and the oracle comparison (mode 1-for-1) holds for the shipped scenario."""
@@ -951,9 +984,6 @@ def test_R217_new_manoeuvre_replaces_reference():
     bstar2 = tuple(tuple(r) for r in rows)
     _check(s, MAN, bstar2, players=3)
     # The reverse of seat 1's swap is blocked.
-    t = s.clone()
-    t.apply_action(MAN)
-    assert F(0, S) not in [a for a in t.legal_actions()] or True
     u = s.clone()
     got = _explore(u, MAN, 2, players=3)
     assert (F(0, W), F(7, S)) not in got
@@ -963,7 +993,9 @@ def test_R217_no_swap_play_clears_block():
     """R-217 / R-216: L made no swap (no legal swap existed) so nothing is blocked. A position
     created with last_card manoeuvre and no reference board (the scenario form of 'no swap')
     blocks nothing, and a no-effect Manoeuvre by seat 1 on a one-region board followed by
-    another seat's Manoeuvre blocks nothing."""
+    another seat's Manoeuvre blocks nothing. Note: a no-swap play followed by its summon leaves
+    one follower fewer than the old B*, so the old B* can never match again; a mutant that keeps
+    the old B* is therefore equivalent and this test cannot show the block being replaced."""
     s = _pos({3: {S: 3}}, players=3, last="manoeuvre", ref=None)
     s.apply_action(MAN)  # no effect
     assert s.legal_actions() == [F(3, S)]

@@ -1,2 +1,3 @@
-- [Audit patterns](audit_patterns.md) — recurring defects: local examples, played-vs-effect, companion-doc drift, derived fields, terminology, end timing; code: unchecked illegal/post-terminal actions, tests leaning on them, B* reachability; mutation-probe recipe; hook quirk
+- [Audit patterns](audit_patterns.md) — recurring defects: local examples, played-vs-effect, companion-doc drift, derived fields, terminology, end timing; code: unchecked illegal/post-terminal actions, tests leaning on them, B* reachability; equivalent mutants; golden-only kills; mutation + oracle recipes; hook quirk
+- [Output policy](output_policy.md) — caller asks for docs/phase-reports/*.md: don't write it, return paste-ready content in the handback
 - [Rulebook source](rulebook_source.md) — PDF location, extraction reliability, page map

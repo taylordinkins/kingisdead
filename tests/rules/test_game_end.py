@@ -4,8 +4,8 @@
 Assumed identifiers (same style as test_power_struggle.py):
   s.is_terminal(), s.legal_actions(), s.returns() (list, one float per player),
   s.player_return(p), s.struggles_resolved, s.region_states[r], s.pass_count,
-  s.last_play[p] and s.hand_empty[p] (card-play number, 1-based, R-401; "none" is accepted as
-    None or any value <= 0, see ``_rec``), s.recent_win[f] (R-303), s.hands[p],
+  s.last_play[p] and s.hand_empty[p] (card-play number, 1-based, R-401; "none" must be None, see
+    ``_rec``), s.recent_win[f] (R-303), s.hands[p],
   ``kingisdead.scenario.load_scenario(dict)``;
   PASS = 0, PLAY(c) = c (1 Scottish Support, 2 Welsh Support, 3 English Support, 4 Assemble,
   5 Negotiate, 6 Manoeuvre, 7 Outmanoeuvre).
@@ -45,10 +45,6 @@ FULL_HAND = [
 SC = pathlib.Path(__file__).resolve().parent.parent / "scenarios"
 PASS = 0
 U = "unstable"
-
-
-def pend(rule):
-    return pytest.mark.pending(rule)
 
 
 # ---------------------------------------------------------------- state building
@@ -95,7 +91,7 @@ def _scn(
 
 
 def _rec(v):
-    return None if v is None or v <= 0 else int(v)
+    return None if v is None else int(v)  # strict: 0 or -1 as "never" must fail
 
 
 def _exp(n, winners):
@@ -578,7 +574,9 @@ def test_R404_step1_unique_leader_in_rank1_faction_wins():
     """R-404 step 1: the most rank-1 followers wins outright, whatever else the others hold."""
     states = ["S", "S", "S", "S", "W", "W", "W", "E"]
     courts = [{"S": 3}, {"S": 1, "W": 5}, {"E": 5}]
-    _check_result(_cor(states, courts), 3, [0])
+    s = _cor(states, courts)
+    _check_result(s, 3, [0])
+    assert s.returns() == pytest.approx([1, -0.5, -0.5])
 
 
 def test_R404_example_rank2_decides_tie():
@@ -642,6 +640,18 @@ def test_R404_step3_nobody_played_share_win():
     states = ["S", "S", U, "S", "S", U, "S", "S"]
     s = _cor(states, [{"S": 2}, {"S": 2}])
     _check_result(s, 2, [0, 1])
+    assert s.returns() == pytest.approx([0, 0])
+
+
+def test_R404_rank3_followers_are_not_a_tiebreak():
+    """R-404: only ranks 1 and 2 are compared before step 3. Rank 1 S, rank 2 W, rank 3 E;
+    P0 [S2 W1] and P1 [S2 W1 E3] tie on both counts (P1 has more rank-3
+    followers); only P0 emptied their hand, so P0 wins (returns [1, -1])."""
+    states = ["S", "S", "S", "S", "W", "W", "W", "E"]
+    courts = [{"S": 2, "W": 1}, {"S": 2, "W": 1, "E": 3}]
+    s = _cor(states, courts, sizes=[0, 8], last_play=[8, None])
+    _check_result(s, 2, [0])
+    assert s.returns() == pytest.approx([1, -1])
 
 
 def test_R404_step3_applies_only_to_players_still_tied():
