@@ -35,6 +35,7 @@ PHASE_ASSEMBLE = 3  # ASSEMBLE_S/W/E, told apart by assemble_faction
 PHASE_NEG_FIRST = 4
 PHASE_NEG_SECOND = 5
 PHASE_NEG_DISC = 6
+PHASE_SWAP = 7  # MAN_FIRST/SECOND, OUT_SINGLE/FIRST/SECOND, told apart by len(swap_picks)
 
 CARD_ASSEMBLE = 4
 CARD_NEGOTIATE = 5
@@ -131,7 +132,14 @@ class KingIsDeadState(pyspiel.State):
         self.hand_empty: list[int | None] = [None] * n
         self.recent_win: list[int] = [-1] * C.NUM_FACTIONS
         self.last_card: int | None = None
-        self.reference_board: tuple[tuple[tuple[int, ...], ...], tuple[int, ...]] | None = None
+        # B* (R-216): (followers per region and faction, state signature); None when nothing is
+        # blocked or B* is void.
+        self.reference_board: tuple[rules.Board, tuple[int, ...]] | None = None
+        # Resolution of the current Manoeuvre / Outmanoeuvre (R-214..R-216).
+        self.swap_mode = rules.MODE_NONE
+        self.swap_picks: rules.Picks = ()
+        self.swap_block: rules.Board | None = None  # B* followers if it applies to this play
+        self.swap_start: tuple[rules.Board, tuple[int, ...]] | None = None  # board before effect
         # Turn skeleton.
         self.to_move = 0
         self.phase = PHASE_TURN_START
@@ -169,6 +177,11 @@ class KingIsDeadState(pyspiel.State):
             return [act.region_action(r) for r in self._neg_pool() if r > self.neg_first]
         if self.phase == PHASE_NEG_DISC:
             return [act.region_action(r) for r in (self.neg_first, self.neg_second)]
+        if self.phase == PHASE_SWAP:
+            nxt = rules.swap_next_picks(
+                rules.board_of(self.region_counts), self.swap_mode, self.swap_block, self.swap_picks
+            )
+            return sorted(act.follower_action(r, f) for r, f in nxt)
         if self.phase == PHASE_SUMMON:
             return [act.follower_action(r, f) for r, f in rules.summon_options(self.region_counts)]
         acts = [act.PASS]
@@ -241,6 +254,12 @@ class KingIsDeadState(pyspiel.State):
             self._place_support(self.pending_card, d.region)
             self._enter_summon()
             return
+        if self.phase == PHASE_SWAP:
+            if action not in self._legal_actions(0):
+                raise ValueError(f"action {action} is not legal in phase {self.phase}")
+            assert d.region is not None and d.faction is not None
+            self._swap_pick(d.region, d.faction)
+            return
         if self.phase == PHASE_SUMMON:
             if d.kind != "FOLLOWER" or d.region is None or d.faction is None:
                 raise ValueError(f"action {action} is not a summon choice")
@@ -310,6 +329,13 @@ class KingIsDeadState(pyspiel.State):
         """Implements R-201."""
         if self.region_counts[region][faction] <= 0:
             raise ValueError("no such follower on the board")
+        if self.swap_start is not None:  # R-216: complete B* now that L's summon is made
+            before, sig = self.swap_start
+            if before[region][faction] > 0:  # else D22: B* is void
+                rows = [list(row) for row in before]
+                rows[region][faction] -= 1
+                self.reference_board = (tuple(tuple(row) for row in rows), sig)
+            self.swap_start = None
         self.region_counts[region][faction] -= 1
         self.courts[self.to_move][faction] += 1
         self._end_turn()
@@ -322,8 +348,7 @@ class KingIsDeadState(pyspiel.State):
     def _play_card(self, card: int) -> None:
         """Implements R-102, R-104, R-202, R-210, R-211: spend the card, then resolve it.
 
-        TODO(unit 7): Manoeuvre and Outmanoeuvre (cards 6-7) have no effect yet (R-202); they go
-        straight to the summon. Assemble and Negotiate are R-212 and R-213.
+        Manoeuvre and Outmanoeuvre are R-214..R-217 (see _start_swap).
         """
         hand = self.hands[self.to_move]
         if hand.get(card, 0) <= 0:
@@ -331,6 +356,14 @@ class KingIsDeadState(pyspiel.State):
         hand[card] -= 1
         self.plays_total += 1
         self.pass_count = 0
+        # R-217: any card play replaces L and B*; only a same-type play is blocked by the old B*.
+        old_ref, old_card = self.reference_board, self.last_card
+        self.last_card = card
+        self.reference_board = None
+        self.swap_start = None
+        if card in (rules.MANOEUVRE, rules.OUTMANOEUVRE):
+            self._start_swap(card, old_ref if old_card == card else None)
+            return
         if card in rules.SUPPORT_FACTION and self._support_targets(card):
             self.phase = PHASE_SUPPORT_TARGET
             self.pending_card = card
@@ -342,6 +375,37 @@ class KingIsDeadState(pyspiel.State):
         if card == CARD_NEGOTIATE and len(self._neg_pool()) >= 2:
             self.phase = PHASE_NEG_FIRST
             return
+        self.pending_card = 0
+        self._enter_summon()
+
+    def _start_swap(self, card: int, old_ref: tuple[rules.Board, tuple[int, ...]] | None) -> None:
+        """Implements R-214, R-215, R-216: fix the form and capture B* if a swap will be made."""
+        board = rules.board_of(self.region_counts)
+        sig = rules.state_signature(self.region_states, self.region_control)
+        block = old_ref[0] if old_ref is not None and old_ref[1] == sig else None
+        self.pending_card = card
+        self.swap_picks = ()
+        self.swap_block = block
+        self.swap_mode = rules.swap_mode(card, board, block)
+        if self.swap_mode == rules.MODE_NONE:  # R-202: no effect, nothing becomes L's B*
+            self.pending_card = 0
+            self._enter_summon()
+            return
+        self.swap_start = (board, sig)
+        self.phase = PHASE_SWAP
+
+    def _swap_pick(self, region: int, faction: int) -> None:
+        """Implements R-214, R-215: record a pick; apply the swap once it is complete."""
+        self.swap_picks += ((region, faction),)
+        if len(self.swap_picks) < rules.swap_length(self.swap_mode):
+            return
+        board = rules.apply_swap(
+            rules.board_of(self.region_counts), self.swap_mode, self.swap_picks
+        )
+        self.region_counts = [list(row) for row in board]
+        self.swap_picks = ()
+        self.swap_block = None
+        self.swap_mode = rules.MODE_NONE
         self.pending_card = 0
         self._enter_summon()
 
