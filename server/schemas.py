@@ -30,6 +30,7 @@ class GameView(BaseModel):
     seats: list[SeatType]
     seat_types: list[SeatType]
     seed: int
+    bot_thinking: bool = Field(description="A bot seat is to move (not yet played).")
     seat: int
     history_length: int
     view: dict[str, Any] = Field(description="Adapter-defined view payload.")

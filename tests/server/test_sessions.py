@@ -170,23 +170,24 @@ def test_back_at_start_errors() -> None:
 
 def test_back_skips_bot_turns() -> None:
     s = _new(2, 3, ["human", "random"])
-    # simulate bot play manually: drive both seats through apply
     rng = random.Random(8)
-    while len(s.history) < 40 and not s.state.is_terminal():
+    for _ in range(8):
+        if s.state.is_terminal():
+            break
+        assert not s.pending_bot  # bots are always advanced inline
         s.apply(rng.choice(s.state.legal_actions()))
-    humans = [i for i, w in enumerate(s.actors) if w == 0]
-    assert humans
-    s.back()
-    # whatever remains never ends inside a human run that we just undid
-    assert len(s.history) <= len(s.actors)
-    last_human = max((i for i, w in enumerate(s.actors) if w == 0), default=-1)
-    assert last_human < len(s.history)
-    # the new tail is not mid-way through a human-0 run that continues past the cut
-    while True:
+    assert 1 in s.actors, "bot should have played"
+    for _ in range(50):
+        before = len(s.history)
         try:
             s.back()
         except CannotGoBack:
             break
+        assert len(s.history) < before
+        # landed at the start of a human turn: human to move, last real actor not that human
+        assert not s.state.is_terminal() and s.is_human(s.state.current_player())
+        real = [w for w in s.actors if w != CHANCE]
+        assert not real or real[-1] == 1  # only the bot acted between the human's turns
     assert 0 not in s.actors
 
 

@@ -282,7 +282,7 @@ Task list (approved 2026-10-30, branch `phase-3/server-web-shell`; server/web un
 - [x] 1. Adapter interface and KID adapter (`GameAdapter`: `load`, `view`, `action_meta`; scoring breakdown) → `server/adapters/`, `tests/server/test_adapter.py`
 - [x] 2. Session store with history replay (apply, back, rewind; no deserialization, D18) → `server/sessions.py`
 - [x] 3. FastAPI endpoints (create, view, action, back, rewind, export/import; seeded chance auto-resolve) → `server/app.py`, `server/schemas.py`
-- [ ] 4. Bot seats (`human`, `random`; server-side auto-advance; bot-thinking flag) → `server/bots.py`
+- [x] 4. Bot seats (`human`, `random`; server-side auto-advance; bot-thinking flag) → `server/bots.py`
 - [ ] 5. Report endpoint (D11) → `server/reports.py`, `playtest/reports/`
 - [ ] 6. OpenAPI type generation and `web/` scaffold (Vite, React, strict TS, Vitest; confirm Node first) → `tools/export_openapi.py`, `web/`
 - [ ] 7. Shell: lobby, game screen, legal-action list, bot-thinking indicator, polling → `web/src/shell/`

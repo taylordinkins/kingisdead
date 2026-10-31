@@ -62,6 +62,7 @@ def create_app(dev_mode: bool = False) -> FastAPI:
                 "seats": seats,
                 "seat_types": seats,
                 "seed": s.seed,
+                "bot_thinking": s.pending_bot,
                 "seat": seat,
                 "history_length": len(s.history),
                 "view": s.view(seat),

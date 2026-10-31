@@ -14,6 +14,7 @@ from typing import Any
 import pyspiel
 
 from server.adapters.base import JSON, GameAdapter
+from server.bots import BOTS, bot_rng, is_valid_seat_type
 
 CHANCE = -1  # actor marker for chance outcomes in `Session.actors`
 
@@ -63,11 +64,15 @@ class Session:
             raise SessionError(
                 f"{len(self.seats)} seats given, game has {self.game.num_players()} players"
             )
+        for t in self.seats:
+            if not is_valid_seat_type(t):
+                raise SessionError(f"unknown seat type {t!r}")
         self.history: list[int] = []
         self.actors: list[int] = []  # parallel to history: seat that acted, or CHANCE
         self.state: pyspiel.State = self.game.new_initial_state()
         self._load(history)
         self._resolve_chance()
+        self.advance_bots()
 
     @property
     def game_name(self) -> str:
@@ -75,6 +80,32 @@ class Session:
 
     def is_human(self, seat: int) -> bool:
         return self.seats[seat] == "human"
+
+    @property
+    def pending_bot(self) -> bool:
+        """True iff the seat to move is a bot and the game is not over."""
+        if self.state.is_terminal() or self.state.is_chance_node():
+            return False
+        return not self.is_human(self.state.current_player())
+
+    def advance_bots(self, max_steps: int | None = None) -> int:
+        """Play consecutive bot turns (at most `max_steps`); returns the number played.
+
+        Each choice is seeded from (seed, len(history)), so replays are reproducible. Callers
+        currently run this inline; slow bots can later call it from a background task.
+        """
+        steps = 0
+        while self.pending_bot and (max_steps is None or steps < max_steps):
+            seat = self.state.current_player()
+            a = BOTS[self.seats[seat]].choose(self.state, bot_rng(self.seed, len(self.history)))
+            if a not in self.state.legal_actions():
+                raise IllegalAction(f"bot {self.seats[seat]!r} chose illegal action {a}")
+            self.actors.append(seat)
+            self.state.apply_action(a)
+            self.history.append(a)
+            self._resolve_chance()
+            steps += 1
+        return steps
 
     def _load(self, history: Sequence[int]) -> None:
         """Replace state/history by replaying `history` from scratch, validating every step."""
@@ -106,17 +137,21 @@ class Session:
     def _truncate(self, length: int) -> None:
         self._load(self.history[:length])
         self._resolve_chance()
+        self.advance_bots()
 
     def apply(self, action_id: int) -> None:
         """Apply a player action, then auto-resolve following chance nodes."""
         if self.state.is_terminal():
             raise IllegalAction("game is over")
+        if self.pending_bot:
+            raise IllegalAction("a bot is to move")
         if action_id not in self.state.legal_actions():
             raise IllegalAction(f"action {action_id} is not legal for the current player")
         self.actors.append(self.state.current_player())
         self.state.apply_action(action_id)
         self.history.append(action_id)
         self._resolve_chance()
+        self.advance_bots()
 
     def _human_turn_start(self) -> int:
         """History index where the current (or else the previous) human turn began.
