@@ -70,6 +70,10 @@ Code/test audit patterns (first seen 2026-10-30, Phase 2 unit 7 spot audit):
   report them as gaps. A mutant killed ONLY by golden playthroughs (they embed the observer tensor,
   which exposes internal fields) is still a rule-test gap: goldens get regenerated, not debugged.
   Backlog test-gap items tend to survive unfixed into later units; recheck each line.
+- **Phase-close bookkeeping drift** (Phase 2 close, 2026-10-30): when fixes land, the PLAN.md §9
+  backlog lines that requested them are left listed as open, and module/test docstrings still
+  claim `pending` markers or NotImplementedError after the code lands. At close, check each backlog
+  line against the code and grep docstrings for "pending"/"NotImplemented"/"later unit".
 - **Differential oracle recipe:** scratch script with an independent tracker (passes, plays,
   hand-empty, recent-win, B*) replaying random games and asserting each struggle/score/flow step,
   plus full sub-tree exploration (clone + legal_actions) per card at each turn start compared with
