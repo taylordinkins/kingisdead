@@ -7,6 +7,7 @@ serialised or deserialised through OpenSpiel.
 from __future__ import annotations
 
 import random
+import threading
 import uuid
 from collections.abc import Mapping, Sequence
 from typing import Any
@@ -55,6 +56,8 @@ class Session:
         history: Sequence[int] = (),
     ) -> None:
         self.id = session_id
+        # Held by callers (server handlers) around every read/write of this session.
+        self.lock = threading.RLock()
         self.adapter = adapter
         self.params = params
         self.seats = list(seats)
@@ -214,6 +217,7 @@ class SessionStore:
     def __init__(self, adapters: Mapping[str, GameAdapter]) -> None:
         self.adapters = dict(adapters)
         self.sessions: dict[str, Session] = {}
+        self._lock = threading.Lock()
 
     def create(
         self,
@@ -227,11 +231,13 @@ class SessionStore:
         if game not in self.adapters:
             raise SessionError(f"unknown game {game!r}")
         session = Session(uuid.uuid4().hex, self.adapters[game], params, seats, seed, history)
-        self.sessions[session.id] = session
+        with self._lock:
+            self.sessions[session.id] = session
         return session
 
     def get(self, session_id: str) -> Session:
         try:
-            return self.sessions[session_id]
+            with self._lock:
+                return self.sessions[session_id]
         except KeyError:
             raise UnknownSession(session_id) from None

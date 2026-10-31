@@ -55,32 +55,33 @@ def create_app(dev_mode: bool = False, reports_dir: Path | str | None = None) ->
             raise HTTPException(404, f"unknown game {game_id!r}") from None
 
     def render(s: Session, seat: int | None = None) -> GameView:
-        if seat is None:
-            seat = 0 if s.state.is_terminal() else max(s.state.current_player(), 0)
-        if not 0 <= seat < len(s.seats):
-            raise HTTPException(422, f"seat {seat} out of range")
-        seats: list[str] = list(s.seats)
-        v = s.view(seat)
-        return GameView.model_validate(
-            {
-                "id": s.id,
-                "game": GAME_NAME,
-                "seats": seats,
-                "seat_types": seats,
-                "seed": s.seed,
-                "bot_thinking": s.pending_bot,
-                "seat": seat,
-                "history_length": len(s.history),
-                "history": s.history_entries(),
-                "dev_mode": dev_mode,
-                "current_player": v["current_player"],
-                "is_terminal": v["is_terminal"],
-                "legal_actions": v["legal_actions"],
-                "returns": v.get("returns"),
-                "winners": v.get("winners"),
-                "view": v,
-            }
-        )
+        with s.lock:
+            if seat is None:
+                seat = 0 if s.state.is_terminal() else max(s.state.current_player(), 0)
+            if not 0 <= seat < len(s.seats):
+                raise HTTPException(422, f"seat {seat} out of range")
+            seats: list[str] = list(s.seats)
+            v = s.view(seat)
+            return GameView.model_validate(
+                {
+                    "id": s.id,
+                    "game": GAME_NAME,
+                    "seats": seats,
+                    "seat_types": seats,
+                    "seed": s.seed,
+                    "bot_thinking": s.pending_bot,
+                    "seat": seat,
+                    "history_length": len(s.history),
+                    "history": s.history_entries(),
+                    "dev_mode": dev_mode,
+                    "current_player": v["current_player"],
+                    "is_terminal": v["is_terminal"],
+                    "legal_actions": v["legal_actions"],
+                    "returns": v.get("returns"),
+                    "winners": v.get("winners"),
+                    "view": v,
+                }
+            )
 
     def make(game: str, params: GameParams, seats: list[str], seed: int, history: list[int]):
         try:
@@ -110,20 +111,22 @@ def create_app(dev_mode: bool = False, reports_dir: Path | str | None = None) ->
     )
     def post_action(game_id: str, req: ActionRequest) -> GameView:
         s = lookup(game_id)
-        try:
-            s.apply(req.action)
-        except IllegalAction as e:
-            raise HTTPException(409, str(e)) from None
-        return render(s)
+        with s.lock:
+            try:
+                s.apply(req.action)
+            except IllegalAction as e:
+                raise HTTPException(409, str(e)) from None
+            return render(s)
 
     @api.post("/games/{game_id}/back", operation_id="go_back", responses={404: _ERR, 409: _ERR})
     def go_back(game_id: str) -> GameView:
         s = lookup(game_id)
-        try:
-            s.back()
-        except CannotGoBack as e:
-            raise HTTPException(409, str(e)) from None
-        return render(s)
+        with s.lock:
+            try:
+                s.back()
+            except CannotGoBack as e:
+                raise HTTPException(409, str(e)) from None
+            return render(s)
 
     @api.post(
         "/games/{game_id}/rewind",
@@ -134,46 +137,49 @@ def create_app(dev_mode: bool = False, reports_dir: Path | str | None = None) ->
         if not dev_mode:
             raise HTTPException(403, "rewind requires dev mode")
         s = lookup(game_id)
-        try:
-            s.rewind(req.player_actions)
-        except SessionError as e:
-            raise HTTPException(400, str(e)) from None
-        return render(s)
+        with s.lock:
+            try:
+                s.rewind(req.player_actions)
+            except SessionError as e:
+                raise HTTPException(400, str(e)) from None
+            return render(s)
 
     @api.get("/games/{game_id}/export", operation_id="export_game", responses={404: _ERR})
     def export_game(game_id: str) -> GameExport:
         s = lookup(game_id)
-        seats: list[str] = list(s.seats)
-        return GameExport.model_validate(
-            {
-                "game": GAME_NAME,
-                "params": _from_adapter_params(s),
-                "seats": seats,
-                "seed": s.seed,
-                "history": list(s.history),
-            }
-        )
+        with s.lock:
+            seats: list[str] = list(s.seats)
+            return GameExport.model_validate(
+                {
+                    "game": GAME_NAME,
+                    "params": _from_adapter_params(s),
+                    "seats": seats,
+                    "seed": s.seed,
+                    "history": list(s.history),
+                }
+            )
 
     @api.post("/games/{game_id}/report", operation_id="report_game", responses={404: _ERR})
     def report_game(game_id: str, req: ReportRequest) -> ReportResponse:
         s = lookup(game_id)
-        export = export_game(game_id)
-        report_id, path = write_report(
-            reports_path,
-            {
-                "note": req.note,
-                "category": req.category,
-                "session_id": s.id,
-                "game": export.game,
-                "params": export.params.model_dump(),
-                "seats": list(export.seats),
-                "seed": export.seed,
-                "export": export.model_dump(),
-                "view": render(s).model_dump(),
-                "history": list(s.history),
-            },
-        )
-        return ReportResponse(report_id=report_id, path=str(path))
+        with s.lock:
+            export = export_game(game_id)
+            report_id, path = write_report(
+                reports_path,
+                {
+                    "note": req.note,
+                    "category": req.category,
+                    "session_id": s.id,
+                    "game": export.game,
+                    "params": export.params.model_dump(),
+                    "seats": list(export.seats),
+                    "seed": export.seed,
+                    "export": export.model_dump(),
+                    "view": render(s).model_dump(),
+                    "history": list(s.history),
+                },
+            )
+            return ReportResponse(report_id=report_id, path=str(path))
 
     app = FastAPI(title="King is Dead server")
     app.include_router(api)

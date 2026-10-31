@@ -9,7 +9,7 @@
 - [x] Phase 0 — Scaffold & OpenSpiel API spike (closed 2026-10-30, see docs/phase-reports/phase-0.md)
 - [x] Phase 1 — Rules spec ✋ *you review* (closed 2026-10-30, see docs/phase-reports/phase-1.md)
 - [x] Phase 2 — Engine (2–3 players, base game) (closed 2026-10-30, see docs/phase-reports/phase-2.md)
-- [ ] Phase 3 — Server + web shell ✋ *playtest #1*
+- [x] Phase 3 — Server + web shell ✋ *playtest #1* (closed 2026-10-31, see docs/phase-reports/phase-3.md; playtest pending)
 - [ ] Phase 4 — Board UI + setup editor ✋ *playtest #2*
 - [ ] Phase 5 — Bots (MCTS, heuristic) ✋ *playtest #3*
 - [ ] Phase 6 — 4-player teams
@@ -65,6 +65,10 @@ A faithful, well-tested implementation of *The King is Dead* as a **Python OpenS
 | D23 | Serialization of scenario states (2026-10-30) | Phase 2 closed with scenario-loaded states not serializable (empty history); persistence stays history-based (D18) | See Backlog; code-reviewer finding 4 |
 | D24 | End-type labels (2026-10-30) | `sim_stats` reports "invasion" (3 unstable regions) and "coronation" | User-approved at unit 12 |
 | D25 | Spec amendment (2026-10-30) | R-216 Example 4 now cites `undo_block_void.json` as an Outmanoeuvre exercise of the same void rule, not as the Manoeuvre example itself | User-approved pointer fix; no behaviour change |
+| D26 | Typed GameView (2026-10-31) | `GameView` carries typed top-level `legal_actions`, `current_player`, `is_terminal`, `returns`, `winners`, labelled `history` and `dev_mode`; the game-specific `view` stays opaque for the board plugin, so the shell is game-agnostic | User-approved after unit 7 |
+| D27 | Names from the server (2026-10-31) | The KID view sends `faction_names` and `card_names` from `constants.py`; the web has no copy | User-approved after unit 9 |
+| D28 | Per-session locking (2026-10-31) | Handlers stay sync and hold a per-session `RLock`; Phase 5 slow bots must not run inside it | code-reviewer must-fix |
+| D29 | Web toolchain (2026-10-31) | Node 20 (nvm) for web work; Vite 5 / Vitest 2 and `rollup@4.67.2` pins stay until cleaned up; Playwright pinned to 1.64.1 | See Backlog |
 
 ## 4. Rules clarifications
 
@@ -365,6 +369,11 @@ Should-fix and minor findings, tagged with the phase that found them. `/close-ph
 - Phase 3 (unit 9): the KID view exposes every player's hand and the text board shows them all. Fine for hotseat; for networked play or Phase 7 hidden hands, filter the view per seat server-side (user: leave visible for now).
 - Phase 3 (unit 8): chance outcomes in the action log are labelled "Chance outcome N" because the adapter has no chance labels; add an adapter hook if the log needs better wording.
 - Phase 3 (unit 6): `web/package.json` pins `rollup@4.67.2` (the 4.67.3 tarball 404'd) and Vite 5/Vitest 2 for Node 18; drop the pins after moving to Node 20.
+- Phase 3 (code-reviewer, should-fix): stale poll response can overwrite newer state (`useGame.ts:46-62`; use a mutation counter); polling stops after two identical errors (`useGame.ts:130-133`; re-arm on a poll tick); CI doesn't check `schema.d.ts` is current (add `npm run gen:api && git diff --exit-code src/api/schema.d.ts` to the web job); sessions and report notes are unbounded in memory and on disk (add `max_length`, cap or expire sessions) before the server is reachable from other machines.
+- Phase 3 (code-reviewer, minor): `num_players` needs `Field(ge=2, le=3)` (huge values give a 500); seeds need `ge=0, lt=2**53` (browser precision); a bot failure after the human action is reported as a 409 illegal move; `KID_DEV=0` still enables dev mode; malformed `%` in the URL hash throws in `App.tsx:8`; the import file input is never cleared after a failed import.
+- Phase 3 (rules-auditor, should-fix): R-106, a human with an empty hand must click PASS (the spec says UI and bots submit it automatically); fold into Phase 4's forced-single-action auto-advance. The scoring-breakdown test only compares `winners` with itself (`tests/server/test_adapter.py:72-81`): add last-step-equals-winners over seeded games plus built terminal states for rank-2-undefined and nobody-emptied-hand.
+- Phase 3 (rules-auditor, minor): `_narrow` in the adapter copies private `rules._best_record` (can drift); the board prints "Scots > none > none" when ranks 2-3 are undefined (R-403), better wording needed.
+- Phase 3 (code-reviewer, should-fix): `tests/server/test_concurrency.py` takes about 8 s in the fast suite; trim the replay loop or mark it slow and keep a short smoke version. Phase 5: a slow bot runs inside the session lock and stalls polling; if `advance_bots` moves to a background task it must take `s.lock`.
 
 ## 10. Risks
 
