@@ -1,0 +1,262 @@
+{
+ "seat": 0,
+ "num_players": 2,
+ "regions": [
+  {
+   "region": 0,
+   "name": "Moray",
+   "followers": [
+    0,
+    0,
+    0
+   ],
+   "state": "unstable",
+   "controller": null
+  },
+  {
+   "region": 1,
+   "name": "Strathclyde",
+   "followers": [
+    0,
+    0,
+    0
+   ],
+   "state": "unstable",
+   "controller": null
+  },
+  {
+   "region": 2,
+   "name": "Lancaster",
+   "followers": [
+    0,
+    0,
+    0
+   ],
+   "state": "controlled",
+   "controller": 2
+  },
+  {
+   "region": 3,
+   "name": "Northumbria",
+   "followers": [
+    0,
+    0,
+    0
+   ],
+   "state": "controlled",
+   "controller": 2
+  },
+  {
+   "region": 4,
+   "name": "Gwynedd",
+   "followers": [
+    0,
+    0,
+    0
+   ],
+   "state": "controlled",
+   "controller": 1
+  },
+  {
+   "region": 5,
+   "name": "Warwick",
+   "followers": [
+    0,
+    0,
+    0
+   ],
+   "state": "controlled",
+   "controller": 2
+  },
+  {
+   "region": 6,
+   "name": "Essex",
+   "followers": [
+    0,
+    0,
+    0
+   ],
+   "state": "controlled",
+   "controller": 0
+  },
+  {
+   "region": 7,
+   "name": "Devon",
+   "followers": [
+    0,
+    0,
+    0
+   ],
+   "state": "controlled",
+   "controller": 1
+  }
+ ],
+ "track": [
+  {
+   "slot": 0,
+   "region": 1,
+   "face_down": true,
+   "discs": []
+  },
+  {
+   "slot": 1,
+   "region": 4,
+   "face_down": true,
+   "discs": []
+  },
+  {
+   "slot": 2,
+   "region": 3,
+   "face_down": true,
+   "discs": []
+  },
+  {
+   "slot": 3,
+   "region": 7,
+   "face_down": true,
+   "discs": []
+  },
+  {
+   "slot": 4,
+   "region": 6,
+   "face_down": true,
+   "discs": [
+    1
+   ]
+  },
+  {
+   "slot": 5,
+   "region": 0,
+   "face_down": true,
+   "discs": []
+  },
+  {
+   "slot": 6,
+   "region": 2,
+   "face_down": true,
+   "discs": []
+  },
+  {
+   "slot": 7,
+   "region": 5,
+   "face_down": true,
+   "discs": [
+    0
+   ]
+  }
+ ],
+ "supply": [
+  10,
+  9,
+  9
+ ],
+ "courts": [
+  [
+   4,
+   3,
+   3
+  ],
+  [
+   2,
+   4,
+   4
+  ]
+ ],
+ "hands": [
+  {},
+  {}
+ ],
+ "negotiation_discs": [
+  5,
+  6
+ ],
+ "current_player": null,
+ "is_chance": false,
+ "is_terminal": true,
+ "stage": "play",
+ "phase": "turn_start",
+ "pending": {
+  "card": null,
+  "assemble_faction": null,
+  "neg_first": null,
+  "neg_second": null,
+  "swap_mode": 0,
+  "swap_picks": []
+ },
+ "consecutive_passes": 0,
+ "struggles_resolved": 8,
+ "legal_actions": [],
+ "returns": [
+  -1.0,
+  1.0
+ ],
+ "winners": [
+  1
+ ],
+ "scoring": {
+  "mode": "coronation",
+  "faction_ranking": [
+   2,
+   1,
+   0
+  ],
+  "regions_controlled": [
+   1,
+   2,
+   3
+  ],
+  "recent_win": [
+   5,
+   4,
+   8
+  ],
+  "steps": [
+   {
+    "name": "rank_1_followers",
+    "faction": 2,
+    "values": [
+     3,
+     4
+    ],
+    "tied_before": [
+     0,
+     1
+    ],
+    "remaining": [
+     1
+    ]
+   },
+   {
+    "name": "rank_2_followers",
+    "faction": 1,
+    "values": [
+     3,
+     4
+    ],
+    "tied_before": [
+     1
+    ],
+    "remaining": [
+     1
+    ]
+   },
+   {
+    "name": "hand_emptied",
+    "faction": null,
+    "values": [
+     14,
+     16
+    ],
+    "tied_before": [
+     1
+    ],
+    "remaining": [
+     1
+    ]
+   }
+  ],
+  "winners": [
+   1
+  ]
+ }
+}

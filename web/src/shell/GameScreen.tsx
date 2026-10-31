@@ -3,6 +3,7 @@ import { api } from "../api/client";
 import ActionList from "./ActionList";
 import ActionLog from "./ActionLog";
 import ImportButton from "./ImportButton";
+import { getPlugin } from "../games/registry";
 import ReportDialog from "./ReportDialog";
 import {
   errorText,
@@ -18,7 +19,7 @@ import {
 interface Props {
   gameId: string;
   pollMs?: PollIntervals;
-  /** Slot for the game-specific board (unit 9); defaults to a JSON dump. */
+  /** Slot for the game-specific board (unit 9); overrides the registry plugin. */
   renderBoard?: (game: GameView) => ReactNode;
   onExit?: () => void;
   /** Called with the new game id after a replay import. */
@@ -42,14 +43,10 @@ async function downloadExport(gameId: string): Promise<void> {
   URL.revokeObjectURL(url);
 }
 
-const defaultBoard = (g: GameView): ReactNode => (
-  <pre aria-label="Game state">{JSON.stringify(g.view, null, 2)}</pre>
-);
-
 export default function GameScreen({
   gameId,
   pollMs = DEFAULT_POLL,
-  renderBoard = defaultBoard,
+  renderBoard,
   onExit,
   onImported,
 }: Props) {
@@ -139,7 +136,7 @@ export default function GameScreen({
             {exportError && <p role="alert">Export error: {exportError}</p>}
           </div>
           {reporting && <ReportDialog gameId={gameId} onClose={() => setReporting(false)} />}
-          {renderBoard(game)}
+          {(renderBoard ?? getPlugin(game.game).renderBoard)(game)}
           <h3>Action log</h3>
           <ActionLog history={game.history} />
           {!over && humanTurn && (

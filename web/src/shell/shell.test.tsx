@@ -13,7 +13,7 @@ const POLL = { fast: 20, slow: 20 };
 function view(over: Partial<GameView> = {}): GameView {
   return {
     id: "g1",
-    game: "king_is_dead",
+    game: "test_game",
     seats: ["human", "random"],
     seat_types: ["human", "random"],
     seed: 1,
