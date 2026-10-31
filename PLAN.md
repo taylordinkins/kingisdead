@@ -284,7 +284,7 @@ Task list (approved 2026-10-30, branch `phase-3/server-web-shell`; server/web un
 - [x] 3. FastAPI endpoints (create, view, action, back, rewind, export/import; seeded chance auto-resolve) → `server/app.py`, `server/schemas.py`
 - [x] 4. Bot seats (`human`, `random`; server-side auto-advance; bot-thinking flag) → `server/bots.py`
 - [x] 5. Report endpoint (D11) → `server/reports.py`, `playtest/reports/`
-- [ ] 6. OpenAPI type generation and `web/` scaffold (Vite, React, strict TS, Vitest; confirm Node first) → `tools/export_openapi.py`, `web/`
+- [x] 6. OpenAPI type generation and `web/` scaffold (Vite, React, strict TS, Vitest; confirm Node first) → `tools/export_openapi.py`, `web/`
 - [ ] 7. Shell: lobby, game screen, legal-action list, bot-thinking indicator, polling → `web/src/shell/`
 - [ ] 8. Shell: action log, Back, Rewind, Report dialog, replay export/import → `web/src/shell/`
 - [ ] 9. King is Dead text-board plugin and plugin registry → `web/src/games/king-is-dead/`
