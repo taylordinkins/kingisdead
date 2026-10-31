@@ -203,12 +203,29 @@ export interface components {
              * @description A bot seat is to move (not yet played).
              */
             bot_thinking: boolean;
+            /**
+             * Current Player
+             * @description Seat to move; null at chance or terminal.
+             */
+            current_player: number | null;
             /** Game */
             game: string;
             /** History Length */
             history_length: number;
             /** Id */
             id: string;
+            /** Is Terminal */
+            is_terminal: boolean;
+            /**
+             * Legal Actions
+             * @description Actions for current_player.
+             */
+            legal_actions: components["schemas"]["LegalAction"][];
+            /**
+             * Returns
+             * @description Final returns when terminal.
+             */
+            returns?: number[] | null;
             /** Seat */
             seat: number;
             /** Seat Types */
@@ -224,11 +241,34 @@ export interface components {
             view: {
                 [key: string]: unknown;
             };
+            /**
+             * Winners
+             * @description Winning seats when terminal.
+             */
+            winners?: number[] | null;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /**
+         * LegalAction
+         * @description One action the seat to move may take, as described by the adapter.
+         */
+        LegalAction: {
+            /** Card */
+            card?: number | null;
+            /** Faction */
+            faction?: number | null;
+            /** Id */
+            id: number;
+            /** Kind */
+            kind?: string | null;
+            /** Label */
+            label: string;
+            /** Region */
+            region?: number | null;
         };
         /** ReportRequest */
         ReportRequest: {

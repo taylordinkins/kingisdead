@@ -51,11 +51,11 @@ export default function GameScreen({
           {over ? (
             <div aria-label="Game over">
               <h2>Game over</h2>
-              {Array.isArray(game.view["winners"]) && (
-                <p>Winner(s): {(game.view["winners"] as number[]).map((p) => `P${p}`).join(", ")}</p>
+              {game.winners && (
+                <p>Winner(s): {game.winners.map((p) => `P${p}`).join(", ")}</p>
               )}
-              {Array.isArray(game.view["returns"]) && (
-                <p>Scores: {(game.view["returns"] as number[]).join(", ")}</p>
+              {game.returns && (
+                <p>Scores: {game.returns.join(", ")}</p>
               )}
             </div>
           ) : (

@@ -60,6 +60,7 @@ def create_app(dev_mode: bool = False, reports_dir: Path | str | None = None) ->
         if not 0 <= seat < len(s.seats):
             raise HTTPException(422, f"seat {seat} out of range")
         seats: list[str] = list(s.seats)
+        v = s.view(seat)
         return GameView.model_validate(
             {
                 "id": s.id,
@@ -70,7 +71,12 @@ def create_app(dev_mode: bool = False, reports_dir: Path | str | None = None) ->
                 "bot_thinking": s.pending_bot,
                 "seat": seat,
                 "history_length": len(s.history),
-                "view": s.view(seat),
+                "current_player": v["current_player"],
+                "is_terminal": v["is_terminal"],
+                "legal_actions": v["legal_actions"],
+                "returns": v.get("returns"),
+                "winners": v.get("winners"),
+                "view": v,
             }
         )
 

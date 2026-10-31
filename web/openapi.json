@@ -136,6 +136,18 @@
             "title": "Bot Thinking",
             "type": "boolean"
           },
+          "current_player": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Seat to move; null at chance or terminal.",
+            "title": "Current Player"
+          },
           "game": {
             "title": "Game",
             "type": "string"
@@ -147,6 +159,33 @@
           "id": {
             "title": "Id",
             "type": "string"
+          },
+          "is_terminal": {
+            "title": "Is Terminal",
+            "type": "boolean"
+          },
+          "legal_actions": {
+            "description": "Actions for current_player.",
+            "items": {
+              "$ref": "#/components/schemas/LegalAction"
+            },
+            "title": "Legal Actions",
+            "type": "array"
+          },
+          "returns": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "number"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Final returns when terminal.",
+            "title": "Returns"
           },
           "seat": {
             "title": "Seat",
@@ -183,6 +222,21 @@
             "description": "Adapter-defined view payload.",
             "title": "View",
             "type": "object"
+          },
+          "winners": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Winning seats when terminal.",
+            "title": "Winners"
           }
         },
         "required": [
@@ -194,6 +248,9 @@
           "bot_thinking",
           "seat",
           "history_length",
+          "current_player",
+          "is_terminal",
+          "legal_actions",
           "view"
         ],
         "title": "GameView",
@@ -210,6 +267,69 @@
           }
         },
         "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "LegalAction": {
+        "description": "One action the seat to move may take, as described by the adapter.",
+        "properties": {
+          "card": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Card"
+          },
+          "faction": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Faction"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          }
+        },
+        "required": [
+          "id",
+          "label"
+        ],
+        "title": "LegalAction",
         "type": "object"
       },
       "ReportRequest": {

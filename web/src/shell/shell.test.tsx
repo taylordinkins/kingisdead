@@ -10,7 +10,7 @@ vi.mock("../api/client", () => ({ api: { GET: (...a: unknown[]) => GET(...a), PO
 
 const POLL = { fast: 20, slow: 20 };
 
-function view(over: Partial<GameView> = {}, inner: Record<string, unknown> = {}): GameView {
+function view(over: Partial<GameView> = {}): GameView {
   return {
     id: "g1",
     game: "king_is_dead",
@@ -20,15 +20,15 @@ function view(over: Partial<GameView> = {}, inner: Record<string, unknown> = {})
     bot_thinking: false,
     seat: 0,
     history_length: 0,
-    view: {
-      current_player: 0,
-      is_terminal: false,
-      legal_actions: [
-        { id: 3, label: "Play A" },
-        { id: 4, label: "Pass" },
-      ],
-      ...inner,
-    },
+    current_player: 0,
+    is_terminal: false,
+    legal_actions: [
+      { id: 3, label: "Play A" },
+      { id: 4, label: "Pass" },
+    ],
+    returns: null,
+    winners: null,
+    view: {},
     ...over,
   };
 }
@@ -68,7 +68,7 @@ describe("Lobby", () => {
 describe("GameScreen", () => {
   it("renders legal actions and posts the clicked one", async () => {
     GET.mockResolvedValue({ data: view() });
-    POST.mockResolvedValue({ data: view({}, { current_player: 0, legal_actions: [{ id: 9, label: "Next" }] }) });
+    POST.mockResolvedValue({ data: view({ current_player: 0, legal_actions: [{ id: 9, label: "Next" }] }) });
     render(<GameScreen gameId="g1" pollMs={{ fast: 10000, slow: 10000 }} />);
     fireEvent.click(await screen.findByRole("button", { name: "Play A" }));
     expect(POST).toHaveBeenCalledWith("/api/games/{game_id}/actions", {
@@ -99,9 +99,9 @@ describe("GameScreen", () => {
   });
 
   it("polls through bot thinking and stops at game over", async () => {
-    GET.mockResolvedValueOnce({ data: view({ bot_thinking: true }, { current_player: 1 }) })
+    GET.mockResolvedValueOnce({ data: view({ bot_thinking: true, current_player: 1 }) })
       .mockResolvedValueOnce({
-        data: view({}, { current_player: null, is_terminal: true, legal_actions: [], returns: [1, -1], winners: [0] }),
+        data: view({ current_player: null, is_terminal: true, legal_actions: [], returns: [1, -1], winners: [0] }),
       });
     render(<GameScreen gameId="g1" pollMs={POLL} />);
     expect(await screen.findByRole("status")).toHaveTextContent(/thinking/i);

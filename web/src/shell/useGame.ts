@@ -5,11 +5,7 @@ import type { components } from "../api/schema";
 export type GameView = components["schemas"]["GameView"];
 export type SeatType = components["schemas"]["GameView"]["seats"][number];
 
-export interface LegalAction {
-  id: number;
-  label: string;
-  [key: string]: unknown;
-}
+export type LegalAction = components["schemas"]["LegalAction"];
 
 export interface PollIntervals {
   /** ms between polls while a bot is acting or it is not a human seat's turn. */
@@ -20,20 +16,9 @@ export interface PollIntervals {
 
 export const DEFAULT_POLL: PollIntervals = { fast: 500, slow: 2000 };
 
-/** Generic fields the shell reads from the adapter-defined `view` payload. */
-export function legalActions(g: GameView): LegalAction[] {
-  const v = g.view["legal_actions"];
-  return Array.isArray(v) ? (v as LegalAction[]) : [];
-}
-
-export function isTerminal(g: GameView): boolean {
-  return g.view["is_terminal"] === true;
-}
-
-export function currentPlayer(g: GameView): number | null {
-  const c = g.view["current_player"];
-  return typeof c === "number" ? c : null;
-}
+export const legalActions = (g: GameView): LegalAction[] => g.legal_actions;
+export const isTerminal = (g: GameView): boolean => g.is_terminal;
+export const currentPlayer = (g: GameView): number | null => g.current_player;
 
 function errorText(error: unknown): string {
   if (error && typeof error === "object") {

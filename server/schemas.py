@@ -22,6 +22,17 @@ class CreateGameRequest(BaseModel):
     seed: int | None = None
 
 
+class LegalAction(BaseModel):
+    """One action the seat to move may take, as described by the adapter."""
+
+    id: int
+    label: str
+    kind: str | None = None
+    region: int | None = None
+    faction: int | None = None
+    card: int | None = None
+
+
 class GameView(BaseModel):
     """A game as seen by one seat."""
 
@@ -33,6 +44,11 @@ class GameView(BaseModel):
     bot_thinking: bool = Field(description="A bot seat is to move (not yet played).")
     seat: int
     history_length: int
+    current_player: int | None = Field(description="Seat to move; null at chance or terminal.")
+    is_terminal: bool
+    legal_actions: list[LegalAction] = Field(description="Actions for current_player.")
+    returns: list[float] | None = Field(default=None, description="Final returns when terminal.")
+    winners: list[int] | None = Field(default=None, description="Winning seats when terminal.")
     view: dict[str, Any] = Field(description="Adapter-defined view payload.")
 
 

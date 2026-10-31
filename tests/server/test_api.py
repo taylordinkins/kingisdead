@@ -139,3 +139,14 @@ def test_openapi_operation_ids() -> None:
         "create_game", "import_game", "get_game", "post_action", "go_back",
         "rewind_game", "export_game",
     }  # fmt: skip
+
+
+def test_typed_top_level_fields():
+    g = _new(_client())
+    assert g["is_terminal"] is False
+    assert g["current_player"] == g["view"]["current_player"]
+    assert [(a["id"], a["label"]) for a in g["legal_actions"]] == [
+        (a["id"], a["label"]) for a in g["view"]["legal_actions"]
+    ]
+    assert all(isinstance(a["id"], int) and isinstance(a["label"], str) for a in g["legal_actions"])
+    assert g["returns"] is None and g["winners"] is None
