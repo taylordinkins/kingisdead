@@ -278,6 +278,18 @@ Task list (approved 2026-10-30, branch `phase-2/engine`; each unit: `spec-test-w
 - FastAPI + adapter; React shell with legal-action list and a text board; human and random seats; Report and replay export; Playwright smoke test that finishes a game against the random bot.
 - *Exit:* you play at least one hotseat game and one game against random, and file reports.
 
+Task list (approved 2026-10-30, branch `phase-3/server-web-shell`; server/web units have no rule IDs, so `implementer` writes their tests). Defaults: frontend polls; sessions in memory plus JSON export; Rewind only with a server dev flag; code-reviewer and rules-auditor run at `/close-phase`. Phase 3 board is text only; graphics are always our own schematic art, never the published art.
+- [ ] 1. Adapter interface and KID adapter (`GameAdapter`: `load`, `view`, `action_meta`; scoring breakdown) → `server/adapters/`, `tests/server/test_adapter.py`
+- [ ] 2. Session store with history replay (apply, back, rewind; no deserialization, D18) → `server/sessions.py`
+- [ ] 3. FastAPI endpoints (create, view, action, back, rewind, export/import; seeded chance auto-resolve) → `server/app.py`, `server/schemas.py`
+- [ ] 4. Bot seats (`human`, `random`; server-side auto-advance; bot-thinking flag) → `server/bots.py`
+- [ ] 5. Report endpoint (D11) → `server/reports.py`, `playtest/reports/`
+- [ ] 6. OpenAPI type generation and `web/` scaffold (Vite, React, strict TS, Vitest; confirm Node first) → `tools/export_openapi.py`, `web/`
+- [ ] 7. Shell: lobby, game screen, legal-action list, bot-thinking indicator, polling → `web/src/shell/`
+- [ ] 8. Shell: action log, Back, Rewind, Report dialog, replay export/import → `web/src/shell/`
+- [ ] 9. King is Dead text-board plugin and plugin registry → `web/src/games/king-is-dead/`
+- [ ] 10. Playwright smoke test (full game vs random bot), CI and `CLAUDE.md` commands → `web/e2e/`, `.github/workflows/ci.yml`
+
 **Phase 4 — Board UI + setup editor ✋ playtest #2**
 - SVG board with click-to-act, region-card track, courts, history, Back/Rewind, scoring breakdown, setup editor.
 - *Exit:* you mirror at least one physical-table setup in the editor and play it through.
