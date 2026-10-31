@@ -8,6 +8,8 @@ Default branch is `master`; work happens on `phase-N/<slug>` branches merged by 
 - Install: `uv sync`
 - Fast tests: `uv run pytest -q` · one rule: `uv run pytest -q -k R012` · slow sims: `uv run pytest -q -m slow`
 - Lint/format/types: `uv run ruff check .` · `uv run ruff format .` · `uv run pyright`
+- Web (Node 20 required; run from `web/`; the Windows npm on the WSL PATH breaks things, use `source ~/.nvm/nvm.sh && nvm use 20`): install `npm ci` · typecheck `npx tsc --noEmit` · unit `npm test` · build `npm run build` · smoke `npm run e2e` (Playwright; starts the API and Vite itself; first time `npx playwright install --with-deps chromium`)
+- API schema: after changing server models run `uv run python -m tools.export_openapi` then `npm run gen:api` (in `web/`); `--check` verifies it is current
 
 ## Model and agent policy
 The main session orchestrates; it delegates rather than writing large changes itself.

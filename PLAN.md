@@ -288,7 +288,7 @@ Task list (approved 2026-10-30, branch `phase-3/server-web-shell`; server/web un
 - [x] 7. Shell: lobby, game screen, legal-action list, bot-thinking indicator, polling → `web/src/shell/`
 - [x] 8. Shell: action log, Back, Rewind, Report dialog, replay export/import → `web/src/shell/`
 - [x] 9. King is Dead text-board plugin and plugin registry → `web/src/games/king-is-dead/`
-- [ ] 10. Playwright smoke test (full game vs random bot), CI and `CLAUDE.md` commands → `web/e2e/`, `.github/workflows/ci.yml`
+- [x] 10. Playwright smoke test (full game vs random bot), CI and `CLAUDE.md` commands → `web/e2e/`, `.github/workflows/ci.yml`
 
 **Phase 4 — Board UI + setup editor ✋ playtest #2**
 - SVG board with click-to-act, region-card track, courts, history, Back/Rewind, scoring breakdown, setup editor.
