@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import os
 import random
+from pathlib import Path
 from typing import Annotated
 
 from fastapi import APIRouter, FastAPI, HTTPException, Query
 
 from server.adapters.kingisdead import KingIsDeadAdapter
+from server.reports import DEFAULT_REPORTS_DIR, write_report
 from server.schemas import (
     ActionRequest,
     CreateGameRequest,
@@ -16,6 +18,8 @@ from server.schemas import (
     GameExport,
     GameParams,
     GameView,
+    ReportRequest,
+    ReportResponse,
     RewindRequest,
 )
 from server.sessions import (
@@ -39,7 +43,8 @@ def _from_adapter_params(session: Session) -> GameParams:
     return GameParams(num_players=session.game.num_players())
 
 
-def create_app(dev_mode: bool = False) -> FastAPI:
+def create_app(dev_mode: bool = False, reports_dir: Path | str | None = None) -> FastAPI:
+    reports_path = Path(reports_dir or os.environ.get("KID_REPORTS_DIR") or DEFAULT_REPORTS_DIR)
     store = SessionStore({GAME_NAME: KingIsDeadAdapter()})
     api = APIRouter(prefix="/api")
 
@@ -140,6 +145,27 @@ def create_app(dev_mode: bool = False) -> FastAPI:
                 "history": list(s.history),
             }
         )
+
+    @api.post("/games/{game_id}/report", operation_id="report_game", responses={404: _ERR})
+    def report_game(game_id: str, req: ReportRequest) -> ReportResponse:
+        s = lookup(game_id)
+        export = export_game(game_id)
+        report_id, path = write_report(
+            reports_path,
+            {
+                "note": req.note,
+                "category": req.category,
+                "session_id": s.id,
+                "game": export.game,
+                "params": export.params.model_dump(),
+                "seats": list(export.seats),
+                "seed": export.seed,
+                "export": export.model_dump(),
+                "view": render(s).model_dump(),
+                "history": list(s.history),
+            },
+        )
+        return ReportResponse(report_id=report_id, path=str(path))
 
     app = FastAPI(title="King is Dead server")
     app.include_router(api)
