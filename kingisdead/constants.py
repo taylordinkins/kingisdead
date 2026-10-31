@@ -53,3 +53,21 @@ CARD_NAMES = {
     7: "Outmanoeuvre",
 }
 STARTING_HAND = {1: 1, 2: 1, 3: 1, 4: 2, 5: 1, 6: 1, 7: 1}
+
+# Setup stages (R-010 .. R-013).
+STAGE_PICKS = 0
+STAGE_COURTS = 1
+STAGE_FILL = 2
+STAGE_DONE = 3
+
+# Turn phases (ACTIONS.md section 4).
+PHASE_TURN_START = 0
+PHASE_SUPPORT_TARGET = 1
+PHASE_SUMMON = 2
+PHASE_ASSEMBLE = 3  # ASSEMBLE_S/W/E, told apart by assemble_faction
+PHASE_NEG_FIRST = 4
+PHASE_NEG_SECOND = 5
+PHASE_NEG_DISC = 6
+PHASE_SWAP = 7  # MAN_FIRST/SECOND, OUT_SINGLE/FIRST/SECOND, told apart by len(swap_picks)
+NUM_STAGES = 4
+NUM_PHASES = 8

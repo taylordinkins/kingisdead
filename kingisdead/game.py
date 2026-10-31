@@ -8,34 +8,31 @@ from __future__ import annotations
 
 from typing import Any
 
-import numpy as np
-import numpy.typing as npt
 import pyspiel
 
 from kingisdead import actions as act
 from kingisdead import constants as C
 from kingisdead import rules
+from kingisdead.constants import (  # noqa: F401  (re-exported)
+    PHASE_ASSEMBLE,
+    PHASE_NEG_DISC,
+    PHASE_NEG_FIRST,
+    PHASE_NEG_SECOND,
+    PHASE_SUMMON,
+    PHASE_SUPPORT_TARGET,
+    PHASE_SWAP,
+    PHASE_TURN_START,
+    STAGE_COURTS,
+    STAGE_DONE,
+    STAGE_FILL,
+    STAGE_PICKS,
+)
+from kingisdead.observer import KingIsDeadObserver
 
 GAME_SHORT_NAME = "python_king_is_dead"
 MIN_PLAYERS = 2
 MAX_PLAYERS = 3
 DEFAULT_PLAYERS = 2
-
-# Setup stages (R-010 .. R-013).
-STAGE_PICKS = 0
-STAGE_COURTS = 1
-STAGE_FILL = 2
-STAGE_DONE = 3
-
-# Turn phases (ACTIONS.md section 4).
-PHASE_TURN_START = 0
-PHASE_SUPPORT_TARGET = 1
-PHASE_SUMMON = 2
-PHASE_ASSEMBLE = 3  # ASSEMBLE_S/W/E, told apart by assemble_faction
-PHASE_NEG_FIRST = 4
-PHASE_NEG_SECOND = 5
-PHASE_NEG_DISC = 6
-PHASE_SWAP = 7  # MAN_FIRST/SECOND, OUT_SINGLE/FIRST/SECOND, told apart by len(swap_picks)
 
 CARD_ASSEMBLE = 4
 CARD_NEGOTIATE = 5
@@ -469,43 +466,6 @@ class KingIsDeadState(pyspiel.State):
             f"courts={self.courts} supply={self.supply} slots={self.slot_regions} "
             f"states={self.region_states} passes={self.pass_count}"
         )
-
-
-class KingIsDeadObserver:
-    """Flat float32 tensor with named views (perfect information)."""
-
-    def __init__(self, num_players: int, params: dict[str, Any] | None) -> None:
-        if params:
-            raise ValueError(f"Observation parameters not supported; passed {params}")
-        self.n = num_players
-        shapes = [
-            ("region_counts", (C.NUM_REGIONS, C.NUM_FACTIONS)),
-            ("courts", (num_players, C.NUM_FACTIONS)),
-            ("supply", (C.NUM_FACTIONS,)),
-            ("region_states", (C.NUM_REGIONS,)),
-            ("to_move", (num_players,)),
-        ]
-        size = sum(int(np.prod(s)) for _, s in shapes)
-        self.tensor = np.zeros(size, np.float32)
-        self.dict: dict[str, npt.NDArray[np.float32]] = {}
-        index = 0
-        for name, shape in shapes:
-            length = int(np.prod(shape))
-            self.dict[name] = self.tensor[index : index + length].reshape(shape)
-            index += length
-
-    def set_from(self, state: KingIsDeadState, player: int) -> None:
-        self.tensor.fill(0)
-        self.dict["region_counts"][:] = state.region_counts
-        for seat in range(self.n):
-            self.dict["courts"][(seat - player) % self.n] = state.courts[seat]
-        self.dict["supply"][:] = state.supply
-        self.dict["region_states"][:] = state.region_states
-        if state.stage == STAGE_DONE:
-            self.dict["to_move"][(state.to_move - player) % self.n] = 1
-
-    def string_from(self, state: KingIsDeadState, player: int) -> str:
-        return f"p{player} {state}"
 
 
 pyspiel.register_game(GAME_TYPE, KingIsDeadGame)
