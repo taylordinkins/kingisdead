@@ -8,7 +8,7 @@
 ### Progress
 - [x] Phase 0 — Scaffold & OpenSpiel API spike (closed 2026-10-30, see docs/phase-reports/phase-0.md)
 - [x] Phase 1 — Rules spec ✋ *you review* (closed 2026-10-30, see docs/phase-reports/phase-1.md)
-- [ ] Phase 2 — Engine (2–3 players, base game)
+- [x] Phase 2 — Engine (2–3 players, base game) (closed 2026-10-30, see docs/phase-reports/phase-2.md)
 - [ ] Phase 3 — Server + web shell ✋ *playtest #1*
 - [ ] Phase 4 — Board UI + setup editor ✋ *playtest #2*
 - [ ] Phase 5 — Bots (MCTS, heuristic) ✋ *playtest #3*
@@ -62,6 +62,9 @@ A faithful, well-tested implementation of *The King is Dead* as a **Python OpenS
 | D20 | Undo block edge cases (2026-10-30) | A no-op same-faction Manoeuvre swap is blocked like any exact reverse; an exact 1-for-1 Outmanoeuvre reverse is blocked | User-confirmed; R-216 |
 | D21 | Undo block is board-based (2026-10-30) | A same-type play is blocked if its result equals the board before the previous Manoeuvre/Outmanoeuvre with that play's summoned follower removed; lifted by the next card played. Supersedes D20's pick-based wording; D20's no-op case still holds | User-confirmed; R-216, R-217. Needs a reference board in state/observation |
 | D22 | B* void case (2026-10-30) | If L's summoned follower's region held none of that faction before L's effect, B* is void and nothing is blocked | User-confirmed in close-phase; amends R-216 (needs spec unlock), ACTIONS §5, SCENARIOS |
+| D23 | Serialization of scenario states (2026-10-30) | Phase 2 closed with scenario-loaded states not serializable (empty history); persistence stays history-based (D18) | See Backlog; code-reviewer finding 4 |
+| D24 | End-type labels (2026-10-30) | `sim_stats` reports "invasion" (3 unstable regions) and "coronation" | User-approved at unit 12 |
+| D25 | Spec amendment (2026-10-30) | R-216 Example 4 now cites `undo_block_void.json` as an Outmanoeuvre exercise of the same void rule, not as the Manoeuvre example itself | User-approved pointer fix; no behaviour change |
 
 ## 4. Rules clarifications
 
@@ -256,6 +259,21 @@ Task list (approved 2026-10-30, branch `phase-1/rules-spec`):
 - `constants`, `rules`, `actions`, `game`, `observer`; tests first per rule ID; invariant checker; `tools/play_text.py` for agent self-play debugging; golden playthroughs for 3 seeds; card-by-card independent review.
 - *Exit:* all rule tests green; `random_sim_test` passes; 10,000 random games with zero invariant violations; `sim_stats` report (end-type mix, game length) recorded.
 
+Task list (approved 2026-10-30, branch `phase-2/engine`; each unit: `spec-test-writer` first, then `implementer`):
+- [x] 1. Constants and board (R-001–R-006, R-008) → `kingisdead/constants.py`
+- [x] 2. Actions and chance encoding (ACTIONS §1–3, R-007) → `kingisdead/actions.py`
+- [x] 3. Setup and game skeleton (R-007, R-010–R-015, R-100) → `game.py`, `scenario.py`
+- [x] 4. Turn start, pass and phase machine (R-101–R-106) → `game.py`, `rules.py`
+- [x] 5. Support cards, summon and placement (R-200–R-202, R-210, R-211)
+- [x] 6. Assemble and Negotiate (R-212, R-213)
+- [x] 7. Manoeuvre, Outmanoeuvre and undo block (R-214–R-217); `rules-auditor` spot check
+- [x] 8. Power struggle (R-300–R-304); `rules-auditor` spot check
+- [x] 9. End of game and scoring (R-400–R-405); `rules-auditor` spot check
+- [x] 10. Observer (§5.5) → `observer.py`
+- [x] 11. Scenario loader and invariant checker → `scenario.py`, `tests/support/invariants.py`
+- [x] 12. Tools, sims, golden playthroughs (`play_text.py`, `sim_stats.py`, 10,000-game slow test, 3 seeds)
+- [x] 13. Card-by-card independent review (`rules-auditor`) and fix round
+
 **Phase 3 — Server + web shell ✋ playtest #1**
 - FastAPI + adapter; React shell with legal-action list and a text board; human and random seats; Report and replay export; Playwright smoke test that finishes a game against the random bot.
 - *Exit:* you play at least one hotseat game and one game against random, and file reports.
@@ -327,8 +345,11 @@ Should-fix and minor findings, tagged with the phase that found them. `/close-ph
 - Phase 0: Bash blocks standalone `kingisdead` tokens such as `-k kingisdead` (false positive).
 - Phase 0: the spec backstop trips if the user sets APPROVED while spec edits are still uncommitted; commit spec edits before approving.
 - Phase 0: GitHub branch protection on `master` needs GitHub Pro on a private repo (user's call).
-- Phase 1: R-216 Example 4 (locked spec) is a Manoeuvre case but points at `tests/scenarios/undo_block_void.json`, which is an Outmanoeuvre case exercising the same D22 rule; fix the reference at the next spec amendment.
 - Phase 1: the `protect_spec.py` hook also fires on Bash commands that only mention the spec's filename (false positive; use Edit/Write for other files).
+- Phase 2 (code-reviewer): `State.__str__` (`game.py:463-468`) omits hands, phase, pending card, sub-state, `reference_board`, `recent_win` etc., so distinct states print alike (PLAY(Manoeuvre) vs PHASE_SWAP). Fix by delegating to the observer's `string_from`; regenerates the goldens, so say why in the commit message.
+- Phase 2 (code-reviewer): scenario-loaded states have empty history, so `serialize()`/`deserialize_state()` returns the initial node (`scenario.py:156-169`). Refuse to serialize or carry the scenario JSON.
+- Phase 2 (code-reviewer, optional): legal actions recomputed 2-3 times per action (`game.py:243,253,264`); `swap_mode` (`rules.py:158-165`) builds the full candidate list to test emptiness; `tests/rules/test_observer.py:309-310` turns a rejected scenario into `pytest.skip` (make it a failure).
+- Phase 2 (rules-auditor, unit 13): the unit 7/8/9 audit items are closed (fixed in c1f2055, or equivalent mutants); no new rule gaps. Mutants `no_void` and `persist_noswap` are equivalent.
 
 ## 10. Risks
 

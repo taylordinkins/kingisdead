@@ -38,6 +38,50 @@ Recurring patterns seen in spec audits (first seen 2026-10-30, Phase 1 units 2-5
 - **Tiebreak arguments: right conclusion, wrong justification.** Verify the reasoning, not just the
   claim. (Coronation/invasion tiebreak chains were otherwise sound.)
 
+
+Code/test audit patterns (first seen 2026-10-30, Phase 2 unit 7 spot audit):
+
+- **pyspiel Python apply_action does not check legality.** Probe illegal actions per sub-step
+  phase with a quick script (e.g. PASS mid-swap was accepted in unit 7 because game.py handles
+  PASS before dispatching on phase). Masks being right is not enough.
+- **Follower-total argument for undo-block tests.** Swaps preserve totals and each summon removes 1,
+  so an old B* is unreachable after any later play except Assemble/Support with a 1-follower supply
+  (net 0). Tests of "B* replaced by no-swap M/O" or "D22 void vs naive negative count" are
+  inherently non-discriminating via masks; only a physical-origin B* alternative (undo_block_void)
+  or a net-0 Assemble discriminates. Don't flag the engine for these; note the test as weak at most.
+  Unit 8 (struggle) escalated it: a mid-card PASS can trigger a struggle mid-Assemble, and PASS
+  after terminal runs extra struggles (4th instability disc; IndexError after the 8th). Also probe
+  apply_action on a terminal state every unit. Tracked in PLAN.md §9 ("Fix before Phase 3").
+- **Tests that silently rely on the lenient apply_action.** Loops like `while not terminal: PASS;
+  PASS` apply a PASS to a terminal state; they'll break when legality is enforced. Check that
+  multi-action loop bodies re-test is_terminal between actions.
+- Run spec examples end to end (pre-L board → L → summon → next play) in a scratch script; tests
+  often inject B* via scenario and skip the capture path.
+
+- **Mutation probes beat reading for test strength** (unit 9, 2026-10-30): a pytest plugin in the
+  scratchpad that monkeypatches `rules.*` / `KingIsDeadState.*` per `MUT` env var, run with
+  `PYTHONPATH=<scratch> uv run pytest -p mutplug <file>`. game.py calls `rules.x` by attribute, so
+  patches take. Tie-break chains are typically under-tested at the step *after* the last spec step
+  (e.g. using rank-3 followers before hand-empty survived: tied courts never differ on rank 3).
+- **Unit 13 full review (2026-10-30):** legality is now enforced in `_apply_action` (illegal and
+  post-terminal actions raise; probe found none accepted), so the unit 7/8 lenient-apply items are
+  closed. Equivalent mutants by the follower-total argument: "keep full pre-L board as B*" (D22
+  ignored) and "no-swap M/O keeps the old B*" survive every test and cannot be distinguished; don't
+  report them as gaps. A mutant killed ONLY by golden playthroughs (they embed the observer tensor,
+  which exposes internal fields) is still a rule-test gap: goldens get regenerated, not debugged.
+  Backlog test-gap items tend to survive unfixed into later units; recheck each line.
+- **Phase-close bookkeeping drift** (Phase 2 close, 2026-10-30): when fixes land, the PLAN.md §9
+  backlog lines that requested them are left listed as open, and module/test docstrings still
+  claim `pending` markers or NotImplementedError after the code lands. At close, check each backlog
+  line against the code and grep docstrings for "pending"/"NotImplemented"/"later unit".
+- **Differential oracle recipe:** scratch script with an independent tracker (passes, plays,
+  hand-empty, recent-win, B*) replaying random games and asserting each struggle/score/flow step,
+  plus full sub-tree exploration (clone + legal_actions) per card at each turn start compared with
+  an oracle built from the spec. ~7 s/game for the card oracle; 40 games is enough for masks.
+- **Tooling quirk:** the protect_spec PreToolUse hook rejected a Bash heredoc that wrote a scratch
+  script (no spec path in it). Write scratch scripts with the Write tool; run them with
+  `PYTHONPATH=/home/xdink/code/kingisdead uv run python <script>`.
+
 **Why:** these recur because spec authors reason from the card text locally and companion docs
 paraphrase the spec.
 **How to apply:** on every audit of examples, masks, validators or action legality, run these first.
