@@ -299,7 +299,7 @@ Task list (approved 2026-10-30, branch `phase-3/server-web-shell`; server/web un
 - *Exit:* you mirror at least one physical-table setup in the editor and play it through.
 
 Task list (approved 2026-10-31, branch `phase-4/board-ui-setup-editor`). Decision: scenario games (option A) keep the scenario JSON in the session and replay history over its start state; export carries the scenario (closes the Phase 2 scenario-serialize backlog item). The map follows the rulebook's region layout and R-002 adjacency but is our own original, good-looking schematic art (no published art copied); it should look appealing from the first version. No new rule behaviour, so `implementer` writes the tests.
-- [ ] 1. Scenario-backed sessions: `scenario` on create, replay over start state, export/import carries it, 422 on invalid → `server/`, `kingisdead/scenario.py`, tests, `schema.d.ts`
+- [x] 1. Scenario-backed sessions: `scenario` on create, replay over start state, export/import carries it, 422 on invalid → `server/`, `kingisdead/scenario.py`, tests, `schema.d.ts`
 - [ ] 2. Board geometry and static SVG: attractive original map, region states, region-card track and discs; follower type shown in Assemble (report 20261031T232540) → `web/src/games/king-is-dead/board/`
 - [ ] 3. Courts, hands, supply, negotiation discs; card positions clear (report 20261031T232657) → `web/src/games/king-is-dead/`
 - [ ] 4. Click-to-act on the board, action list as fallback → `web/src/games/king-is-dead/`, shell hooks

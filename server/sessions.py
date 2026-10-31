@@ -14,6 +14,7 @@ from typing import Any
 
 import pyspiel
 
+from kingisdead.scenario import load_scenario
 from server.adapters.base import JSON, GameAdapter
 from server.bots import BOTS, bot_rng, is_valid_seat_type
 
@@ -54,6 +55,7 @@ class Session:
         seats: Sequence[str],
         seed: int,
         history: Sequence[int] = (),
+        scenario: dict[str, Any] | None = None,
     ) -> None:
         self.id = session_id
         # Held by callers (server handlers) around every read/write of this session.
@@ -62,6 +64,9 @@ class Session:
         self.params = params
         self.seats = list(seats)
         self.seed = seed
+        # Scenario games start from load_scenario(scenario) and replay history on top (D18
+        # cannot serialise such states, so the scenario JSON is the session's start point).
+        self.scenario = scenario
         self.game = adapter.load(params)
         if len(self.seats) != self.game.num_players():
             raise SessionError(
@@ -72,10 +77,15 @@ class Session:
                 raise SessionError(f"unknown seat type {t!r}")
         self.history: list[int] = []
         self.actors: list[int] = []  # parallel to history: seat that acted, or CHANCE
-        self.state: pyspiel.State = self.game.new_initial_state()
+        self.state: pyspiel.State = self._initial()
         self._load(history)
         self._resolve_chance()
         self.advance_bots()
+
+    def _initial(self) -> pyspiel.State:
+        if self.scenario is not None:
+            return load_scenario(self.scenario)
+        return self.game.new_initial_state()
 
     @property
     def game_name(self) -> str:
@@ -112,7 +122,7 @@ class Session:
 
     def _load(self, history: Sequence[int]) -> None:
         """Replace state/history by replaying `history` from scratch, validating every step."""
-        state = self.game.new_initial_state()
+        state = self._initial()
         actors: list[int] = []
         for i, a in enumerate(history):
             if state.is_terminal():
@@ -199,7 +209,7 @@ class Session:
 
     def history_entries(self) -> list[JSON]:
         """Labelled history: replay, labelling each action as it was when it was legal."""
-        state = self.game.new_initial_state()
+        state = self._initial()
         out: list[JSON] = []
         for i, (a, who) in enumerate(zip(self.history, self.actors, strict=True)):
             if who == CHANCE:
@@ -226,11 +236,14 @@ class SessionStore:
         seats: Sequence[str],
         seed: int,
         history: Sequence[int] = (),
+        scenario: dict[str, Any] | None = None,
     ) -> Session:
         """New session; a non-empty `history` (import) is validated by replay."""
         if game not in self.adapters:
             raise SessionError(f"unknown game {game!r}")
-        session = Session(uuid.uuid4().hex, self.adapters[game], params, seats, seed, history)
+        session = Session(
+            uuid.uuid4().hex, self.adapters[game], params, seats, seed, history, scenario
+        )
         with self._lock:
             self.sessions[session.id] = session
         return session
