@@ -1,10 +1,15 @@
 import { useEffect, useState } from "react";
 import GameScreen from "./shell/GameScreen";
+import ImportButton from "./shell/ImportButton";
 import Lobby from "./shell/Lobby";
 
 const parseHash = (): string | null => {
   const m = /^#\/game\/(.+)$/.exec(window.location.hash);
   return m?.[1] ? decodeURIComponent(m[1]) : null;
+};
+
+const goTo = (id: string) => {
+  window.location.hash = `#/game/${encodeURIComponent(id)}`;
 };
 
 export default function App() {
@@ -26,13 +31,13 @@ export default function App() {
           onExit={() => {
             window.location.hash = "";
           }}
+          onImported={goTo}
         />
       ) : (
-        <Lobby
-          onCreated={(id) => {
-            window.location.hash = `#/game/${encodeURIComponent(id)}`;
-          }}
-        />
+        <>
+          <Lobby onCreated={goTo} />
+          <ImportButton onImported={goTo} />
+        </>
       )}
     </main>
   );

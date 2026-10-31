@@ -33,6 +33,15 @@ class LegalAction(BaseModel):
     card: int | None = None
 
 
+class HistoryEntry(BaseModel):
+    """One past action; `actor` is null for chance outcomes."""
+
+    index: int
+    actor: int | None
+    id: int
+    label: str
+
+
 class GameView(BaseModel):
     """A game as seen by one seat."""
 
@@ -44,6 +53,8 @@ class GameView(BaseModel):
     bot_thinking: bool = Field(description="A bot seat is to move (not yet played).")
     seat: int
     history_length: int
+    history: list[HistoryEntry] = Field(description="Labelled action history, oldest first.")
+    dev_mode: bool = Field(description="Server allows dev-only operations (rewind).")
     current_player: int | None = Field(description="Seat to move; null at chance or terminal.")
     is_terminal: bool
     legal_actions: list[LegalAction] = Field(description="Actions for current_player.")

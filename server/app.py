@@ -71,6 +71,8 @@ def create_app(dev_mode: bool = False, reports_dir: Path | str | None = None) ->
                 "bot_thinking": s.pending_bot,
                 "seat": seat,
                 "history_length": len(s.history),
+                "history": s.history_entries(),
+                "dev_mode": dev_mode,
                 "current_player": v["current_player"],
                 "is_terminal": v["is_terminal"],
                 "legal_actions": v["legal_actions"],

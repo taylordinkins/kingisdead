@@ -148,9 +148,22 @@
             "description": "Seat to move; null at chance or terminal.",
             "title": "Current Player"
           },
+          "dev_mode": {
+            "description": "Server allows dev-only operations (rewind).",
+            "title": "Dev Mode",
+            "type": "boolean"
+          },
           "game": {
             "title": "Game",
             "type": "string"
+          },
+          "history": {
+            "description": "Labelled action history, oldest first.",
+            "items": {
+              "$ref": "#/components/schemas/HistoryEntry"
+            },
+            "title": "History",
+            "type": "array"
           },
           "history_length": {
             "title": "History Length",
@@ -248,6 +261,8 @@
           "bot_thinking",
           "seat",
           "history_length",
+          "history",
+          "dev_mode",
           "current_player",
           "is_terminal",
           "legal_actions",
@@ -267,6 +282,42 @@
           }
         },
         "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HistoryEntry": {
+        "description": "One past action; `actor` is null for chance outcomes.",
+        "properties": {
+          "actor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "index": {
+            "title": "Index",
+            "type": "integer"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "index",
+          "actor",
+          "id",
+          "label"
+        ],
+        "title": "HistoryEntry",
         "type": "object"
       },
       "LegalAction": {

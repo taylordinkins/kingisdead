@@ -20,6 +20,8 @@ function view(over: Partial<GameView> = {}): GameView {
     bot_thinking: false,
     seat: 0,
     history_length: 0,
+    history: [],
+    dev_mode: false,
     current_player: 0,
     is_terminal: false,
     legal_actions: [

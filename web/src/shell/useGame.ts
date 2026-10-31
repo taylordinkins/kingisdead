@@ -20,7 +20,7 @@ export const legalActions = (g: GameView): LegalAction[] => g.legal_actions;
 export const isTerminal = (g: GameView): boolean => g.is_terminal;
 export const currentPlayer = (g: GameView): number | null => g.current_player;
 
-function errorText(error: unknown): string {
+export function errorText(error: unknown): string {
   if (error && typeof error === "object") {
     const detail = (error as { detail?: unknown }).detail;
     if (typeof detail === "string") return detail;
@@ -61,31 +61,53 @@ export function useGame(gameId: string, poll: PollIntervals = DEFAULT_POLL) {
     }
   }, [gameId]);
 
+  const run = useCallback(async (call: () => Promise<{ data?: GameView; error?: unknown }>) => {
+    if (busyRef.current) return;
+    busyRef.current = true;
+    setBusy(true);
+    try {
+      const { data, error: err } = await call();
+      if (!alive.current) return;
+      if (data) {
+        setGame(data);
+        setError(null);
+      } else {
+        setError(errorText(err));
+      }
+    } catch (e) {
+      if (alive.current) setError(e instanceof Error ? e.message : "Network error");
+    } finally {
+      busyRef.current = false;
+      if (alive.current) setBusy(false);
+    }
+  }, []);
+
   const act = useCallback(
-    async (action: number) => {
-      if (busyRef.current) return;
-      busyRef.current = true;
-      setBusy(true);
-      try {
-        const { data, error: err } = await api.POST("/api/games/{game_id}/actions", {
+    (action: number) =>
+      run(() =>
+        api.POST("/api/games/{game_id}/actions", {
           params: { path: { game_id: gameId } },
           body: { action },
-        });
-        if (!alive.current) return;
-        if (data) {
-          setGame(data);
-          setError(null);
-        } else {
-          setError(errorText(err));
-        }
-      } catch (e) {
-        if (alive.current) setError(e instanceof Error ? e.message : "Network error");
-      } finally {
-        busyRef.current = false;
-        if (alive.current) setBusy(false);
-      }
-    },
-    [gameId],
+        }),
+      ),
+    [gameId, run],
+  );
+
+  const goBack = useCallback(
+    () =>
+      run(() => api.POST("/api/games/{game_id}/back", { params: { path: { game_id: gameId } } })),
+    [gameId, run],
+  );
+
+  const rewind = useCallback(
+    (playerActions: number) =>
+      run(() =>
+        api.POST("/api/games/{game_id}/rewind", {
+          params: { path: { game_id: gameId } },
+          body: { player_actions: playerActions },
+        }),
+      ),
+    [gameId, run],
   );
 
   // Initial load (and reload when the game id changes).
@@ -111,5 +133,5 @@ export function useGame(gameId: string, poll: PollIntervals = DEFAULT_POLL) {
     return () => clearTimeout(t);
   }, [game, done, interval, refresh, error]);
 
-  return { game, error, busy, act, refresh, botThinking: !!game?.bot_thinking && !done };
+  return { game, error, busy, act, goBack, rewind, refresh, botThinking: !!game?.bot_thinking && !done };
 }

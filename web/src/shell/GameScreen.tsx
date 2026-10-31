@@ -1,6 +1,11 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+import { api } from "../api/client";
 import ActionList from "./ActionList";
+import ActionLog from "./ActionLog";
+import ImportButton from "./ImportButton";
+import ReportDialog from "./ReportDialog";
 import {
+  errorText,
   currentPlayer,
   DEFAULT_POLL,
   isTerminal,
@@ -16,6 +21,25 @@ interface Props {
   /** Slot for the game-specific board (unit 9); defaults to a JSON dump. */
   renderBoard?: (game: GameView) => ReactNode;
   onExit?: () => void;
+  /** Called with the new game id after a replay import. */
+  onImported?: (gameId: string) => void;
+}
+
+async function downloadExport(gameId: string): Promise<void> {
+  const { data, error } = await api.GET("/api/games/{game_id}/export", {
+    params: { path: { game_id: gameId } },
+  });
+  if (!data) throw new Error(errorText(error));
+  const url = URL.createObjectURL(
+    new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }),
+  );
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `kid-${gameId}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 
 const defaultBoard = (g: GameView): ReactNode => (
@@ -27,8 +51,13 @@ export default function GameScreen({
   pollMs = DEFAULT_POLL,
   renderBoard = defaultBoard,
   onExit,
+  onImported,
 }: Props) {
-  const { game, error, busy, act, botThinking } = useGame(gameId, pollMs);
+  const { game, error, busy, act, goBack, rewind, botThinking } = useGame(gameId, pollMs);
+  const [reporting, setReporting] = useState(false);
+  const [rewindTo, setRewindTo] = useState("0");
+  const [exportError, setExportError] = useState<string | null>(null);
+  const rewindValid = /^\d+$/.test(rewindTo.trim());
   const over = game !== null && isTerminal(game);
   const cp = game ? currentPlayer(game) : null;
   const humanTurn = game !== null && cp !== null && game.seats[cp] === "human" && !game.bot_thinking;
@@ -65,7 +94,54 @@ export default function GameScreen({
               </p>
             )
           )}
+          <div role="toolbar" aria-label="Game tools">
+            <button
+              type="button"
+              disabled={busy || game.history_length === 0}
+              onClick={() => void goBack()}
+            >
+              Back
+            </button>{" "}
+            {game.dev_mode && (
+              <span>
+                <label>
+                  Rewind to player action{" "}
+                  <input
+                    value={rewindTo}
+                    onChange={(e) => setRewindTo(e.target.value)}
+                    inputMode="numeric"
+                  />
+                </label>{" "}
+                <button
+                  type="button"
+                  disabled={busy || !rewindValid}
+                  onClick={() => void rewind(Number(rewindTo.trim()))}
+                >
+                  Rewind
+                </button>{" "}
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                setExportError(null);
+                downloadExport(gameId).catch((e: unknown) =>
+                  setExportError(e instanceof Error ? e.message : "Export failed"),
+                );
+              }}
+            >
+              Export replay
+            </button>{" "}
+            {onImported && <ImportButton onImported={onImported} />}{" "}
+            <button type="button" onClick={() => setReporting(true)}>
+              Report a problem
+            </button>
+            {exportError && <p role="alert">Export error: {exportError}</p>}
+          </div>
+          {reporting && <ReportDialog gameId={gameId} onClose={() => setReporting(false)} />}
           {renderBoard(game)}
+          <h3>Action log</h3>
+          <ActionLog history={game.history} />
           {!over && humanTurn && (
             <ActionList actions={legalActions(game)} disabled={busy} onAct={(id) => void act(id)} />
           )}

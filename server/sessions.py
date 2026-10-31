@@ -194,6 +194,21 @@ class Session:
     def view(self, seat: int) -> JSON:
         return self.adapter.view(self.state, seat)
 
+    def history_entries(self) -> list[JSON]:
+        """Labelled history: replay, labelling each action as it was when it was legal."""
+        state = self.game.new_initial_state()
+        out: list[JSON] = []
+        for i, (a, who) in enumerate(zip(self.history, self.actors, strict=True)):
+            if who == CHANCE:
+                label = f"Chance outcome {a}"
+                actor = None
+            else:
+                label = str(self.adapter.action_meta(state, a)["label"])
+                actor = who
+            out.append({"index": i, "actor": actor, "id": a, "label": label})
+            state.apply_action(a)
+        return out
+
 
 class SessionStore:
     def __init__(self, adapters: Mapping[str, GameAdapter]) -> None:

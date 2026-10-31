@@ -150,3 +150,20 @@ def test_typed_top_level_fields():
     ]
     assert all(isinstance(a["id"], int) and isinstance(a["label"], str) for a in g["legal_actions"])
     assert g["returns"] is None and g["winners"] is None
+
+
+def test_labelled_history_and_dev_flag() -> None:
+    c = _client(dev=True)
+    g = _new(c)
+    assert g["dev_mode"] is True
+    assert _new(_client())["dev_mode"] is False
+    n0 = len(g["history"])
+    first = g["legal_actions"][0]
+    g = c.post(f"/api/games/{g['id']}/actions", json={"action": first["id"]}).json()
+    assert g["history_length"] == len(g["history"])
+    assert [e["index"] for e in g["history"]] == list(range(len(g["history"])))
+    mine = [e for e in g["history"] if e["actor"] is not None]
+    assert mine[-1]["id"] == first["id"] and mine[-1]["label"] == first["label"]
+    assert all(e["label"] for e in g["history"]) and len(g["history"]) > n0
+    exp = c.get(f"/api/games/{g['id']}/export").json()
+    assert [e["id"] for e in g["history"]] == exp["history"]

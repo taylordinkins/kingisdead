@@ -208,8 +208,18 @@ export interface components {
              * @description Seat to move; null at chance or terminal.
              */
             current_player: number | null;
+            /**
+             * Dev Mode
+             * @description Server allows dev-only operations (rewind).
+             */
+            dev_mode: boolean;
             /** Game */
             game: string;
+            /**
+             * History
+             * @description Labelled action history, oldest first.
+             */
+            history: components["schemas"]["HistoryEntry"][];
             /** History Length */
             history_length: number;
             /** Id */
@@ -251,6 +261,20 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /**
+         * HistoryEntry
+         * @description One past action; `actor` is null for chance outcomes.
+         */
+        HistoryEntry: {
+            /** Actor */
+            actor: number | null;
+            /** Id */
+            id: number;
+            /** Index */
+            index: number;
+            /** Label */
+            label: string;
         };
         /**
          * LegalAction
