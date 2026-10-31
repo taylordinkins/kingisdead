@@ -552,7 +552,6 @@ def test_R100_two_player_wrap():
     assert s.current_player() == 0
 
 
-@pytest.mark.pending("R-100")
 def test_R100_card_play_passes_turn_to_next_seat():
     """R-100 / R-102: after player 0 plays a card and finishes its sub-steps, player 1 acts."""
     _, _, s = _run_scenario_setup()

@@ -261,7 +261,7 @@ Task list (approved 2026-10-30, branch `phase-2/engine`; each unit: `spec-test-w
 - [x] 2. Actions and chance encoding (ACTIONS §1–3, R-007) → `kingisdead/actions.py`
 - [x] 3. Setup and game skeleton (R-007, R-010–R-015, R-100) → `game.py`, `scenario.py`
 - [x] 4. Turn start, pass and phase machine (R-101–R-106) → `game.py`, `rules.py`
-- [ ] 5. Support cards, summon and placement (R-200–R-202, R-210, R-211)
+- [x] 5. Support cards, summon and placement (R-200–R-202, R-210, R-211)
 - [ ] 6. Assemble and Negotiate (R-212, R-213)
 - [ ] 7. Manoeuvre, Outmanoeuvre and undo block (R-214–R-217); `rules-auditor` spot check
 - [ ] 8. Power struggle (R-300–R-304); `rules-auditor` spot check

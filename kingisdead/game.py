@@ -14,6 +14,7 @@ import pyspiel
 
 from kingisdead import actions as act
 from kingisdead import constants as C
+from kingisdead import rules
 
 GAME_SHORT_NAME = "python_king_is_dead"
 MIN_PLAYERS = 2
@@ -25,6 +26,11 @@ STAGE_PICKS = 0
 STAGE_COURTS = 1
 STAGE_FILL = 2
 STAGE_DONE = 3
+
+# Turn phases (ACTIONS.md section 4).
+PHASE_TURN_START = 0
+PHASE_SUPPORT_TARGET = 1
+PHASE_SUMMON = 2
 
 REGION_FILL_TARGET = 4  # R-013
 COURT_DRAWS_PER_PLAYER = 2  # R-012
@@ -121,6 +127,8 @@ class KingIsDeadState(pyspiel.State):
         self.reference_board: tuple[tuple[tuple[int, ...], ...], tuple[int, ...]] | None = None
         # Turn skeleton.
         self.to_move = 0
+        self.phase = PHASE_TURN_START
+        self.pending_card = 0  # card being resolved while phase != TURN_START
         self.stage = STAGE_PICKS
         self.setup_picks = 0
         self.court_draws = 0
@@ -136,7 +144,11 @@ class KingIsDeadState(pyspiel.State):
         return self.to_move
 
     def _legal_actions(self, player: int) -> list[int]:
-        """TURN_START mask (R-101, R-103): PASS, then each card still in hand."""
+        """Mask per phase: TURN_START (R-101, R-103), SUPPORT_TARGET (R-210), SUMMON (R-201)."""
+        if self.phase == PHASE_SUPPORT_TARGET:
+            return [act.region_action(r) for r in self._support_targets(self.pending_card)]
+        if self.phase == PHASE_SUMMON:
+            return [act.follower_action(r, f) for r, f in rules.summon_options(self.region_counts)]
         acts = [act.PASS]
         acts.extend(act.play_action(c) for c in sorted(self.hands[player]) if self.hands[player][c])
         return acts
@@ -196,15 +208,62 @@ class KingIsDeadState(pyspiel.State):
             self.to_move = (self.to_move + 1) % self.n
             return
         d = act.decode_action(action)
+        if self.phase == PHASE_SUPPORT_TARGET:
+            if d.kind != "REGION" or d.region is None:
+                raise ValueError(f"action {action} is not a support target")
+            self._place_support(self.pending_card, d.region)
+            self._enter_summon()
+            return
+        if self.phase == PHASE_SUMMON:
+            if d.kind != "FOLLOWER" or d.region is None or d.faction is None:
+                raise ValueError(f"action {action} is not a summon choice")
+            self._summon(d.region, d.faction)
+            return
         if d.kind != "PLAY" or d.card is None:
             raise ValueError(f"action {action} is not legal at turn start")
         self._play_card(d.card)
 
-    def _play_card(self, card: int) -> None:
-        """Implements R-102, R-104: spend one copy, count the play, reset the pass count.
+    def _support_targets(self, card: int) -> list[int]:
+        """Implements R-210/R-211: eligible regions, empty if the supply is exhausted."""
+        f = rules.SUPPORT_FACTION[card]
+        if self.supply[f] < 1:
+            return []
+        return rules.support_eligible_regions(f, self.region_states, self.region_control)
 
-        TODO(units 5-7): the card effect and SUMMON sub-steps are not implemented yet; until they
-        land the play behaves as if every phase were skipped (R-202) and the turn passes on.
+    def _place_support(self, card: int, region: int) -> None:
+        """Implements R-211."""
+        f = rules.SUPPORT_FACTION[card]
+        if region not in self._support_targets(card):
+            raise ValueError(f"region {region} is not eligible")
+        n = rules.support_count(self.supply[f])
+        self.supply[f] -= n
+        self.region_counts[region][f] += n
+
+    def _enter_summon(self) -> None:
+        """Implements R-201: go to SUMMON, or skip it (and end the turn) on an empty board."""
+        if rules.summon_options(self.region_counts):
+            self.phase = PHASE_SUMMON
+        else:
+            self._end_turn()
+
+    def _summon(self, region: int, faction: int) -> None:
+        """Implements R-201."""
+        if self.region_counts[region][faction] <= 0:
+            raise ValueError("no such follower on the board")
+        self.region_counts[region][faction] -= 1
+        self.courts[self.to_move][faction] += 1
+        self._end_turn()
+
+    def _end_turn(self) -> None:
+        self.phase = PHASE_TURN_START
+        self.pending_card = 0
+        self.to_move = (self.to_move + 1) % self.n
+
+    def _play_card(self, card: int) -> None:
+        """Implements R-102, R-104, R-202, R-210, R-211: spend the card, then resolve it.
+
+        TODO(units 6-7): Assemble, Negotiate, Manoeuvre and Outmanoeuvre (cards 4-7) have no
+        effect yet (R-202); they go straight to the summon.
         """
         hand = self.hands[self.to_move]
         if hand.get(card, 0) <= 0:
@@ -212,7 +271,11 @@ class KingIsDeadState(pyspiel.State):
         hand[card] -= 1
         self.plays_total += 1
         self.pass_count = 0
-        self.to_move = (self.to_move + 1) % self.n
+        if card in rules.SUPPORT_FACTION and self._support_targets(card):
+            self.phase = PHASE_SUPPORT_TARGET
+            self.pending_card = card
+            return
+        self._enter_summon()
 
     def _action_to_string(self, player: int, action: int) -> str:
         if player == pyspiel.PlayerId.CHANCE:
