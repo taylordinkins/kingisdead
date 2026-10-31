@@ -279,7 +279,7 @@ Task list (approved 2026-10-30, branch `phase-2/engine`; each unit: `spec-test-w
 - *Exit:* you play at least one hotseat game and one game against random, and file reports.
 
 Task list (approved 2026-10-30, branch `phase-3/server-web-shell`; server/web units have no rule IDs, so `implementer` writes their tests). Defaults: frontend polls; sessions in memory plus JSON export; Rewind only with a server dev flag; code-reviewer and rules-auditor run at `/close-phase`. Phase 3 board is text only; graphics are always our own schematic art, never the published art.
-- [ ] 1. Adapter interface and KID adapter (`GameAdapter`: `load`, `view`, `action_meta`; scoring breakdown) → `server/adapters/`, `tests/server/test_adapter.py`
+- [x] 1. Adapter interface and KID adapter (`GameAdapter`: `load`, `view`, `action_meta`; scoring breakdown) → `server/adapters/`, `tests/server/test_adapter.py`
 - [ ] 2. Session store with history replay (apply, back, rewind; no deserialization, D18) → `server/sessions.py`
 - [ ] 3. FastAPI endpoints (create, view, action, back, rewind, export/import; seeded chance auto-resolve) → `server/app.py`, `server/schemas.py`
 - [ ] 4. Bot seats (`human`, `random`; server-side auto-advance; bot-thinking flag) → `server/bots.py`
