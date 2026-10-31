@@ -256,6 +256,21 @@ Task list (approved 2026-10-30, branch `phase-1/rules-spec`):
 - `constants`, `rules`, `actions`, `game`, `observer`; tests first per rule ID; invariant checker; `tools/play_text.py` for agent self-play debugging; golden playthroughs for 3 seeds; card-by-card independent review.
 - *Exit:* all rule tests green; `random_sim_test` passes; 10,000 random games with zero invariant violations; `sim_stats` report (end-type mix, game length) recorded.
 
+Task list (approved 2026-10-30, branch `phase-2/engine`; each unit: `spec-test-writer` first, then `implementer`):
+- [ ] 1. Constants and board (R-001–R-006, R-008) → `kingisdead/constants.py`
+- [ ] 2. Actions and chance encoding (ACTIONS §1–3, R-007) → `kingisdead/actions.py`
+- [ ] 3. Setup and game skeleton (R-007, R-010–R-015, R-100) → `game.py`, `scenario.py`
+- [ ] 4. Turn start, pass and phase machine (R-101–R-106) → `game.py`, `rules.py`
+- [ ] 5. Support cards, summon and placement (R-200–R-202, R-210, R-211)
+- [ ] 6. Assemble and Negotiate (R-212, R-213)
+- [ ] 7. Manoeuvre, Outmanoeuvre and undo block (R-214–R-217); `rules-auditor` spot check
+- [ ] 8. Power struggle (R-300–R-304); `rules-auditor` spot check
+- [ ] 9. End of game and scoring (R-400–R-405); `rules-auditor` spot check
+- [ ] 10. Observer (§5.5) → `observer.py`
+- [ ] 11. Scenario loader and invariant checker → `scenario.py`, `tests/support/invariants.py`
+- [ ] 12. Tools, sims, golden playthroughs (`play_text.py`, `sim_stats.py`, 10,000-game slow test, 3 seeds)
+- [ ] 13. Card-by-card independent review (`rules-auditor`) and fix round
+
 **Phase 3 — Server + web shell ✋ playtest #1**
 - FastAPI + adapter; React shell with legal-action list and a text board; human and random seats; Report and replay export; Playwright smoke test that finishes a game against the random bot.
 - *Exit:* you play at least one hotseat game and one game against random, and file reports.
