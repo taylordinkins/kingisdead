@@ -309,8 +309,8 @@ Strathclyde [S W E], Devon [W W W]. The next player's swap of (Strathclyde, E) f
 Moray gives B* and is blocked, although it is not the same picks reversed.
 Example 4: Moray [S S S S], Essex [E E E E]. L = Manoeuvre swapping (Moray, S) with (Essex, E),
 summoning the E that is now in Moray. Moray held no E before L, so B* is void: Moray [S S S],
-Essex [S E E E] and the next player's Manoeuvre has no blocked picks (see
-tests/scenarios/undo_block_void.json).
+Essex [S E E E] and the next player's Manoeuvre has no blocked picks. (The same void rule is
+exercised for Outmanoeuvre by tests/scenarios/undo_block_void.json.)
 
 ### R-217 — Undo block lifetime
 Source: rulebook "Manoeuvre" p9; PLAN.md C2, D21

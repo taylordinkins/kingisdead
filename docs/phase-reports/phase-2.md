@@ -25,16 +25,19 @@ Closed 2026-10-30 on branch `phase-2/engine`. Units 1–13 of the task list are 
 
 Unit 13 fix round (c1f2055): R-404 rank-3 non-tie-break test; R-216 examples 2 and 3 played through real play; literal R-405 `returns()` assertions; strict `_rec`; vacuous assertion removed; `sim_stats` now fails if the invariant checker is missing.
 
+## Post-review fixes (user-approved)
+
+- Region-pick chance outcomes are range-checked; out-of-range `action_to_string` chance ids raise `ValueError` (`tests/test_chance_validation.py`). Goldens unchanged. Fast suite: 707 passed.
+- Stale docstrings in `game.py` and `tests/rules/test_observer.py` corrected.
+- Spec amendment: R-216 Example 4 now cites `undo_block_void.json` as an Outmanoeuvre exercise of the same void rule (D25).
+
 ## Findings deferred (PLAN.md §9 Backlog)
 
-Should-fix severity, so none block the merge. Two are to be fixed before Phase 3 starts:
-- Chance outcomes at the region-pick stage are not range-checked (`game.py:216-223`).
-- Chance action labels depend on the current stage and can raise (`game.py:439-444`).
-
-Others: `__str__` omits most of the state (fixing it regenerates the goldens); scenario-loaded states do not serialize; minor performance and docstring items; R-216 Example 4 points at the wrong scenario file (spec amendment, the user's call).
+Should-fix severity, none block the merge: `__str__` omits most of the state (fixing it regenerates the goldens); scenario-loaded states do not serialize; minor performance and test-skip items.
 
 ## Decisions
 
 - D23: scenario-loaded states are not serializable; persistence stays history-based (D18).
 - D24: end-type labels "invasion" and "coronation" in `sim_stats` (user-approved).
+- D25: R-216 Example 4 pointer amended (user-approved).
 - No rules ambiguities arose in this phase.

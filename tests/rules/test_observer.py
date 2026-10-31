@@ -15,7 +15,7 @@ Assumed identifiers (flagged in the report):
   * state attribute ``s.courts[p][f]`` (as in the other rule tests);
   * scenario keys as in tests/scenarios/*.json (``pass_count``, ``hands``, ``regions``, ``courts``,
     ``to_play``, ``last_card.reference_board``).
-Pending marker: every test is ``@pytest.mark.pending("R-216")`` (observer-unit10).
+These tests are active (the unit-10 pending markers have been removed).
 """
 
 import copy

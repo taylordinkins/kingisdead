@@ -64,6 +64,7 @@ A faithful, well-tested implementation of *The King is Dead* as a **Python OpenS
 | D22 | B* void case (2026-10-30) | If L's summoned follower's region held none of that faction before L's effect, B* is void and nothing is blocked | User-confirmed in close-phase; amends R-216 (needs spec unlock), ACTIONS §5, SCENARIOS |
 | D23 | Serialization of scenario states (2026-10-30) | Phase 2 closed with scenario-loaded states not serializable (empty history); persistence stays history-based (D18) | See Backlog; code-reviewer finding 4 |
 | D24 | End-type labels (2026-10-30) | `sim_stats` reports "invasion" (3 unstable regions) and "coronation" | User-approved at unit 12 |
+| D25 | Spec amendment (2026-10-30) | R-216 Example 4 now cites `undo_block_void.json` as an Outmanoeuvre exercise of the same void rule, not as the Manoeuvre example itself | User-approved pointer fix; no behaviour change |
 
 ## 4. Rules clarifications
 
@@ -344,14 +345,10 @@ Should-fix and minor findings, tagged with the phase that found them. `/close-ph
 - Phase 0: Bash blocks standalone `kingisdead` tokens such as `-k kingisdead` (false positive).
 - Phase 0: the spec backstop trips if the user sets APPROVED while spec edits are still uncommitted; commit spec edits before approving.
 - Phase 0: GitHub branch protection on `master` needs GitHub Pro on a private repo (user's call).
-- Phase 1: R-216 Example 4 (locked spec) is a Manoeuvre case but points at `tests/scenarios/undo_block_void.json`, which is an Outmanoeuvre case exercising the same D22 rule; fix the reference at the next spec amendment.
 - Phase 1: the `protect_spec.py` hook also fires on Bash commands that only mention the spec's filename (false positive; use Edit/Write for other files).
-- Phase 2 (code-reviewer, **fix before Phase 3**): chance outcomes at the region-pick stage are not range-checked (`kingisdead/game.py:216-223`); `apply_action(9)` or `-1` at the root yields `slot_regions = [9, None, ...]`. Fix: `act.decode_chance_outcome(outcome, "region")` before the already-placed check.
-- Phase 2 (code-reviewer, **fix before Phase 3**): `action_to_string` labels chance actions by current stage (`game.py:439-444`); once picks are done `action_to_string(CHANCE, 7)` raises `IndexError`. Decode with `act.decode_chance_outcome`, or label each action before applying it in replay.
 - Phase 2 (code-reviewer): `State.__str__` (`game.py:463-468`) omits hands, phase, pending card, sub-state, `reference_board`, `recent_win` etc., so distinct states print alike (PLAY(Manoeuvre) vs PHASE_SWAP). Fix by delegating to the observer's `string_from`; regenerates the goldens, so say why in the commit message.
 - Phase 2 (code-reviewer): scenario-loaded states have empty history, so `serialize()`/`deserialize_state()` returns the initial node (`scenario.py:156-169`). Refuse to serialize or carry the scenario JSON.
 - Phase 2 (code-reviewer, optional): legal actions recomputed 2-3 times per action (`game.py:243,253,264`); `swap_mode` (`rules.py:158-165`) builds the full candidate list to test emptiness; `tests/rules/test_observer.py:309-310` turns a rejected scenario into `pytest.skip` (make it a failure).
-- Phase 2 (rules-auditor): stale docstrings in `tests/rules/test_observer.py:18` (says all tests are pending) and `kingisdead/game.py:3-4` (says sub-steps, struggles and scoring raise NotImplementedError).
 - Phase 2 (rules-auditor, unit 13): the unit 7/8/9 audit items are closed (fixed in c1f2055, or equivalent mutants); no new rule gaps. Mutants `no_void` and `persist_noswap` are equivalent.
 
 ## 10. Risks

@@ -1,7 +1,7 @@
 """OpenSpiel adapter: game registration, setup chance nodes and turn skeleton.
 
 Implements R-007, R-010..R-015, R-100 (and the TURN_START mask of R-101/R-103).
-Card sub-steps, struggles and scoring belong to later units and raise NotImplementedError.
+Card sub-steps, struggles and scoring are implemented further down in this module.
 """
 
 from __future__ import annotations
@@ -214,6 +214,7 @@ class KingIsDeadState(pyspiel.State):
 
     def _apply_chance(self, outcome: int) -> None:
         if self.stage == STAGE_PICKS:
+            outcome = act.decode_chance_outcome(outcome, "region")
             if outcome in self.slot_regions:
                 raise ValueError(f"region {outcome} already placed")
             self.slot_regions[self.setup_picks] = outcome
@@ -437,10 +438,11 @@ class KingIsDeadState(pyspiel.State):
         self._enter_summon()
 
     def _action_to_string(self, player: int, action: int) -> str:
+        """Chance labels are only meaningful at the node where the action is taken."""
         if player == pyspiel.PlayerId.CHANCE:
             if self.stage == STAGE_PICKS:
-                return f"Card {C.REGION_NAMES[action]}"
-            return f"Draw {C.FACTION_NAMES[action]}"
+                return f"Card {C.REGION_NAMES[act.decode_chance_outcome(action, 'region')]}"
+            return f"Draw {C.FACTION_NAMES[act.decode_chance_outcome(action, 'faction')]}"
         return act.action_label(action)
 
     # -- outcome ----------------------------------------------------------------------------
