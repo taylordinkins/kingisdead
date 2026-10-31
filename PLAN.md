@@ -258,7 +258,7 @@ Task list (approved 2026-10-30, branch `phase-1/rules-spec`):
 
 Task list (approved 2026-10-30, branch `phase-2/engine`; each unit: `spec-test-writer` first, then `implementer`):
 - [x] 1. Constants and board (R-001–R-006, R-008) → `kingisdead/constants.py`
-- [ ] 2. Actions and chance encoding (ACTIONS §1–3, R-007) → `kingisdead/actions.py`
+- [x] 2. Actions and chance encoding (ACTIONS §1–3, R-007) → `kingisdead/actions.py`
 - [ ] 3. Setup and game skeleton (R-007, R-010–R-015, R-100) → `game.py`, `scenario.py`
 - [ ] 4. Turn start, pass and phase machine (R-101–R-106) → `game.py`, `rules.py`
 - [ ] 5. Support cards, summon and placement (R-200–R-202, R-210, R-211)
