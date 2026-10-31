@@ -136,6 +136,8 @@ class KingIsDeadAdapter(GameAdapter):
         view: JSON = {
             "seat": seat,
             "num_players": s.n,
+            "faction_names": list(C.FACTION_NAMES),
+            "card_names": {str(c): n for c, n in sorted(C.CARD_NAMES.items())},
             "regions": regions,
             "track": track,
             "supply": list(s.supply),

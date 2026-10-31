@@ -50,6 +50,34 @@ describe("King is Dead board", () => {
     expect(within(result).getByText(/rank 1 followers/)).toBeInTheDocument();
   });
 
+  it("shows names from the view and a progress line", () => {
+    render(<Board game={game(midgame)} />);
+    const regions = screen.getByRole("table", { name: "Regions" });
+    for (const f of midgame.faction_names) {
+      expect(within(regions).getByRole("columnheader", { name: f })).toBeInTheDocument();
+    }
+    expect(screen.getByText("Regions resolved: 0 of 8")).toBeInTheDocument();
+  });
+
+  it("uses names from the view, not built-in copies", () => {
+    const view = { ...midgame, faction_names: ["Aa", "Bb", "Cc"] };
+    render(<Board game={game(view)} />);
+    expect(screen.getAllByRole("columnheader", { name: "Bb" })[0]).toBeInTheDocument();
+  });
+
+  it("rejects a view without names", () => {
+    const { faction_names: _f, ...rest } = midgame;
+    render(<Board game={game(rest)} />);
+    expect(screen.getByRole("alert")).toHaveTextContent(/faction_names/);
+  });
+
+  it("shows the recent-win legend and readable values", () => {
+    render(<Board game={game(terminal, { is_terminal: true })} />);
+    const result = screen.getByLabelText("Result");
+    expect(within(result).getByText(/most recently took control/)).toBeInTheDocument();
+    expect(within(result).getByText(/Recent win:.*(struggle \d|never)/)).toBeInTheDocument();
+  });
+
   it("shows a readable error for a malformed view", () => {
     render(<Board game={game({ regions: "nope" })} />);
     expect(screen.getByRole("alert")).toHaveTextContent(/Cannot display board.*King is Dead view/);

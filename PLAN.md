@@ -362,6 +362,9 @@ Should-fix and minor findings, tagged with the phase that found them. `/close-ph
 - Phase 2 (code-reviewer): scenario-loaded states have empty history, so `serialize()`/`deserialize_state()` returns the initial node (`scenario.py:156-169`). Refuse to serialize or carry the scenario JSON.
 - Phase 2 (code-reviewer, optional): legal actions recomputed 2-3 times per action (`game.py:243,253,264`); `swap_mode` (`rules.py:158-165`) builds the full candidate list to test emptiness; `tests/rules/test_observer.py:309-310` turns a rejected scenario into `pytest.skip` (make it a failure).
 - Phase 2 (rules-auditor, unit 13): the unit 7/8/9 audit items are closed (fixed in c1f2055, or equivalent mutants); no new rule gaps. Mutants `no_void` and `persist_noswap` are equivalent.
+- Phase 3 (unit 9): the KID view exposes every player's hand and the text board shows them all. Fine for hotseat; for networked play or Phase 7 hidden hands, filter the view per seat server-side (user: leave visible for now).
+- Phase 3 (unit 8): chance outcomes in the action log are labelled "Chance outcome N" because the adapter has no chance labels; add an adapter hook if the log needs better wording.
+- Phase 3 (unit 6): `web/package.json` pins `rollup@4.67.2` (the 4.67.3 tarball 404'd) and Vite 5/Vitest 2 for Node 18; drop the pins after moving to Node 20.
 
 ## 10. Risks
 

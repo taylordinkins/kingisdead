@@ -1,6 +1,20 @@
 {
  "seat": 0,
  "num_players": 2,
+ "faction_names": [
+  "Scottish",
+  "Welsh",
+  "English"
+ ],
+ "card_names": {
+  "1": "Scottish Support",
+  "2": "Welsh Support",
+  "3": "English Support",
+  "4": "Assemble",
+  "5": "Negotiate",
+  "6": "Manoeuvre",
+  "7": "Outmanoeuvre"
+ },
  "regions": [
   {
    "region": 0,

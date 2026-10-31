@@ -1,16 +1,14 @@
 import type { ReactNode } from "react";
 import type { GameView } from "../../shell/useGame";
-import { CARD_NAMES, FACTION_NAMES, parseKidView, type KidView, type ScoringStep } from "./types";
+import { parseKidView, type KidView, type ScoringStep } from "./types";
 
-const fname = (f: number | null): string =>
-  f === null ? "none" : (FACTION_NAMES[f] ?? `Faction ${f}`);
+type Fname = (f: number | null) => string;
 const player = (p: number | null): string => (p === null ? "none" : `P${p}`);
 const list = (xs: number[] | undefined): string =>
   xs && xs.length ? xs.map(player).join(", ") : "none";
-const cardName = (id: string): string => CARD_NAMES[id] ?? `Card ${id}`;
 const words = (s: string): string => s.replace(/_/g, " ");
 
-function ScoringStepRow({ step }: { step: ScoringStep }) {
+function ScoringStepRow({ step, fname }: { step: ScoringStep; fname: Fname }) {
   return (
     <tr>
       <th scope="row">{words(step.name)}</th>
@@ -27,7 +25,7 @@ function ScoringStepRow({ step }: { step: ScoringStep }) {
   );
 }
 
-function Header({ v }: { v: KidView }): ReactNode {
+function Header({ v, fname, cardName }: { v: KidView; fname: Fname; cardName: (id: string) => string }): ReactNode {
   const region = (r: number): string => v.regions[r]?.name ?? String(r);
   const p = v.pending;
   return (
@@ -39,10 +37,6 @@ function Header({ v }: { v: KidView }): ReactNode {
       <dt>Current player</dt>
       <dd>
         {v.is_terminal ? "game over" : v.current_player === null ? "chance" : player(v.current_player)}
-      </dd>
-      <dt>Power struggles resolved</dt>
-      <dd>
-        {v.struggles_resolved} of {v.track.length}
       </dd>
       <dt>Consecutive passes</dt>
       <dd>{v.consecutive_passes}</dd>
@@ -75,13 +69,20 @@ function Header({ v }: { v: KidView }): ReactNode {
 }
 
 export function KidBoard({ v }: { v: KidView }) {
+  const fname: Fname = (f) =>
+    f === null ? "none" : (v.faction_names[f] ?? `Faction ${f}`);
+  const cardName = (id: string): string => v.card_names[id] ?? `Card ${id}`;
+  const factions = v.faction_names;
   const regionName = (r: number | null): string =>
     r === null ? "(not placed)" : (v.regions[r]?.name ?? `Region ${r}`);
   const players = Array.from({ length: v.num_players }, (_, p) => p);
   const sc = v.scoring;
   return (
     <div aria-label="King is Dead board">
-      <Header v={v} />
+      <p>
+        Regions resolved: {v.struggles_resolved} of {v.track.length}
+      </p>
+      <Header v={v} fname={fname} cardName={cardName} />
 
       <h3>Power struggle track</h3>
       <table aria-label="Region track">
@@ -110,7 +111,7 @@ export function KidBoard({ v }: { v: KidView }) {
         <thead>
           <tr>
             <th scope="col">Region</th>
-            {FACTION_NAMES.map((f) => (
+            {factions.map((f) => (
               <th scope="col" key={f}>
                 {f}
               </th>
@@ -123,7 +124,7 @@ export function KidBoard({ v }: { v: KidView }) {
           {v.regions.map((r) => (
             <tr key={r.region}>
               <th scope="row">{r.name}</th>
-              {FACTION_NAMES.map((f, i) => (
+              {factions.map((f, i) => (
                 <td key={f}>{r.followers[i] ?? 0}</td>
               ))}
               <td>{r.state}</td>
@@ -138,7 +139,7 @@ export function KidBoard({ v }: { v: KidView }) {
         <thead>
           <tr>
             <th scope="col">Followers</th>
-            {FACTION_NAMES.map((f) => (
+            {factions.map((f) => (
               <th scope="col" key={f}>
                 {f}
               </th>
@@ -149,14 +150,14 @@ export function KidBoard({ v }: { v: KidView }) {
           {players.map((p) => (
             <tr key={p}>
               <th scope="row">{`P${p} court`}</th>
-              {FACTION_NAMES.map((f, i) => (
+              {factions.map((f, i) => (
                 <td key={f}>{v.courts[p]?.[i] ?? 0}</td>
               ))}
             </tr>
           ))}
           <tr>
             <th scope="row">Supply</th>
-            {FACTION_NAMES.map((f, i) => (
+            {factions.map((f, i) => (
               <td key={f}>{v.supply[i] ?? 0}</td>
             ))}
           </tr>
@@ -217,7 +218,21 @@ export function KidBoard({ v }: { v: KidView }) {
                 </p>
               )}
               {sc.recent_win && (
-                <p>Recent win: {sc.recent_win.map((n, f) => `${fname(f)} ${n}`).join(", ")}</p>
+                <>
+                  <p>
+                    Recent win:{" "}
+                    {sc.recent_win
+                      .map((n, f) => `${fname(f)} ${n < 0 ? "never" : `struggle ${n}`}`)
+                      .join(", ")}
+                  </p>
+                  <p>
+                    <small>
+                      Recent win = the number of the power struggle in which a faction most
+                      recently took control; never = no win. Breaks ties between factions
+                      controlling equal numbers of regions (higher ranks first).
+                    </small>
+                  </p>
+                </>
               )}
               <table aria-label="Scoring steps">
                 <thead>
@@ -230,7 +245,7 @@ export function KidBoard({ v }: { v: KidView }) {
                 </thead>
                 <tbody>
                   {sc.steps.map((s, i) => (
-                    <ScoringStepRow key={i} step={s} />
+                    <ScoringStepRow key={i} step={s} fname={fname} />
                   ))}
                 </tbody>
               </table>

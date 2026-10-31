@@ -1,16 +1,5 @@
 /** Hand-written mirror of server/adapters/kingisdead.py `view()`. Game-specific types live only here. */
 
-export const FACTION_NAMES = ["Scottish", "Welsh", "English"] as const;
-export const CARD_NAMES: Record<string, string> = {
-  "1": "Scottish Support",
-  "2": "Welsh Support",
-  "3": "English Support",
-  "4": "Assemble",
-  "5": "Negotiate",
-  "6": "Manoeuvre",
-  "7": "Outmanoeuvre",
-};
-
 export interface Region {
   region: number;
   name: string;
@@ -55,6 +44,10 @@ export interface Scoring {
 }
 
 export interface KidView {
+  /** Faction names indexed by faction id (from kingisdead/constants.py via the adapter). */
+  faction_names: string[];
+  /** Card names keyed by card id. */
+  card_names: Record<string, string>;
   seat: number;
   num_players: number;
   regions: Region[];
@@ -95,6 +88,8 @@ export function parseKidView(raw: unknown): KidView {
   const need = (key: string, ok: (v: unknown) => boolean) => {
     if (!ok(raw[key])) fail(key);
   };
+  need("faction_names", (v) => isArrOf(v, (x) => typeof x === "string"));
+  need("card_names", (v) => isRec(v) && Object.values(v).every((x) => typeof x === "string"));
   need("num_players", isInt);
   need("seat", isInt);
   need("regions", (v) =>

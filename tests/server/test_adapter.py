@@ -92,3 +92,11 @@ def test_replayed_history_gives_identical_view(n: int, seed: int) -> None:
     for a in state.history():
         replay.apply_action(a)
     assert json.dumps(ADAPTER.view(replay, 1)) == json.dumps(ADAPTER.view(state, 1))
+
+
+def test_view_names_match_constants() -> None:
+    from kingisdead import constants as C
+
+    view = ADAPTER.view(_game(2).new_initial_state(), 0)
+    assert view["faction_names"] == list(C.FACTION_NAMES)
+    assert view["card_names"] == {str(c): n for c, n in C.CARD_NAMES.items()}
