@@ -19,6 +19,11 @@ dev = [
     "pyright>=1.1.390",
     "httpx>=0.28.1",
 ]
+# Phase 6 training only; not synced by default (`uv sync --group train`). Fast tests never import torch.
+train = [
+    "numpy>=1.26",
+    "torch>=2.4",
+]
 
 [tool.uv]
 # Not packaged for distribution yet; tests import the package from the repo root.
