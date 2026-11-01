@@ -2,11 +2,19 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Annotated, Any
 
 from pydantic import BaseModel, Field, field_validator
 
-SeatType = Literal["human", "random"]
+from server.bots import SEAT_TYPE_PATTERN
+
+SeatType = Annotated[
+    str,
+    Field(
+        pattern=SEAT_TYPE_PATTERN,
+        description="human, random, heuristic, mcts, or mcts:N (N simulations, 1..100000).",
+    ),
+]
 
 
 class GameParams(BaseModel):

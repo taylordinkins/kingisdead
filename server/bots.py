@@ -3,9 +3,13 @@
 from __future__ import annotations
 
 import random
+import re
 from typing import Protocol
 
 import pyspiel
+
+from kingisdead.bots.heuristic import HeuristicBot
+from kingisdead.bots.mcts import MCTSSeatBot
 
 
 class Bot(Protocol):
@@ -19,13 +23,38 @@ class RandomBot:
         return rng.choice(state.legal_actions())
 
 
-BOTS: dict[str, Bot] = {"random": RandomBot()}
+BOTS: dict[str, Bot] = {"random": RandomBot(), "heuristic": HeuristicBot()}
 
 HUMAN = "human"
+MCTS_DEFAULT_SIMS = 100
+MCTS_MAX_SIMS = 100_000
+SEAT_TYPE_PATTERN = r"^(human|random|heuristic|mcts(:([1-9][0-9]{0,4}|100000))?)$"
+_MCTS_RE = re.compile(r"^mcts(?::([1-9][0-9]{0,4}|100000))?$")
+_mcts_cache: dict[int, Bot] = {}
+
+
+def _mcts_sims(seat_type: str) -> int | None:
+    m = _MCTS_RE.match(seat_type)
+    if m is None:
+        return None
+    n = int(m.group(1)) if m.group(1) is not None else MCTS_DEFAULT_SIMS
+    return n if 1 <= n <= MCTS_MAX_SIMS else None
 
 
 def is_valid_seat_type(seat_type: str) -> bool:
-    return seat_type == HUMAN or seat_type in BOTS
+    return seat_type == HUMAN or seat_type in BOTS or _mcts_sims(seat_type) is not None
+
+
+def get_bot(seat_type: str) -> Bot:
+    """Resolve a bot seat type (`random`, `heuristic`, `mcts`, `mcts:N`) to a Bot."""
+    if seat_type in BOTS:
+        return BOTS[seat_type]
+    n = _mcts_sims(seat_type)
+    if n is None:
+        raise KeyError(seat_type)
+    if n not in _mcts_cache:
+        _mcts_cache[n] = MCTSSeatBot(n)
+    return _mcts_cache[n]
 
 
 def bot_rng(seed: int, history_length: int) -> random.Random:

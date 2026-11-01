@@ -16,7 +16,7 @@ import pyspiel
 
 from kingisdead.scenario import load_scenario
 from server.adapters.base import JSON, GameAdapter
-from server.bots import BOTS, bot_rng, is_valid_seat_type
+from server.bots import bot_rng, get_bot, is_valid_seat_type
 
 CHANCE = -1  # actor marker for chance outcomes in `Session.actors`
 
@@ -110,7 +110,7 @@ class Session:
         steps = 0
         while self.pending_bot and (max_steps is None or steps < max_steps):
             seat = self.state.current_player()
-            a = BOTS[self.seats[seat]].choose(self.state, bot_rng(self.seed, len(self.history)))
+            a = get_bot(self.seats[seat]).choose(self.state, bot_rng(self.seed, len(self.history)))
             if a not in self.state.legal_actions():
                 raise IllegalAction(f"bot {self.seats[seat]!r} chose illegal action {a}")
             self.actors.append(seat)
