@@ -4,9 +4,10 @@ import type { SeatType } from "./useGame";
 
 interface Props {
   onCreated: (gameId: string) => void;
+  onOpenEditor?: () => void;
 }
 
-export default function Lobby({ onCreated }: Props) {
+export default function Lobby({ onCreated, onOpenEditor }: Props) {
   const [players, setPlayers] = useState(2);
   const [seats, setSeats] = useState<SeatType[]>(["human", "random", "random"]);
   const [seed, setSeed] = useState("");
@@ -77,6 +78,13 @@ export default function Lobby({ onCreated }: Props) {
         </button>
       </div>
       {error && <p role="alert">Error: {error}</p>}
+      {onOpenEditor && (
+        <p>
+          <button type="button" onClick={onOpenEditor}>
+            Set up a table (setup editor)
+          </button>
+        </p>
+      )}
     </form>
   );
 }

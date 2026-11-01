@@ -1,0 +1,27 @@
+{
+  "format": 1,
+  "kind": "setup",
+  "description": "Fresh 2-player position; Scottish Support can only target Strathclyde (Moray open, nothing controlled).",
+  "players": 2,
+  "slots": ["Devon", "Moray", "Warwick", "Lancaster", "Essex", "Gwynedd", "Northumbria", "Strathclyde"],
+  "regions": {
+    "Moray":       {"S": 2, "W": 1, "E": 1},
+    "Strathclyde": {"S": 1, "W": 2, "E": 1},
+    "Lancaster":   {"S": 1, "W": 1, "E": 2},
+    "Northumbria": {"S": 2, "W": 1, "E": 1},
+    "Gwynedd":     {"S": 1, "W": 3},
+    "Warwick":     {"S": 1, "W": 1, "E": 2},
+    "Essex":       {"S": 1, "W": 1, "E": 2},
+    "Devon":       {"S": 1, "W": 2, "E": 1}
+  },
+  "courts": [{"S": 1, "E": 1}, {"W": 1, "E": 1}],
+  "example": {
+    "actions": [1, 9],
+    "expect": {
+      "legal_after": {"0": [0, 1, 2, 3, 4, 5, 6, 7], "1": [9]},
+      "regions": {"Strathclyde": {"S": 3, "W": 2, "E": 1}},
+      "supply": {"S": 3, "W": 3, "E": 4},
+      "phase": "SUMMON"
+    }
+  }
+}
