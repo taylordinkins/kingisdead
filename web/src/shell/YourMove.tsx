@@ -13,6 +13,7 @@ interface Props {
   onAct: (id: number) => void;
   labelFor?: (a: LegalAction) => string;
   onHover?: (id: number | null) => void;
+  describe?: (a: LegalAction) => string | undefined;
 }
 
 /** The primary call to action: what the human should do now, or a muted waiting state. */
@@ -25,6 +26,7 @@ export default function YourMove({
   onAct,
   labelFor,
   onHover,
+  describe,
 }: Props) {
   if (!humanTurn) {
     return (
@@ -44,6 +46,7 @@ export default function YourMove({
         onAct={onAct}
         labelFor={labelFor}
         onHover={onHover}
+        describe={describe}
       />
     </section>
   );

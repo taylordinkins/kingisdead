@@ -83,22 +83,25 @@ export function useGame(
     }
   }, [gameId]);
 
+  /** Resolves true when the server accepted the call (so a caller can stop a multi-step sequence). */
   const run = useCallback(async (call: () => Promise<{ data?: GameView; error?: unknown }>) => {
-    if (busyRef.current) return;
+    if (busyRef.current) return false;
     busyRef.current = true;
     mutation.current += 1;
     setBusy(true);
     try {
       const { data, error: err } = await call();
-      if (!alive.current) return;
+      if (!alive.current) return false;
       if (data) {
         setGame(data);
         setError(null);
-      } else {
-        setError(errorText(err));
+        return true;
       }
+      setError(errorText(err));
+      return false;
     } catch (e) {
       if (alive.current) setError(e instanceof Error ? e.message : "Network error");
+      return false;
     } finally {
       mutation.current += 1;
       busyRef.current = false;

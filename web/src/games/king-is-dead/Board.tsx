@@ -6,6 +6,7 @@ import { REGION_SHAPES } from "./board/geometry";
 import { factionStyle } from "./board/factions";
 import { Players } from "./board/Players";
 import ScoringPanel from "./ScoringPanel";
+import { activeHeld, canonicalSequence, firstPicks, type HeldPick, partnersOf, positionKey } from "./swap";
 import { parseKidView, type KidView } from "./types";
 
 type Fname = (f: number | null) => string;
@@ -61,7 +62,7 @@ function Header({ v, fname, cardName }: { v: KidView; fname: Fname; cardName: (i
 export interface ClickToAct {
   /** Legal actions the viewer may submit right now (empty/absent when not their turn). */
   actions: LegalAction[];
-  onAct: (actionId: number) => void;
+  onAct: (actionId: number) => void | Promise<unknown>;
   labelFor?: (a: LegalAction) => string;
 }
 
@@ -143,10 +144,13 @@ export function KidBoard({
   hoverRegionFromAction = null,
   click,
   part = "all",
+  historyLength = 0,
 }: {
   /** "main": map and tables; "side": status, seats and results; "all": both (default). */
   part?: "all" | "main" | "side";
   click?: ClickToAct;
+  /** Moves played so far; part of the position a held swap pick belongs to. */
+  historyLength?: number;
   v: KidView;
   /** Regions targeted by the legal actions available to the viewer. */
   legalRegions?: ReadonlySet<number>;
@@ -154,7 +158,30 @@ export function KidBoard({
 }) {
   const [cardHover, setCardHover] = useState<number | null>(null);
   const [choosing, setChoosing] = useState<number | null>(null);
-  const clickable = click?.actions ?? [];
+  const [heldRaw, setHeld] = useState<HeldPick | null>(null);
+  const posKey = positionKey(historyLength, v.current_player, v.phase, v.pending?.swap_picks?.length ?? 0);
+  // A pick made in another position is never active, even for one render (render-time check), and is also
+  // dropped the first time a render sees a different key so an identical key recurring cannot revive it.
+  if (heldRaw !== null && heldRaw.key !== posKey) setHeld(null);
+  const held = activeHeld(heldRaw, posKey);
+  // Symmetric swap (Manoeuvre, Outmanoeuvre 1-for-1, Negotiate cards): either pick may be clicked first; the
+  // pair is submitted in the engine's canonical order (lower region first).
+  const pairs = v.swap_pairs ?? [];
+  const swapping = !!click && pairs.length > 0;
+  const heldId = swapping && held !== null && partnersOf(pairs, held).length > 0 ? held : null;
+  const swapPicks = swapping ? (heldId === null ? firstPicks(pairs) : partnersOf(pairs, heldId)) : [];
+  const clickable: LegalAction[] = swapping
+    ? swapPicks.map((p) => ({
+        id: p.id,
+        kind: p.faction === null ? "region" : "follower",
+        region: p.region,
+        ...(p.faction === null ? {} : { faction: p.faction }),
+        label:
+          p.faction === null
+            ? `Swap ${v.regions[p.region]?.name ?? p.region}`
+            : `Swap ${v.faction_names[p.faction] ?? p.faction} in ${v.regions[p.region]?.name ?? p.region}`,
+      }))
+    : (click?.actions ?? []);
   const labelFor = (a: LegalAction): string => click?.labelFor?.(a) ?? a.label;
   const byRegion = new Map<number, LegalAction[]>();
   const playable = new Map<string, { id: number; label: string }>();
@@ -167,7 +194,22 @@ export function KidBoard({
   }
   const submit = (id: number) => {
     setChoosing(null);
-    click?.onAct(id);
+    if (!swapping) {
+      void click?.onAct(id);
+      return;
+    }
+    if (heldId === null) {
+      setHeld({ id, key: posKey });
+      return;
+    }
+    const seq = canonicalSequence(pairs, heldId, id);
+    setHeld(null);
+    if (!seq || !click) return;
+    void (async () => {
+      // Stop if the first action was rejected: the second is only legal after it.
+      if ((await click.onAct(seq[0])) === false) return;
+      await click.onAct(seq[1]);
+    })();
   };
   const onRegionClick = (r: number) => {
     const as = byRegion.get(r) ?? [];
@@ -192,10 +234,22 @@ export function KidBoard({
       <p>
         Regions resolved: {v.struggles_resolved} of {v.track.length}
       </p>
+      {swapping && (
+        <p role="status" data-testid="swap-hint">
+          {heldId === null
+            ? "Swap: click the first follower or card (either one of the pair)."
+            : "Swap: click the follower or card to swap it with."}{" "}
+          {heldId !== null && (
+            <button type="button" onClick={() => setHeld(null)}>
+              Cancel selection
+            </button>
+          )}
+        </p>
+      )}
       <div style={{ position: "relative" }}>
         <MapBoard
           v={v}
-          highlightRegions={legalRegions}
+          highlightRegions={swapping ? new Set(byRegion.keys()) : legalRegions}
           hoverRegion={hover}
           onHoverRegion={setCardHover}
           onRegionClick={click ? onRegionClick : undefined}
@@ -299,7 +353,7 @@ export default function Board({
   part?: "all" | "main" | "side";
   hoverAction?: number | null;
   canAct?: boolean;
-  onAct?: (actionId: number) => void;
+  onAct?: (actionId: number) => void | Promise<unknown>;
   labelFor?: (a: LegalAction) => string;
 }) {
   let v: KidView;
@@ -320,6 +374,6 @@ export default function Board({
   const click: ClickToAct | undefined =
     humanTurn && canAct && onAct ? { actions: game.legal_actions, onAct, labelFor } : undefined;
   return (
-    <KidBoard part={part} v={v} legalRegions={legalRegions} hoverRegionFromAction={hovered} click={click} />
+    <KidBoard part={part} v={v} historyLength={game.history_length} legalRegions={legalRegions} hoverRegionFromAction={hovered} click={click} />
   );
 }

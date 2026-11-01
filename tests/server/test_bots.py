@@ -137,14 +137,14 @@ def test_rewind_with_bot_keeps_human_to_move() -> None:
 
 def test_unknown_seat_type_rejected() -> None:
     c = _client()
-    r = c.post("/api/games", json={"params": {"num_players": 2}, "seats": ["human", "mcts"]})
+    r = c.post("/api/games", json={"params": {"num_players": 2}, "seats": ["human", "alien"]})
     assert r.status_code == 422
 
 
 def test_unknown_seat_type_rejected_by_session() -> None:
     a = KingIsDeadAdapter()
     with pytest.raises(SessionError):
-        SessionStore({a.name: a}).create(a.name, {"players": 2}, ["human", "mcts"], 1)
+        SessionStore({a.name: a}).create(a.name, {"players": 2}, ["human", "alien"], 1)
 
 
 def test_hotseat_unchanged() -> None:
@@ -156,3 +156,75 @@ def test_hotseat_unchanged() -> None:
     g = c.post(f"/api/games/{g['id']}/actions", json={"action": legal}).json()
     assert g["history_length"] >= before + 1
     assert g["seat_types"] == ["human", "human"]
+
+
+# --- Phase 5 unit 2: heuristic / mcts seat types ---
+
+
+@pytest.mark.parametrize(
+    "t",
+    ["human", "random", "heuristic", "mcts", "mcts:1", "mcts:50", "mcts:100000"],
+)
+def test_valid_seat_types(t: str) -> None:
+    from server.bots import is_valid_seat_type
+
+    assert is_valid_seat_type(t)
+
+
+@pytest.mark.parametrize(
+    "t",
+    [
+        "mcts:0",
+        "mcts:x",
+        "mcts:",
+        "mcts:-5",
+        "mcts:1.5",
+        "mcts:100001",
+        "mcts:99999999999",
+        "mcts:000000",
+        "MCTS",
+        "alien",
+        "",
+        "mcts:5 ",
+    ],
+)
+def test_invalid_seat_types(t: str) -> None:
+    from server.bots import is_valid_seat_type
+
+    assert not is_valid_seat_type(t)
+
+
+def test_get_bot_caches_mcts_per_n() -> None:
+    from server.bots import get_bot
+
+    assert get_bot("mcts:7") is get_bot("mcts:7")
+    assert get_bot("mcts:7") is not get_bot("mcts:8")
+    assert get_bot("mcts") is get_bot("mcts:100")
+    with pytest.raises(KeyError):
+        get_bot("mcts:0")
+
+
+def test_api_rejects_bad_mcts_seat_with_422() -> None:
+    c = _client()
+    for t in ["mcts:0", "mcts:x", "mcts:100001"]:
+        r = c.post("/api/games", json={"seats": ["human", t], "seed": 1})
+        assert r.status_code == 422, t
+    r = c.post("/api/games", json={"seats": ["human", "mcts:5"], "seed": 1})
+    assert r.status_code == 200
+
+
+def test_session_with_heuristic_and_mcts_seats_advances() -> None:
+    c = _client()
+    g = _create(c, ["human", "heuristic", "mcts:5"], 3)
+    assert g["seat_types"] == ["human", "heuristic", "mcts:5"]
+    g = _play_human(c, g, pick=1, steps=8)
+    assert g["view"]["is_terminal"] or (
+        not g["bot_thinking"] and g["seat_types"][g["seat"]] == "human"
+    )
+
+
+def test_heuristic_only_game_finishes_and_replays() -> None:
+    c = _client()
+    g = _create(c, ["human", "heuristic"], 2)
+    g = _play_human(c, g, pick=2)
+    assert g["view"]["is_terminal"]

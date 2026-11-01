@@ -108,6 +108,38 @@ class KingIsDeadAdapter(GameAdapter):
                 meta[key] = value
         return meta
 
+    def _swap_pairs(self, state: pyspiel.State) -> list[list[JSON]]:
+        """All legal symmetric swaps (Manoeuvre, Outmanoeuvre 1-for-1, Negotiate) as action pairs.
+
+        Read-only lookahead for the UI, which lets the player click the two picks in either
+        order (the engine's canonical order is lower region first, or lower faction first for the
+        1-for-2 pair). Empty unless a first pick (Manoeuvre, Outmanoeuvre 1-for-1, Negotiate) or the
+        Outmanoeuvre 1-for-2 pair step is due.
+        """
+        s = _kid(state)
+        negotiate = s.phase == C.PHASE_NEG_FIRST
+        swap = (
+            s.phase == C.PHASE_SWAP
+            and not s.swap_picks
+            and s.swap_mode in (rules.MODE_MANOEUVRE, rules.MODE_ONE_FOR_ONE)
+        )
+        # Outmanoeuvre 1-for-2: the two pair followers (OUT_FIRST, OUT_SECOND) are canonical by
+        # faction index, so after the single is chosen they too may be clicked in either order.
+        pair = (
+            s.phase == C.PHASE_SWAP
+            and s.swap_mode == rules.MODE_ONE_FOR_TWO
+            and len(s.swap_picks) == 1
+        )
+        if not (negotiate or swap or pair):
+            return []
+        pairs: list[list[JSON]] = []
+        for a1 in s.legal_actions():
+            child = state.clone()
+            child.apply_action(a1)
+            for a2 in child.legal_actions():
+                pairs.append([{"id": a, **self.action_meta(s, a)} for a in (a1, a2)])
+        return pairs
+
     def chance_label(self, state: pyspiel.State, action_id: int) -> str:
         s = _kid(state)
         try:
@@ -176,6 +208,7 @@ class KingIsDeadAdapter(GameAdapter):
             },
             "consecutive_passes": s.pass_count,
             "struggles_resolved": s.struggles_resolved,
+            "swap_pairs": self._swap_pairs(state) if current is not None else [],
             "legal_actions": [
                 {"id": a, **self.action_meta(s, a)} for a in s.legal_actions()
             ] if current is not None else [],

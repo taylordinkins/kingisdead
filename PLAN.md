@@ -11,7 +11,7 @@
 - [x] Phase 2 — Engine (2–3 players, base game) (closed 2026-10-30, see docs/phase-reports/phase-2.md)
 - [x] Phase 3 — Server + web shell ✋ *playtest #1* (closed 2026-10-31, see docs/phase-reports/phase-3.md; playtest pending)
 - [x] Phase 4 — Board UI + setup editor ✋ *playtest #2* (closed 2026-10-31, see docs/phase-reports/phase-4.md; playtest pending)
-- [ ] Phase 5 — Bots (MCTS, heuristic) ✋ *playtest #3*
+- [x] Phase 5 — Bots (MCTS, heuristic) ✋ *playtest #3* (closed 2026-11-01, see docs/phase-reports/phase-5.md; playtest #3 in progress, 3 reports triaged)
 - [ ] Phase 6 — 4-player teams
 - [ ] Phase 7 — Advanced game (cunning actions)
 - [ ] Phase 8 — Trained policies
@@ -70,6 +70,7 @@ A faithful, well-tested implementation of *The King is Dead* as a **Python OpenS
 | D28 | Per-session locking (2026-10-31) | Handlers stay sync and hold a per-session `RLock`; Phase 5 slow bots must not run inside it | code-reviewer must-fix |
 | D29 | Web toolchain (2026-10-31) | Node 20 (nvm) for web work; Vite 5 / Vitest 2 and `rollup@4.67.2` pins stay until cleaned up; Playwright pinned to 1.64.1 | See Backlog |
 | D30 | Scenario sessions and click UI (2026-10-31) | Sessions carry the scenario JSON and replay history over its start state (setups load directly, not as a chance sequence; results checked identical); only a forced PASS auto-plays (R-106), every other single action waits for a click | User-approved; D12 and SCENARIOS §2 amended 2026-11-01 |
+| D31 | Click order for swaps; card tooltips (2026-11-01) | The engine keeps one canonical action sequence per swap (lower region/faction first, unchanged). The server view exposes `swap_pairs`, and the UI accepts the two clicks of Manoeuvre, Outmanoeuvre and Negotiate in either order and submits them canonically. Card effect tooltips paraphrase R-201 and R-210..R-215 | Playtest #3 reports 20261101T180522-891ed6, 20261101T181007-48abf3, 20261101T174750-ff097f; no rule behaviour |
 
 ## 4. Rules clarifications
 
@@ -217,9 +218,9 @@ Perfect information, so information state = observation. Tensor, from the observ
 
 ### 5.8 Bots
 
-- **Random:** uniform over legal actions.
-- **MCTS:** OpenSpiel's `MCTSBot` with random-rollout evaluator; simulations configurable per seat.
-- **Heuristic:** greedy one-turn lookahead scoring court strength against projected region control.
+- **Random:** uniform over legal actions. — done in Phase 5
+- **MCTS:** OpenSpiel's `MCTSBot` with random-rollout evaluator; simulations configurable per seat. — done in Phase 5
+- **Heuristic:** greedy one-turn lookahead scoring court strength against projected region control. — done in Phase 5
 - **Trained (Phase 8):** loaded as a seat type through the same bot interface.
 
 ## 6. Verification strategy
@@ -314,6 +315,16 @@ Task list (approved 2026-10-31, branch `phase-4/board-ui-setup-editor`). Decisio
 - MCTS and heuristic seats; `tools/tournament.py` for bot-vs-bot win rates.
 - *Exit:* MCTS clearly beats random over a few hundred 2-player games; you play against MCTS and heuristic.
 
+Tasks (approved 2026-10-31; branch `phase-5/bots`):
+- [x] 1. Heuristic bot: greedy one-turn lookahead, court strength vs projected region control → `kingisdead/bots/heuristic.py`, `tests/bots/`
+- [x] 2. MCTS bot (OpenSpiel `MCTSBot`, thin wrapper) + parameterised seat types `mcts:N`, `heuristic`; schema validation → `kingisdead/bots/mcts.py`, `server/bots.py`, `server/schemas.py`
+- [x] 3. Bot moves off the session lock (D28): background task, stale-move invalidation on Back/Rewind/human action → `server/sessions.py`, `server/app.py`
+- [x] 4. `tools/tournament.py` (seat rotation, win rate with Wilson CI, JSON output, seeded) → `tools/`
+- [x] 5. Lobby/UI: heuristic and MCTS strength presets, named thinking indicator, regenerate API schema → `web/src/shell/`
+- [x] 6. Strength validation (slow test + recorded tournament, MCTS vs random and vs heuristic) → `tests/bots/test_strength_slow.py`, `docs/phase-reports/`
+- [x] 7. Playwright vs heuristic and `mcts:20`; `CLAUDE.md` bot notes; tick §5.8 → `web/e2e/`, `CLAUDE.md`
+- Note: if MCTS is too slow or weak, swap the rollout evaluator (e.g. heuristic rollouts) rather than rewriting the search.
+
 **Phase 6 — 4-player teams** *(starts with a mini-interview: team returns, partner display)*
 **Phase 7 — Advanced game** *(mini-interview: Spy copying Negotiate/Manoeuvre, Plot reveal UX, hidden-hand hotseat handoff)*
 **Phase 8 — Trained policies** *(mini-interview: algorithm choice, compute budget, evaluation)*
@@ -390,6 +401,11 @@ Should-fix and minor findings, tagged with the phase that found them. `/close-ph
 - Phase 4 (code-reviewer, minor): auto-advance "already tried" key skips a forced PASS reached again at the same history length after Back; editor file input not reset after import; `1e400` in a number field becomes `Infinity`/`null`; `download()` anchor not attached to the DOM.
 - Phase 4 (rules-auditor, should-fix): the editor numbers players from 1 but the board, log and spec number from 0 (use one numbering before playtest #2); editor "Last play" and "Hand empty" tooltips should say card-play number per R-401 (not history index); map still shows "Struggle k+1 of 8" and NEXT badge after an early invasion end (gate on `is_terminal`, R-400); `useGame.test.tsx` uses its own predicate, not the shipped `kingIsDeadPlugin.autoAdvance`; D12 and SCENARIOS §2 still describe the chance-sequence conversion (needs user sign-off to amend).
 - Phase 4 (rules-auditor, minor): Assemble banner says "followers" plural (should be "follower", R-212); Courts hint in the editor cites V11 for `state` scenarios; reference board (B*) of the last card is toggle-only in the editor; track cards move by buttons, not drag; Phase 3 backlog items fixed in Phase 4 (chance labels, stale poll and re-arm, R-106 PASS, scoring-breakdown tests, R-403 wording) can be struck; `state.serialize()` of scenario-loaded states still returns the initial state (sessions carry the scenario instead); history log can't group by phase (entries carry no phase).
+- Phase 5 (code-reviewer, should-fix): a bot exception can race a mutation (Back/Rewind/retry) after the version check, leaving a stale `bot_error` and no worker, so a bot turn stalls (`sessions.py:160-179`; record the error inside the lock block that checks the version, or only when `self.version == version`, else reschedule); `mcts:N` has no upper bound and a stale search cannot be cancelled, so `mcts:100000` ties up a thread for minutes and a rewind waits it out (cap `MCTS_MAX_SIMS` near 2000 in `server/bots.py` and make the evaluator raise when the session version changed; optionally a bounded executor).
+- Phase 5 (code-reviewer, minor): `_MCTS_RE` uses `$`, so Python accepts `mcts:5\n` (use `fullmatch`; the API's pydantic regex rejects it, direct callers and `tools/tournament` do not); `actors.append` runs before `apply_action` in `sessions.py:170-172` and `:253-255`, so an engine exception leaves `actors` longer than `history` (`zip(strict=True)` then fails forever); the bot Retry button bypasses `useGame.run` (no busy guard) and `retry_bots` restarts a healthy worker when `bot_error` is None (409 or skip `_touch`); inline bot mode returns 500 on a bot exception (tests/tools only).
+- Phase 5 (rules-auditor, minor): card tooltip wording in `cardText.ts`: Manoeuvre/Outmanoeuvre "may not undo the previous..." omits that the block ends once any other card is played (R-217) and that same-result swaps and no-ops are blocked too (R-216); Assemble omits that a faction with an empty supply is skipped (R-212); Negotiate omits "fewer than two eligible cards: no effect, disc stays" (R-213, R-006); Outmanoeuvre 1-for-1 omits that regions must border and that "impossible" includes blocked by R-216. `tests/server/test_swap_pairs.py` checks every listed pair is legal but not that every legal swap is listed, and has no undo-block cases (the auditor's independent oracle found 0 mismatches over about 6,000 decisions; consider keeping it as a slow test).
+- Phase 5 (code-reviewer re-check, minor): between the two `onAct` calls of a swap pair the board accepts ordinary clicks (the server rejects illegal ones). The held-pick revival it also found was fixed before merge.
+- Phase 5 (tooling): `tools/replay.py`, referenced by the `/triage-report` skill, does not exist (triage rebuilt state from the saved report view instead); add it or fix the skill. No Playwright test yet clicks swap cards/followers in the reverse (higher-first) order. The `protect_spec.py` hook also fires on Bash commands that merely contain the spec's filename, even read-only (see the Phase 1 item).
 
 ## 10. Risks
 

@@ -44,9 +44,17 @@ def _from_adapter_params(session: Session) -> GameParams:
     return GameParams(num_players=session.game.num_players())
 
 
-def create_app(dev_mode: bool = False, reports_dir: Path | str | None = None) -> FastAPI:
+def create_app(
+    dev_mode: bool = False,
+    reports_dir: Path | str | None = None,
+    inline_bots: bool | None = None,
+) -> FastAPI:
+    # Production default: bots think on a background thread (D28). KID_BOTS_INLINE=1 (or
+    # inline_bots=True) plays them synchronously inside the request, for tests and tools.
+    if inline_bots is None:
+        inline_bots = os.environ.get("KID_BOTS_INLINE", "") not in ("", "0")
     reports_path = Path(reports_dir or os.environ.get("KID_REPORTS_DIR") or DEFAULT_REPORTS_DIR)
-    store = SessionStore({GAME_NAME: KingIsDeadAdapter()})
+    store = SessionStore({GAME_NAME: KingIsDeadAdapter()}, inline_bots=inline_bots)
     api = APIRouter(prefix="/api")
 
     def lookup(game_id: str) -> Session:
@@ -70,7 +78,8 @@ def create_app(dev_mode: bool = False, reports_dir: Path | str | None = None) ->
                     "seats": seats,
                     "seat_types": seats,
                     "seed": s.seed,
-                    "bot_thinking": s.pending_bot,
+                    "bot_thinking": s.bot_thinking,
+                    "bot_error": s.bot_error,
                     "seat": seat,
                     "history_length": len(s.history),
                     "history": s.history_entries(),
@@ -146,6 +155,20 @@ def create_app(dev_mode: bool = False, reports_dir: Path | str | None = None) ->
             try:
                 s.back()
             except CannotGoBack as e:
+                raise HTTPException(409, str(e)) from None
+            return render(s)
+
+    @api.post(
+        "/games/{game_id}/bots/retry",
+        operation_id="retry_bots",
+        responses={404: _ERR, 409: _ERR},
+    )
+    def retry_bots(game_id: str) -> GameView:
+        s = lookup(game_id)
+        with s.lock:
+            try:
+                s.retry_bots()
+            except IllegalAction as e:
                 raise HTTPException(409, str(e)) from None
             return render(s)
 

@@ -38,3 +38,10 @@ The main session orchestrates; it delegates rather than writing large changes it
 - Editor examples: drop a scenario JSON in `web/src/editor/examples/` and add it to `EXAMPLES` in `examples.ts` (copied from `tests/scenarios`).
 - Gotcha: `editor/serverValidate.ts` ("Check with server") creates a throwaway game session on the API; do not call it per keystroke. Live V1-V11 validation is client-side (`validate.ts`).
 - E2E (`web/e2e/`): `smoke.spec.ts` plays via the action list; `board.spec.ts` clicks the board (`.kid-region[role=button]`, hand chips, `region-chooser`) with a seed, checks Back, and plays to the scoring panel; it also covers editor example/import and Start playing.
+
+## Bot notes
+- Seat types: `human`, `random`, `heuristic`, `mcts:N`. Validated by pattern in `server/bots.py`; implementations/registry in `kingisdead/bots/`. Lobby presets: `web/src/shell/seatTypes.ts`.
+- Bot moves are computed in a background worker off the session lock (`server/sessions.py`); a result is discarded if the session version changed (stale-move discard).
+- Failures set `bot_error` on the game; the UI shows a Retry button that calls `POST /bots/retry`.
+- Tournament: `uv run python -m tools.tournament --seats heuristic random --games 100 --seed 0 [--workers N --json out.json]`. Strength report: `docs/phase-reports/phase-5-bot-strength.md`.
+- Gotcha: MCTS moves take about 0.4 s at N=100 (more at 400), so the UI shows "<Name> (P#) is thinking…"; heuristic is near-instant. E2E: `web/e2e/bots.spec.ts` (heuristic, `mcts:20`).

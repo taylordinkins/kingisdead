@@ -1,0 +1,76 @@
+import { describe, expect, it } from "vitest";
+import { activeHeld, canonicalSequence, firstPicks, parseSwapPairs, partnersOf, positionKey, type SwapPair } from "./swap";
+
+const p = (id: number, region: number, faction: number) => ({ id, region, faction });
+// Warwick(5) Scot with Moray(0) Scot / Essex(6) Welsh; canonical = lower region first.
+const pairs: SwapPair[] = [
+  [p(10, 0, 0), p(50, 5, 0)],
+  [p(10, 0, 0), p(61, 6, 1)],
+  [p(50, 5, 0), p(61, 6, 1)],
+];
+
+describe("swap click ordering", () => {
+  it("offers every follower in any legal swap as a first pick", () => {
+    expect(firstPicks(pairs).map((x) => x.id).sort((a, b) => a - b)).toEqual([10, 50, 61]);
+  });
+  it("offers partners in both roles (lower and higher region)", () => {
+    expect(partnersOf(pairs, 50).map((x) => x.id).sort((a, b) => a - b)).toEqual([10, 61]);
+  });
+  it("submits canonical order whichever follower was clicked first", () => {
+    expect(canonicalSequence(pairs, 50, 10)).toEqual([10, 50]);
+    expect(canonicalSequence(pairs, 10, 50)).toEqual([10, 50]);
+    expect(canonicalSequence(pairs, 61, 50)).toEqual([50, 61]);
+  });
+  it("rejects a non-legal combination", () => {
+    expect(canonicalSequence(pairs, 10, 99)).toBeNull();
+  });
+  it("parses server payloads and ignores junk", () => {
+    const raw = [[{ id: 1, region: 0, faction: 0, label: "x" }, { id: 2, region: 1, faction: 2 }], [1], "z"];
+    expect(parseSwapPairs(raw)).toEqual([[p(1, 0, 0), p(2, 1, 2)]]);
+    expect(parseSwapPairs(undefined)).toEqual([]);
+  });
+
+  it("handles Negotiate region-card pairs (no faction), Gwynedd(4) clicked first", () => {
+    const n = (id: number, region: number) => ({ id, region, faction: null });
+    const neg: SwapPair[] = [
+      [n(8, 0), n(12, 4)],
+      [n(10, 2), n(12, 4)],
+      [n(12, 4), n(13, 5)],
+    ];
+    expect(partnersOf(neg, 12).map((x) => x.region).sort()).toEqual([0, 2, 5]);
+    expect(canonicalSequence(neg, 12, 8)).toEqual([8, 12]);
+    expect(canonicalSequence(neg, 13, 12)).toEqual([12, 13]);
+    expect(parseSwapPairs([[{ id: 8, region: 0, label: "x" }, { id: 12, region: 4 }]])).toEqual([neg[0]]);
+  });
+
+  it("Outmanoeuvre 1-for-2 pair in one region: English clicked before Scottish still submits Scottish, English", () => {
+    // Strathclyde(1) holds Scottish(0) and English(2); ids 20 = Scottish, 22 = English.
+    const pair: SwapPair[] = [[p(20, 1, 0), p(22, 1, 2)]];
+    expect(firstPicks(pair).map((x) => x.id).sort()).toEqual([20, 22]);
+    expect(partnersOf(pair, 22).map((x) => x.id)).toEqual([20]);
+    expect(canonicalSequence(pair, 22, 20)).toEqual([20, 22]);
+    expect(canonicalSequence(pair, 20, 22)).toEqual([20, 22]);
+  });
+
+  it("Outmanoeuvre 1-for-2 pair of the same faction needs the same follower clicked twice", () => {
+    const pair: SwapPair[] = [
+      [p(21, 1, 1), p(21, 1, 1)],
+      [p(21, 1, 1), p(22, 1, 2)],
+    ];
+    expect(partnersOf(pair, 21).map((x) => x.id).sort()).toEqual([21, 22]);
+    expect(canonicalSequence(pair, 21, 21)).toEqual([21, 21]);
+    expect(canonicalSequence(pair, 22, 21)).toEqual([21, 22]);
+  });
+});
+
+describe("held pick staleness", () => {
+  const k = positionKey(5, 0, "play", 0);
+  it("is active only in the position it was made in", () => {
+    expect(activeHeld({ id: 10, key: k }, k)).toBe(10);
+    expect(activeHeld({ id: 10, key: k }, positionKey(6, 0, "play", 0))).toBeNull();
+    expect(activeHeld({ id: 10, key: k }, positionKey(5, 1, "play", 0))).toBeNull();
+    expect(activeHeld({ id: 10, key: k }, positionKey(5, 0, "other", 0))).toBeNull();
+    expect(activeHeld({ id: 10, key: k }, positionKey(5, 0, "play", 1))).toBeNull();
+    expect(activeHeld(null, k)).toBeNull();
+  });
+});

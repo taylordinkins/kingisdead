@@ -39,10 +39,8 @@
           },
           "seats": {
             "items": {
-              "enum": [
-                "human",
-                "random"
-              ],
+              "description": "human, random, heuristic, mcts, or mcts:N (N simulations, 1..100000).",
+              "pattern": "^(human|random|heuristic|mcts(:([1-9][0-9]{0,4}|100000))?)$",
               "type": "string"
             },
             "title": "Seats",
@@ -111,10 +109,8 @@
           },
           "seats": {
             "items": {
-              "enum": [
-                "human",
-                "random"
-              ],
+              "description": "human, random, heuristic, mcts, or mcts:N (N simulations, 1..100000).",
+              "pattern": "^(human|random|heuristic|mcts(:([1-9][0-9]{0,4}|100000))?)$",
               "type": "string"
             },
             "title": "Seats",
@@ -157,8 +153,20 @@
       "GameView": {
         "description": "A game as seen by one seat.",
         "properties": {
+          "bot_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Set when the bot worker failed; POST bots/retry to retry.",
+            "title": "Bot Error"
+          },
           "bot_thinking": {
-            "description": "A bot seat is to move (not yet played).",
+            "description": "A bot seat is to move and has not failed (false in the error state).",
             "title": "Bot Thinking",
             "type": "boolean"
           },
@@ -232,10 +240,8 @@
           },
           "seat_types": {
             "items": {
-              "enum": [
-                "human",
-                "random"
-              ],
+              "description": "human, random, heuristic, mcts, or mcts:N (N simulations, 1..100000).",
+              "pattern": "^(human|random|heuristic|mcts(:([1-9][0-9]{0,4}|100000))?)$",
               "type": "string"
             },
             "title": "Seat Types",
@@ -243,10 +249,8 @@
           },
           "seats": {
             "items": {
-              "enum": [
-                "human",
-                "random"
-              ],
+              "description": "human, random, heuristic, mcts, or mcts:N (N simulations, 1..100000).",
+              "pattern": "^(human|random|heuristic|mcts(:([1-9][0-9]{0,4}|100000))?)$",
               "type": "string"
             },
             "title": "Seats",
@@ -802,6 +806,65 @@
           }
         },
         "summary": "Go Back"
+      }
+    },
+    "/api/games/{game_id}/bots/retry": {
+      "post": {
+        "operationId": "retry_bots",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "game_id",
+            "required": true,
+            "schema": {
+              "title": "Game Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Retry Bots"
       }
     },
     "/api/games/{game_id}/export": {

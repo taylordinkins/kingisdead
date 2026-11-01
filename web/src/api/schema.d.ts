@@ -89,6 +89,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/games/{game_id}/bots/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Retry Bots */
+        post: operations["retry_bots"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/games/{game_id}/export": {
         parameters: {
             query?: never;
@@ -165,7 +182,7 @@ export interface components {
                 [key: string]: unknown;
             } | null;
             /** Seats */
-            seats: ("human" | "random")[];
+            seats: string[];
             /** Seed */
             seed?: number | null;
         };
@@ -192,7 +209,7 @@ export interface components {
                 [key: string]: unknown;
             } | null;
             /** Seats */
-            seats: ("human" | "random")[];
+            seats: string[];
             /** Seed */
             seed: number;
         };
@@ -213,8 +230,13 @@ export interface components {
          */
         GameView: {
             /**
+             * Bot Error
+             * @description Set when the bot worker failed; POST bots/retry to retry.
+             */
+            bot_error?: string | null;
+            /**
              * Bot Thinking
-             * @description A bot seat is to move (not yet played).
+             * @description A bot seat is to move and has not failed (false in the error state).
              */
             bot_thinking: boolean;
             /**
@@ -253,9 +275,9 @@ export interface components {
             /** Seat */
             seat: number;
             /** Seat Types */
-            seat_types: ("human" | "random")[];
+            seat_types: string[];
             /** Seats */
-            seats: ("human" | "random")[];
+            seats: string[];
             /** Seed */
             seed: number;
             /**
@@ -535,6 +557,55 @@ export interface operations {
         };
     };
     go_back: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                game_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GameView"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    retry_bots: {
         parameters: {
             query?: never;
             header?: never;

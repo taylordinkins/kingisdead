@@ -3,6 +3,7 @@ import type { LegalAction } from "../../shell/useGame";
 import type { GamePlugin } from "../registry";
 import Board from "./Board";
 import { playerStyle } from "./board/factions";
+import { cardText } from "./cardText";
 import { tryParseKidView } from "./types";
 
 export const kingIsDeadPlugin: GamePlugin = {
@@ -36,6 +37,7 @@ export const kingIsDeadPlugin: GamePlugin = {
       labelFor: (a: LegalAction) => kingIsDeadPlugin.actionLabel?.(g, a) ?? a.label,
     }),
   seatStyle: playerStyle,
+  actionHelp: (_g, a) => (a.kind === "play" ? cardText(a.card) : undefined),
   actionLabel: (g, a) => {
     if (a.kind !== "region" || a.region == null) return a.label;
     const v = tryParseKidView(g.view);

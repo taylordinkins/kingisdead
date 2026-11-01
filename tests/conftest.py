@@ -10,7 +10,13 @@ fail until the bug is fixed, so it runs as ``xfail(strict=True)``: the suite sta
 bug exists, and an unexpected pass (XPASS) turns it red until the implementer removes the marker.
 """
 
+import os
+
 import pytest
+
+# Existing server tests expect bots to have moved by the time a request returns; async-mode
+# tests pass create_app(inline_bots=False) explicitly.
+os.environ.setdefault("KID_BOTS_INLINE", "1")
 
 
 def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
