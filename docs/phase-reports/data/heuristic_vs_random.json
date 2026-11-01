@@ -1,0 +1,55 @@
+{
+  "seats": [
+    "heuristic",
+    "random"
+  ],
+  "games": 1000,
+  "seed": 100,
+  "rotate": true,
+  "tie_convention": "shared win: k winners (max return) each get 1/k win; game counted in draws if k>1",
+  "draws": 0,
+  "mean_plies": 77.577,
+  "mean_game_seconds": 0.10190530645898252,
+  "bots": [
+    {
+      "slot": 0,
+      "seat_type": "heuristic",
+      "wins": 758.0,
+      "win_rate": 0.758,
+      "ci95": [
+        0.7304991577735996,
+        0.7835261625558229
+      ],
+      "mean_move_seconds": 0.0021149216689028845,
+      "seat_counts": [
+        500,
+        500
+      ]
+    },
+    {
+      "slot": 1,
+      "seat_type": "random",
+      "wins": 242.0,
+      "win_rate": 0.242,
+      "ci95": [
+        0.2164738374441772,
+        0.26950084222640036
+      ],
+      "mean_move_seconds": 8.026723558681883e-05,
+      "seat_counts": [
+        500,
+        500
+      ]
+    }
+  ],
+  "args": {
+    "seats": "['heuristic', 'random']",
+    "games": "1000",
+    "seed": "100",
+    "rotate": "True",
+    "workers": "6",
+    "json": "docs/phase-reports/data/heuristic_vs_random.json",
+    "quiet": "True"
+  },
+  "git_commit": "054e7af232cd9e434c88e8437b338560622f5545"
+}
