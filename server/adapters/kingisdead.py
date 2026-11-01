@@ -108,6 +108,27 @@ class KingIsDeadAdapter(GameAdapter):
                 meta[key] = value
         return meta
 
+    def _swap_pairs(self, state: pyspiel.State) -> list[list[JSON]]:
+        """All legal symmetric swaps (Manoeuvre, Outmanoeuvre 1-for-1) as canonical action pairs.
+
+        Read-only lookahead for the UI, which lets the player click the two followers in either
+        order (the engine's canonical order is lower region first). Empty outside a first pick.
+        """
+        s = _kid(state)
+        if (
+            s.phase != C.PHASE_SWAP
+            or s.swap_picks
+            or s.swap_mode not in (rules.MODE_MANOEUVRE, rules.MODE_ONE_FOR_ONE)
+        ):
+            return []
+        pairs: list[list[JSON]] = []
+        for a1 in s.legal_actions():
+            child = state.clone()
+            child.apply_action(a1)
+            for a2 in child.legal_actions():
+                pairs.append([{"id": a, **self.action_meta(s, a)} for a in (a1, a2)])
+        return pairs
+
     def chance_label(self, state: pyspiel.State, action_id: int) -> str:
         s = _kid(state)
         try:
@@ -176,6 +197,7 @@ class KingIsDeadAdapter(GameAdapter):
             },
             "consecutive_passes": s.pass_count,
             "struggles_resolved": s.struggles_resolved,
+            "swap_pairs": self._swap_pairs(state) if current is not None else [],
             "legal_actions": [
                 {"id": a, **self.action_meta(s, a)} for a in s.legal_actions()
             ] if current is not None else [],

@@ -1,4 +1,5 @@
 /** Hand-written mirror of server/adapters/kingisdead.py `view()`. Game-specific types live only here. */
+import { parseSwapPairs, type SwapPair } from "./swap";
 
 export interface Region {
   region: number;
@@ -44,6 +45,8 @@ export interface Scoring {
 }
 
 export interface KidView {
+  /** Legal canonical swap pairs while a Manoeuvre / Outmanoeuvre 1-for-1 first pick is due. */
+  swap_pairs: SwapPair[];
   /** Faction names indexed by faction id (from kingisdead/constants.py via the adapter). */
   faction_names: string[];
   /** Card names keyed by card id. */
@@ -138,7 +141,9 @@ export function parseKidView(raw: unknown): KidView {
         isIntArr(v.winners),
     );
   }
-  return raw as unknown as KidView;
+  const view = raw as unknown as KidView;
+  view.swap_pairs = parseSwapPairs(raw.swap_pairs);
+  return view;
 }
 
 /** Like parseKidView but returns null instead of throwing. */

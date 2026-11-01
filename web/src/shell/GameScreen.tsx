@@ -77,7 +77,7 @@ export default function GameScreen({
     ? {
         hoverAction,
         canAct: !over && humanTurn && !busy,
-        onAct: (id) => void act(id),
+        onAct: (id) => act(id),
       }
     : undefined;
 

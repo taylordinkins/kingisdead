@@ -9,7 +9,7 @@ export interface BoardUi {
   /** True only on a human seat's turn when no request is in flight and no bot is thinking. */
   canAct?: boolean;
   /** Submit a legal action by id (same path as the action list). */
-  onAct?: (actionId: number) => void;
+  onAct?: (actionId: number) => void | Promise<unknown>;
 }
 
 export interface GamePlugin {

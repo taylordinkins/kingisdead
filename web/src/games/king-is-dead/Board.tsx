@@ -6,6 +6,7 @@ import { REGION_SHAPES } from "./board/geometry";
 import { factionStyle } from "./board/factions";
 import { Players } from "./board/Players";
 import ScoringPanel from "./ScoringPanel";
+import { canonicalSequence, firstPicks, partnersOf } from "./swap";
 import { parseKidView, type KidView } from "./types";
 
 type Fname = (f: number | null) => string;
@@ -61,7 +62,7 @@ function Header({ v, fname, cardName }: { v: KidView; fname: Fname; cardName: (i
 export interface ClickToAct {
   /** Legal actions the viewer may submit right now (empty/absent when not their turn). */
   actions: LegalAction[];
-  onAct: (actionId: number) => void;
+  onAct: (actionId: number) => void | Promise<unknown>;
   labelFor?: (a: LegalAction) => string;
 }
 
@@ -154,7 +155,22 @@ export function KidBoard({
 }) {
   const [cardHover, setCardHover] = useState<number | null>(null);
   const [choosing, setChoosing] = useState<number | null>(null);
-  const clickable = click?.actions ?? [];
+  const [held, setHeld] = useState<number | null>(null);
+  // Symmetric swap (Manoeuvre, Outmanoeuvre 1-for-1): either follower may be clicked first; the
+  // pair is submitted in the engine's canonical order (lower region first).
+  const pairs = v.swap_pairs ?? [];
+  const swapping = !!click && pairs.length > 0;
+  const heldId = swapping && held !== null && partnersOf(pairs, held).length > 0 ? held : null;
+  const swapPicks = swapping ? (heldId === null ? firstPicks(pairs) : partnersOf(pairs, heldId)) : [];
+  const clickable: LegalAction[] = swapping
+    ? swapPicks.map((p) => ({
+        id: p.id,
+        kind: "follower",
+        region: p.region,
+        faction: p.faction,
+        label: `Swap ${v.faction_names[p.faction] ?? p.faction} in ${v.regions[p.region]?.name ?? p.region}`,
+      }))
+    : (click?.actions ?? []);
   const labelFor = (a: LegalAction): string => click?.labelFor?.(a) ?? a.label;
   const byRegion = new Map<number, LegalAction[]>();
   const playable = new Map<string, { id: number; label: string }>();
@@ -167,7 +183,21 @@ export function KidBoard({
   }
   const submit = (id: number) => {
     setChoosing(null);
-    click?.onAct(id);
+    if (!swapping) {
+      void click?.onAct(id);
+      return;
+    }
+    if (heldId === null) {
+      setHeld(id);
+      return;
+    }
+    const seq = canonicalSequence(pairs, heldId, id);
+    setHeld(null);
+    if (!seq || !click) return;
+    void (async () => {
+      await click.onAct(seq[0]);
+      await click.onAct(seq[1]);
+    })();
   };
   const onRegionClick = (r: number) => {
     const as = byRegion.get(r) ?? [];
@@ -192,10 +222,22 @@ export function KidBoard({
       <p>
         Regions resolved: {v.struggles_resolved} of {v.track.length}
       </p>
+      {swapping && (
+        <p role="status" data-testid="swap-hint">
+          {heldId === null
+            ? "Swap: click the first follower (either one of the pair)."
+            : "Swap: click the follower to swap it with."}{" "}
+          {heldId !== null && (
+            <button type="button" onClick={() => setHeld(null)}>
+              Cancel selection
+            </button>
+          )}
+        </p>
+      )}
       <div style={{ position: "relative" }}>
         <MapBoard
           v={v}
-          highlightRegions={legalRegions}
+          highlightRegions={swapping ? new Set(byRegion.keys()) : legalRegions}
           hoverRegion={hover}
           onHoverRegion={setCardHover}
           onRegionClick={click ? onRegionClick : undefined}
@@ -299,7 +341,7 @@ export default function Board({
   part?: "all" | "main" | "side";
   hoverAction?: number | null;
   canAct?: boolean;
-  onAct?: (actionId: number) => void;
+  onAct?: (actionId: number) => void | Promise<unknown>;
   labelFor?: (a: LegalAction) => string;
 }) {
   let v: KidView;

@@ -1,0 +1,878 @@
+{
+  "report_id": "20261101T180522-891ed6",
+  "created_at": "2026-11-01T18:05:22.621112+00:00",
+  "note": "Should I also be able to swap from other regions on this turn?",
+  "category": "engine",
+  "session_id": "ef6cb359c17d47bda3cd4f0dc3717845",
+  "game": "king_is_dead",
+  "params": {
+    "num_players": 2
+  },
+  "seats": [
+    "human",
+    "mcts:100"
+  ],
+  "seed": 243569227,
+  "export": {
+    "game": "king_is_dead",
+    "params": {
+      "num_players": 2
+    },
+    "seats": [
+      "human",
+      "mcts:100"
+    ],
+    "seed": 243569227,
+    "history": [
+      3,
+      7,
+      6,
+      1,
+      0,
+      2,
+      4,
+      5,
+      0,
+      0,
+      1,
+      2,
+      2,
+      0,
+      2,
+      0,
+      1,
+      2,
+      1,
+      2,
+      0,
+      1,
+      1,
+      2,
+      1,
+      1,
+      2,
+      0,
+      2,
+      1,
+      2,
+      1,
+      1,
+      2,
+      1,
+      0,
+      2,
+      2,
+      0,
+      0,
+      2,
+      13,
+      32,
+      3,
+      15,
+      30,
+      3,
+      15,
+      39,
+      1,
+      9,
+      29,
+      0,
+      4,
+      13,
+      8,
+      16,
+      0,
+      0,
+      4,
+      8,
+      14,
+      13,
+      31,
+      4,
+      13,
+      8,
+      12,
+      32,
+      6,
+      31
+    ]
+  },
+  "view": {
+    "id": "ef6cb359c17d47bda3cd4f0dc3717845",
+    "game": "king_is_dead",
+    "seats": [
+      "human",
+      "mcts:100"
+    ],
+    "seat_types": [
+      "human",
+      "mcts:100"
+    ],
+    "seed": 243569227,
+    "bot_thinking": false,
+    "bot_error": null,
+    "seat": 0,
+    "history_length": 71,
+    "history": [
+      {
+        "index": 0,
+        "actor": null,
+        "id": 3,
+        "label": "Setup: region card Northumbria for slot 1"
+      },
+      {
+        "index": 1,
+        "actor": null,
+        "id": 7,
+        "label": "Setup: region card Devon for slot 2"
+      },
+      {
+        "index": 2,
+        "actor": null,
+        "id": 6,
+        "label": "Setup: region card Essex for slot 3"
+      },
+      {
+        "index": 3,
+        "actor": null,
+        "id": 1,
+        "label": "Setup: region card Strathclyde for slot 4"
+      },
+      {
+        "index": 4,
+        "actor": null,
+        "id": 0,
+        "label": "Setup: region card Moray for slot 5"
+      },
+      {
+        "index": 5,
+        "actor": null,
+        "id": 2,
+        "label": "Setup: region card Lancaster for slot 6"
+      },
+      {
+        "index": 6,
+        "actor": null,
+        "id": 4,
+        "label": "Setup: region card Gwynedd for slot 7"
+      },
+      {
+        "index": 7,
+        "actor": null,
+        "id": 5,
+        "label": "Setup: region card Warwick for slot 8"
+      },
+      {
+        "index": 8,
+        "actor": null,
+        "id": 0,
+        "label": "Setup: P0 court draws Scottish"
+      },
+      {
+        "index": 9,
+        "actor": null,
+        "id": 0,
+        "label": "Setup: P0 court draws Scottish"
+      },
+      {
+        "index": 10,
+        "actor": null,
+        "id": 1,
+        "label": "Setup: P1 court draws Welsh"
+      },
+      {
+        "index": 11,
+        "actor": null,
+        "id": 2,
+        "label": "Setup: P1 court draws English"
+      },
+      {
+        "index": 12,
+        "actor": null,
+        "id": 2,
+        "label": "Setup: English follower placed in Moray"
+      },
+      {
+        "index": 13,
+        "actor": null,
+        "id": 0,
+        "label": "Setup: Scottish follower placed in Moray"
+      },
+      {
+        "index": 14,
+        "actor": null,
+        "id": 2,
+        "label": "Setup: English follower placed in Strathclyde"
+      },
+      {
+        "index": 15,
+        "actor": null,
+        "id": 0,
+        "label": "Setup: Scottish follower placed in Strathclyde"
+      },
+      {
+        "index": 16,
+        "actor": null,
+        "id": 1,
+        "label": "Setup: Welsh follower placed in Strathclyde"
+      },
+      {
+        "index": 17,
+        "actor": null,
+        "id": 2,
+        "label": "Setup: English follower placed in Strathclyde"
+      },
+      {
+        "index": 18,
+        "actor": null,
+        "id": 1,
+        "label": "Setup: Welsh follower placed in Lancaster"
+      },
+      {
+        "index": 19,
+        "actor": null,
+        "id": 2,
+        "label": "Setup: English follower placed in Lancaster"
+      },
+      {
+        "index": 20,
+        "actor": null,
+        "id": 0,
+        "label": "Setup: Scottish follower placed in Lancaster"
+      },
+      {
+        "index": 21,
+        "actor": null,
+        "id": 1,
+        "label": "Setup: Welsh follower placed in Lancaster"
+      },
+      {
+        "index": 22,
+        "actor": null,
+        "id": 1,
+        "label": "Setup: Welsh follower placed in Northumbria"
+      },
+      {
+        "index": 23,
+        "actor": null,
+        "id": 2,
+        "label": "Setup: English follower placed in Northumbria"
+      },
+      {
+        "index": 24,
+        "actor": null,
+        "id": 1,
+        "label": "Setup: Welsh follower placed in Northumbria"
+      },
+      {
+        "index": 25,
+        "actor": null,
+        "id": 1,
+        "label": "Setup: Welsh follower placed in Northumbria"
+      },
+      {
+        "index": 26,
+        "actor": null,
+        "id": 2,
+        "label": "Setup: English follower placed in Gwynedd"
+      },
+      {
+        "index": 27,
+        "actor": null,
+        "id": 0,
+        "label": "Setup: Scottish follower placed in Gwynedd"
+      },
+      {
+        "index": 28,
+        "actor": null,
+        "id": 2,
+        "label": "Setup: English follower placed in Warwick"
+      },
+      {
+        "index": 29,
+        "actor": null,
+        "id": 1,
+        "label": "Setup: Welsh follower placed in Warwick"
+      },
+      {
+        "index": 30,
+        "actor": null,
+        "id": 2,
+        "label": "Setup: English follower placed in Warwick"
+      },
+      {
+        "index": 31,
+        "actor": null,
+        "id": 1,
+        "label": "Setup: Welsh follower placed in Warwick"
+      },
+      {
+        "index": 32,
+        "actor": null,
+        "id": 1,
+        "label": "Setup: Welsh follower placed in Essex"
+      },
+      {
+        "index": 33,
+        "actor": null,
+        "id": 2,
+        "label": "Setup: English follower placed in Essex"
+      },
+      {
+        "index": 34,
+        "actor": null,
+        "id": 1,
+        "label": "Setup: Welsh follower placed in Devon"
+      },
+      {
+        "index": 35,
+        "actor": null,
+        "id": 0,
+        "label": "Setup: Scottish follower placed in Devon"
+      },
+      {
+        "index": 36,
+        "actor": null,
+        "id": 2,
+        "label": "Setup: English follower placed in Devon"
+      },
+      {
+        "index": 37,
+        "actor": null,
+        "id": 2,
+        "label": "Setup: English follower placed in Devon"
+      },
+      {
+        "index": 38,
+        "actor": 0,
+        "id": 0,
+        "label": "Pass"
+      },
+      {
+        "index": 39,
+        "actor": 1,
+        "id": 0,
+        "label": "Pass"
+      },
+      {
+        "index": 40,
+        "actor": 0,
+        "id": 2,
+        "label": "Play Welsh Support"
+      },
+      {
+        "index": 41,
+        "actor": 0,
+        "id": 13,
+        "label": "Region Warwick"
+      },
+      {
+        "index": 42,
+        "actor": 0,
+        "id": 32,
+        "label": "Welsh follower in Warwick"
+      },
+      {
+        "index": 43,
+        "actor": 1,
+        "id": 3,
+        "label": "Play English Support"
+      },
+      {
+        "index": 44,
+        "actor": 1,
+        "id": 15,
+        "label": "Region Devon"
+      },
+      {
+        "index": 45,
+        "actor": 1,
+        "id": 30,
+        "label": "English follower in Gwynedd"
+      },
+      {
+        "index": 46,
+        "actor": 0,
+        "id": 3,
+        "label": "Play English Support"
+      },
+      {
+        "index": 47,
+        "actor": 0,
+        "id": 15,
+        "label": "Region Devon"
+      },
+      {
+        "index": 48,
+        "actor": 0,
+        "id": 39,
+        "label": "English follower in Devon"
+      },
+      {
+        "index": 49,
+        "actor": 1,
+        "id": 1,
+        "label": "Play Scottish Support"
+      },
+      {
+        "index": 50,
+        "actor": 1,
+        "id": 9,
+        "label": "Region Strathclyde"
+      },
+      {
+        "index": 51,
+        "actor": 1,
+        "id": 29,
+        "label": "Welsh follower in Gwynedd"
+      },
+      {
+        "index": 52,
+        "actor": 0,
+        "id": 0,
+        "label": "Pass"
+      },
+      {
+        "index": 53,
+        "actor": 1,
+        "id": 4,
+        "label": "Play Assemble"
+      },
+      {
+        "index": 54,
+        "actor": 1,
+        "id": 13,
+        "label": "Region Warwick"
+      },
+      {
+        "index": 55,
+        "actor": 1,
+        "id": 8,
+        "label": "Region Moray"
+      },
+      {
+        "index": 56,
+        "actor": 1,
+        "id": 16,
+        "label": "Scottish follower in Moray"
+      },
+      {
+        "index": 57,
+        "actor": 0,
+        "id": 0,
+        "label": "Pass"
+      },
+      {
+        "index": 58,
+        "actor": 1,
+        "id": 0,
+        "label": "Pass"
+      },
+      {
+        "index": 59,
+        "actor": 0,
+        "id": 4,
+        "label": "Play Assemble"
+      },
+      {
+        "index": 60,
+        "actor": 0,
+        "id": 8,
+        "label": "Region Moray"
+      },
+      {
+        "index": 61,
+        "actor": 0,
+        "id": 14,
+        "label": "Region Essex"
+      },
+      {
+        "index": 62,
+        "actor": 0,
+        "id": 13,
+        "label": "Region Warwick"
+      },
+      {
+        "index": 63,
+        "actor": 0,
+        "id": 31,
+        "label": "Scottish follower in Warwick"
+      },
+      {
+        "index": 64,
+        "actor": 1,
+        "id": 4,
+        "label": "Play Assemble"
+      },
+      {
+        "index": 65,
+        "actor": 1,
+        "id": 13,
+        "label": "Region Warwick"
+      },
+      {
+        "index": 66,
+        "actor": 1,
+        "id": 8,
+        "label": "Region Moray"
+      },
+      {
+        "index": 67,
+        "actor": 1,
+        "id": 12,
+        "label": "Region Gwynedd"
+      },
+      {
+        "index": 68,
+        "actor": 1,
+        "id": 32,
+        "label": "Welsh follower in Warwick"
+      },
+      {
+        "index": 69,
+        "actor": 0,
+        "id": 6,
+        "label": "Play Manoeuvre"
+      },
+      {
+        "index": 70,
+        "actor": 0,
+        "id": 31,
+        "label": "Scottish follower in Warwick"
+      }
+    ],
+    "dev_mode": false,
+    "current_player": 0,
+    "is_terminal": false,
+    "legal_actions": [
+      {
+        "id": 35,
+        "label": "Welsh follower in Essex",
+        "kind": "follower",
+        "region": 6,
+        "faction": 1,
+        "card": null
+      },
+      {
+        "id": 36,
+        "label": "English follower in Essex",
+        "kind": "follower",
+        "region": 6,
+        "faction": 2,
+        "card": null
+      }
+    ],
+    "returns": null,
+    "winners": null,
+    "view": {
+      "seat": 0,
+      "num_players": 2,
+      "faction_names": [
+        "Scottish",
+        "Welsh",
+        "English"
+      ],
+      "card_names": {
+        "1": "Scottish Support",
+        "2": "Welsh Support",
+        "3": "English Support",
+        "4": "Assemble",
+        "5": "Negotiate",
+        "6": "Manoeuvre",
+        "7": "Outmanoeuvre"
+      },
+      "regions": [
+        {
+          "region": 0,
+          "name": "Moray",
+          "followers": [
+            3,
+            2,
+            1
+          ],
+          "state": "open",
+          "controller": null
+        },
+        {
+          "region": 1,
+          "name": "Strathclyde",
+          "followers": [
+            3,
+            1,
+            2
+          ],
+          "state": "open",
+          "controller": null
+        },
+        {
+          "region": 2,
+          "name": "Lancaster",
+          "followers": [
+            1,
+            2,
+            1
+          ],
+          "state": "open",
+          "controller": null
+        },
+        {
+          "region": 3,
+          "name": "Northumbria",
+          "followers": [
+            0,
+            0,
+            0
+          ],
+          "state": "controlled",
+          "controller": 1
+        },
+        {
+          "region": 4,
+          "name": "Gwynedd",
+          "followers": [
+            1,
+            1,
+            1
+          ],
+          "state": "open",
+          "controller": null
+        },
+        {
+          "region": 5,
+          "name": "Warwick",
+          "followers": [
+            1,
+            2,
+            3
+          ],
+          "state": "open",
+          "controller": null
+        },
+        {
+          "region": 6,
+          "name": "Essex",
+          "followers": [
+            0,
+            2,
+            3
+          ],
+          "state": "open",
+          "controller": null
+        },
+        {
+          "region": 7,
+          "name": "Devon",
+          "followers": [
+            0,
+            0,
+            0
+          ],
+          "state": "controlled",
+          "controller": 2
+        }
+      ],
+      "track": [
+        {
+          "slot": 0,
+          "region": 3,
+          "face_down": true,
+          "discs": []
+        },
+        {
+          "slot": 1,
+          "region": 7,
+          "face_down": true,
+          "discs": []
+        },
+        {
+          "slot": 2,
+          "region": 6,
+          "face_down": false,
+          "discs": []
+        },
+        {
+          "slot": 3,
+          "region": 1,
+          "face_down": false,
+          "discs": []
+        },
+        {
+          "slot": 4,
+          "region": 0,
+          "face_down": false,
+          "discs": []
+        },
+        {
+          "slot": 5,
+          "region": 2,
+          "face_down": false,
+          "discs": []
+        },
+        {
+          "slot": 6,
+          "region": 4,
+          "face_down": false,
+          "discs": []
+        },
+        {
+          "slot": 7,
+          "region": 5,
+          "face_down": false,
+          "discs": []
+        }
+      ],
+      "supply": [
+        3,
+        2,
+        2
+      ],
+      "courts": [
+        [
+          3,
+          1,
+          1
+        ],
+        [
+          1,
+          3,
+          2
+        ]
+      ],
+      "hands": [
+        {
+          "1": 1,
+          "4": 1,
+          "5": 1,
+          "7": 1
+        },
+        {
+          "2": 1,
+          "5": 1,
+          "6": 1,
+          "7": 1
+        }
+      ],
+      "negotiation_discs": [
+        null,
+        null
+      ],
+      "current_player": 0,
+      "is_chance": false,
+      "is_terminal": false,
+      "stage": "play",
+      "phase": "swap",
+      "pending": {
+        "card": 6,
+        "assemble_faction": null,
+        "neg_first": null,
+        "neg_second": null,
+        "swap_mode": 3,
+        "swap_picks": [
+          [
+            5,
+            0
+          ]
+        ]
+      },
+      "consecutive_passes": 0,
+      "struggles_resolved": 2,
+      "legal_actions": [
+        {
+          "id": 35,
+          "label": "Welsh follower in Essex",
+          "kind": "follower",
+          "region": 6,
+          "faction": 1
+        },
+        {
+          "id": 36,
+          "label": "English follower in Essex",
+          "kind": "follower",
+          "region": 6,
+          "faction": 2
+        }
+      ]
+    }
+  },
+  "history": [
+    3,
+    7,
+    6,
+    1,
+    0,
+    2,
+    4,
+    5,
+    0,
+    0,
+    1,
+    2,
+    2,
+    0,
+    2,
+    0,
+    1,
+    2,
+    1,
+    2,
+    0,
+    1,
+    1,
+    2,
+    1,
+    1,
+    2,
+    0,
+    2,
+    1,
+    2,
+    1,
+    1,
+    2,
+    1,
+    0,
+    2,
+    2,
+    0,
+    0,
+    2,
+    13,
+    32,
+    3,
+    15,
+    30,
+    3,
+    15,
+    39,
+    1,
+    9,
+    29,
+    0,
+    4,
+    13,
+    8,
+    16,
+    0,
+    0,
+    4,
+    8,
+    14,
+    13,
+    31,
+    4,
+    13,
+    8,
+    12,
+    32,
+    6,
+    31
+  ],
+  "resolution": {
+    "class": "UI bug",
+    "rules": [
+      "R-214"
+    ],
+    "fix": "UI now accepts the two Manoeuvre / Outmanoeuvre 1-for-1 follower clicks in either order and submits the canonical (lower region first) sequence; server view exposes swap_pairs. Engine and spec unchanged (docs/ACTIONS.md already required the UI to sort clicks).",
+    "commit": "phase-5 swap click-order fix"
+  }
+}
