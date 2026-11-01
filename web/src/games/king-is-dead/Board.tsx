@@ -1,6 +1,7 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import type { GameView } from "../../shell/useGame";
 import { MapBoard } from "./board/MapBoard";
+import { Players } from "./board/Players";
 import { parseKidView, type KidView, type ScoringStep } from "./types";
 
 type Fname = (f: number | null) => string;
@@ -69,21 +70,37 @@ function Header({ v, fname, cardName }: { v: KidView; fname: Fname; cardName: (i
   );
 }
 
-export function KidBoard({ v }: { v: KidView }) {
+export function KidBoard({
+  v,
+  legalRegions,
+  hoverRegionFromAction = null,
+}: {
+  v: KidView;
+  /** Regions targeted by the legal actions available to the viewer. */
+  legalRegions?: ReadonlySet<number>;
+  hoverRegionFromAction?: number | null;
+}) {
+  const [cardHover, setCardHover] = useState<number | null>(null);
+  const hover = cardHover ?? hoverRegionFromAction;
   const fname: Fname = (f) =>
     f === null ? "none" : (v.faction_names[f] ?? `Faction ${f}`);
   const cardName = (id: string): string => v.card_names[id] ?? `Card ${id}`;
   const factions = v.faction_names;
   const regionName = (r: number | null): string =>
     r === null ? "(not placed)" : (v.regions[r]?.name ?? `Region ${r}`);
-  const players = Array.from({ length: v.num_players }, (_, p) => p);
   const sc = v.scoring;
   return (
     <div aria-label="King is Dead board">
       <p>
         Regions resolved: {v.struggles_resolved} of {v.track.length}
       </p>
-      <MapBoard v={v} />
+      <MapBoard
+        v={v}
+        highlightRegions={legalRegions}
+        hoverRegion={hover}
+        onHoverRegion={setCardHover}
+      />
+      <Players v={v} />
       <Header v={v} fname={fname} cardName={cardName} />
 
       <h3>Power struggle track</h3>
@@ -133,55 +150,6 @@ export function KidBoard({ v }: { v: KidView }) {
               <td>{r.state === "controlled" ? fname(r.controller) : "-"}</td>
             </tr>
           ))}
-        </tbody>
-      </table>
-
-      <h3>Courts and supply</h3>
-      <table aria-label="Courts">
-        <thead>
-          <tr>
-            <th scope="col">Followers</th>
-            {factions.map((f) => (
-              <th scope="col" key={f}>
-                {f}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {players.map((p) => (
-            <tr key={p}>
-              <th scope="row">{`P${p} court`}</th>
-              {factions.map((f, i) => (
-                <td key={f}>{v.courts[p]?.[i] ?? 0}</td>
-              ))}
-            </tr>
-          ))}
-          <tr>
-            <th scope="row">Supply</th>
-            {factions.map((f, i) => (
-              <td key={f}>{v.supply[i] ?? 0}</td>
-            ))}
-          </tr>
-        </tbody>
-      </table>
-
-      <h3>Hands</h3>
-      <table aria-label="Hands">
-        <tbody>
-          {players.map((p) => {
-            const hand = Object.entries(v.hands[p] ?? {}).filter(([, n]) => n > 0);
-            const disc = v.negotiation_discs[p];
-            return (
-              <tr key={p}>
-                <th scope="row">{`P${p}`}</th>
-                <td>
-                  {hand.length ? hand.map(([c, n]) => `${cardName(c)} x${n}`).join(", ") : "empty"}
-                </td>
-                <td>{disc == null ? "" : `disc on ${regionName(disc)}`}</td>
-              </tr>
-            );
-          })}
         </tbody>
       </table>
 
@@ -259,7 +227,13 @@ export function KidBoard({ v }: { v: KidView }) {
   );
 }
 
-export default function Board({ game }: { game: GameView }) {
+export default function Board({
+  game,
+  hoverAction = null,
+}: {
+  game: GameView;
+  hoverAction?: number | null;
+}) {
   let v: KidView;
   try {
     v = parseKidView(game.view);
@@ -268,5 +242,12 @@ export default function Board({ game }: { game: GameView }) {
       <p role="alert">Cannot display board: {e instanceof Error ? e.message : "invalid view"}</p>
     );
   }
-  return <KidBoard v={v} />;
+  const humanTurn =
+    !game.is_terminal && game.current_player !== null && game.seats[game.current_player] === "human";
+  const regionActions = (humanTurn ? game.legal_actions : []).filter(
+    (a) => a.kind === "region" && a.region != null,
+  );
+  const legalRegions = new Set(regionActions.map((a) => a.region as number));
+  const hovered = regionActions.find((a) => a.id === hoverAction)?.region ?? null;
+  return <KidBoard v={v} legalRegions={legalRegions} hoverRegionFromAction={hovered} />;
 }

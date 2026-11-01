@@ -9,6 +9,9 @@ export interface MapBoardProps {
   onRegionClick?: (region: number) => void;
   /** Regions to draw with a highlight ring (e.g. legal targets). */
   highlightRegions?: ReadonlySet<number>;
+  /** Region cross-highlighted (hovered action or card); drawn with a gold ring on map and track. */
+  hoverRegion?: number | null;
+  onHoverRegion?: (region: number | null) => void;
 }
 
 const TRACK_Y = 652;
@@ -165,13 +168,19 @@ function RegionView({
   v,
   current,
   highlighted,
+  hovered,
+  slot,
   onClick,
+  onHover,
 }: {
   shape: RegionShape;
   v: KidView;
   current: boolean;
   highlighted: boolean;
+  hovered: boolean;
+  slot: number | undefined;
   onClick?: (region: number) => void;
+  onHover?: (region: number | null) => void;
 }): ReactNode {
   const r = v.regions[shape.index];
   if (!r) return null;
@@ -198,6 +207,10 @@ function RegionView({
       data-testid={`region-${shape.index}`}
       data-state={r.state}
       data-current={current ? "true" : undefined}
+      data-highlighted={highlighted ? "true" : undefined}
+      data-hover={hovered ? "true" : undefined}
+      onMouseEnter={onHover ? () => onHover(shape.index) : undefined}
+      onMouseLeave={onHover ? () => onHover(null) : undefined}
       role={interactive ? "button" : "group"}
       aria-label={label}
       tabIndex={interactive ? 0 : undefined}
@@ -223,6 +236,15 @@ function RegionView({
       )}
       {highlighted && (
         <path d={d} fill="none" stroke="#ffffff" strokeOpacity={0.9} strokeWidth={6} strokeLinejoin="round" pointerEvents="none" data-testid={`highlight-${shape.index}`} />
+      )}
+      {hovered && (
+        <path d={d} fill="none" stroke="var(--gold)" strokeWidth={8} strokeLinejoin="round" pointerEvents="none" data-testid={`hover-${shape.index}`} />
+      )}
+      {slot !== undefined && (
+        <g data-testid={`slot-badge-${shape.index}`} transform={`translate(${b.minX + 26} ${b.minY + 26})`} pointerEvents="none">
+          <circle r={15} fill={highlighted ? "var(--gold)" : "var(--card)"} stroke="var(--card-edge)" strokeWidth={2} />
+          <text y={6} textAnchor="middle" fontSize={17} fontWeight={800} fill={highlighted ? "#2b1d00" : "var(--ink)"}>{slot + 1}</text>
+        </g>
       )}
       <text x={cx} y={cy - 12} textAnchor="middle" fontSize={25} fontWeight={700} fill="var(--ink)" stroke="var(--paper)" strokeWidth={4} paintOrder="stroke" pointerEvents="none">
         {shape.name}
@@ -259,7 +281,23 @@ function RegionView({
   );
 }
 
-function TrackCard({ t, v, current }: { t: TrackSlot; v: KidView; current: boolean }): ReactNode {
+function TrackCard({
+  t,
+  v,
+  current,
+  highlighted,
+  hovered,
+  onHover,
+  onClick,
+}: {
+  t: TrackSlot;
+  v: KidView;
+  current: boolean;
+  highlighted: boolean;
+  hovered: boolean;
+  onHover?: (region: number | null) => void;
+  onClick?: (region: number) => void;
+}): ReactNode {
   const x = 12 + t.slot * CARD_PITCH;
   const name = t.region === null ? "?" : (v.regions[t.region]?.name ?? `Region ${t.region}`);
   const state = t.region === null ? "not placed" : t.face_down ? "resolved" : "pending";
@@ -267,12 +305,17 @@ function TrackCard({ t, v, current }: { t: TrackSlot; v: KidView; current: boole
   const label = `Slot ${t.slot + 1}: ${name}, ${state}${discs ? `, negotiation discs: ${discs}` : ""}`;
   const cx = x + CARD_W / 2;
   return (
-    <g data-testid={`track-slot-${t.slot}`} data-face-down={t.face_down ? "true" : "false"} data-current={current ? "true" : undefined} role="group" aria-label={label}>
+    <g data-testid={`track-slot-${t.slot}`} data-face-down={t.face_down ? "true" : "false"} data-current={current ? "true" : undefined} role="group" aria-label={label} data-highlighted={highlighted ? "true" : undefined} data-hover={hovered ? "true" : undefined}
+      onMouseEnter={onHover && t.region !== null ? () => onHover(t.region) : undefined}
+      onMouseLeave={onHover ? () => onHover(null) : undefined}
+      onClick={onClick && highlighted && t.region !== null ? () => onClick(t.region as number) : undefined}
+    >
       <title>{label}</title>
-      <rect x={x} y={TRACK_Y} width={CARD_W} height={CARD_H} rx={10} fill={t.face_down ? "var(--back)" : "var(--card)"} stroke={current ? "var(--gold)" : "var(--card-edge)"} strokeWidth={current ? 5 : 2} filter="url(#kid-shadow)" />
+      <rect x={x} y={TRACK_Y} width={CARD_W} height={CARD_H} rx={10} fill={t.face_down ? "var(--back)" : "var(--card)"} stroke={current || highlighted || hovered ? "var(--gold)" : "var(--card-edge)"} strokeWidth={current || highlighted || hovered ? 5 : 2} strokeDasharray={highlighted && !hovered ? "9 5" : undefined} filter="url(#kid-shadow)" />
+      {(highlighted || hovered) && <rect x={x - 4} y={TRACK_Y - 4} width={CARD_W + 8} height={CARD_H + 8} rx={13} fill="none" stroke="#ffffff" strokeWidth={2} pointerEvents="none" data-testid={`slot-highlight-${t.slot}`} />}
       {t.face_down && <rect x={x + 4} y={TRACK_Y + 4} width={CARD_W - 8} height={CARD_H - 8} rx={7} fill="url(#kid-back)" stroke="var(--crest-band)" strokeOpacity={0.6} strokeWidth={1.5} />}
       <circle cx={x + 18} cy={TRACK_Y + 18} r={12} fill={t.face_down ? "var(--back2)" : "var(--paper2)"} stroke="var(--card-edge)" strokeWidth={1.5} />
-      <text x={x + 18} y={TRACK_Y + 24} textAnchor="middle" fontSize={16} fontWeight={700} fill={t.face_down ? "#f0e6cc" : "var(--ink)"}>
+      <text x={x + 18} y={TRACK_Y + 24} textAnchor="middle" fontSize={16} data-testid={`slot-number-${t.slot}`} fontWeight={700} fill={t.face_down ? "#f0e6cc" : "var(--ink)"}>
         {t.slot + 1}
       </text>
       {t.region !== null && !t.face_down && <Crest x={cx} y={TRACK_Y + 52} scale={1.25} initial={name.charAt(0)} />}
@@ -321,10 +364,12 @@ function AssembleBanner({ v }: { v: KidView }): ReactNode {
   );
 }
 
-export function MapBoard({ v, onRegionClick, highlightRegions }: MapBoardProps) {
+export function MapBoard({ v, onRegionClick, highlightRegions, hoverRegion = null, onHoverRegion }: MapBoardProps) {
   const next = v.track.find((t) => !t.face_down);
   const currentSlot = next ? next.slot : -1;
   const currentRegion = next?.region ?? -1;
+  const slotOf = new Map<number, number>();
+  for (const t of v.track) if (t.region !== null) slotOf.set(t.region, t.slot);
   const legend = v.faction_names.map((n, f) => ({ n, f }));
   return (
     <svg
@@ -349,7 +394,10 @@ export function MapBoard({ v, onRegionClick, highlightRegions }: MapBoardProps) 
           v={v}
           current={s.index === currentRegion}
           highlighted={highlightRegions?.has(s.index) ?? false}
+          hovered={hoverRegion === s.index}
+          slot={slotOf.get(s.index)}
           onClick={onRegionClick}
+          onHover={onHoverRegion}
         />
       ))}
       <Roads />
@@ -370,7 +418,16 @@ export function MapBoard({ v, onRegionClick, highlightRegions }: MapBoardProps) 
 
       <text x={14} y={TRACK_Y - 14} fontSize={15} fontStyle="italic" fill="var(--ink)">Region cards, in order of power struggle</text>
       {v.track.map((t) => (
-        <TrackCard key={t.slot} t={t} v={v} current={t.slot === currentSlot} />
+        <TrackCard
+          key={t.slot}
+          t={t}
+          v={v}
+          current={t.slot === currentSlot}
+          highlighted={t.region !== null && (highlightRegions?.has(t.region) ?? false)}
+          hovered={t.region !== null && hoverRegion === t.region}
+          onHover={onHoverRegion}
+          onClick={onRegionClick}
+        />
       ))}
     </svg>
   );

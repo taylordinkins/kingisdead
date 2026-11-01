@@ -140,3 +140,12 @@ export function parseKidView(raw: unknown): KidView {
   }
   return raw as unknown as KidView;
 }
+
+/** Like parseKidView but returns null instead of throwing. */
+export function tryParseKidView(raw: unknown): KidView | null {
+  try {
+    return parseKidView(raw);
+  } catch {
+    return null;
+  }
+}

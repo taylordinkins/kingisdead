@@ -3,7 +3,7 @@ import { api } from "../api/client";
 import ActionList from "./ActionList";
 import ActionLog from "./ActionLog";
 import ImportButton from "./ImportButton";
-import { getPlugin } from "../games/registry";
+import { getPlugin, type BoardUi } from "../games/registry";
 import ReportDialog from "./ReportDialog";
 import {
   errorText,
@@ -20,7 +20,7 @@ interface Props {
   gameId: string;
   pollMs?: PollIntervals;
   /** Slot for the game-specific board (unit 9); overrides the registry plugin. */
-  renderBoard?: (game: GameView) => ReactNode;
+  renderBoard?: (game: GameView, ui?: BoardUi) => ReactNode;
   onExit?: () => void;
   /** Called with the new game id after a replay import. */
   onImported?: (gameId: string) => void;
@@ -51,10 +51,12 @@ export default function GameScreen({
   onImported,
 }: Props) {
   const { game, error, busy, act, goBack, rewind, botThinking } = useGame(gameId, pollMs);
+  const [hoverAction, setHoverAction] = useState<number | null>(null);
   const [reporting, setReporting] = useState(false);
   const [rewindTo, setRewindTo] = useState("0");
   const [exportError, setExportError] = useState<string | null>(null);
   const rewindValid = /^\d+$/.test(rewindTo.trim());
+  const plugin = getPlugin(game?.game ?? "");
   const over = game !== null && isTerminal(game);
   const cp = game ? currentPlayer(game) : null;
   const humanTurn = game !== null && cp !== null && game.seats[cp] === "human" && !game.bot_thinking;
@@ -136,11 +138,17 @@ export default function GameScreen({
             {exportError && <p role="alert">Export error: {exportError}</p>}
           </div>
           {reporting && <ReportDialog gameId={gameId} onClose={() => setReporting(false)} />}
-          {(renderBoard ?? getPlugin(game.game).renderBoard)(game)}
+          {(renderBoard ?? getPlugin(game.game).renderBoard)(game, { hoverAction })}
           <h3>Action log</h3>
           <ActionLog history={game.history} />
           {!over && humanTurn && (
-            <ActionList actions={legalActions(game)} disabled={busy} onAct={(id) => void act(id)} />
+            <ActionList
+              actions={legalActions(game)}
+              disabled={busy}
+              onAct={(id) => void act(id)}
+              labelFor={(a) => plugin.actionLabel?.(game, a) ?? a.label}
+              onHover={setHoverAction}
+            />
           )}
         </>
       )}
