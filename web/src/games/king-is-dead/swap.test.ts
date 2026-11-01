@@ -29,4 +29,17 @@ describe("swap click ordering", () => {
     expect(parseSwapPairs(raw)).toEqual([[p(1, 0, 0), p(2, 1, 2)]]);
     expect(parseSwapPairs(undefined)).toEqual([]);
   });
+
+  it("handles Negotiate region-card pairs (no faction), Gwynedd(4) clicked first", () => {
+    const n = (id: number, region: number) => ({ id, region, faction: null });
+    const neg: SwapPair[] = [
+      [n(8, 0), n(12, 4)],
+      [n(10, 2), n(12, 4)],
+      [n(12, 4), n(13, 5)],
+    ];
+    expect(partnersOf(neg, 12).map((x) => x.region).sort()).toEqual([0, 2, 5]);
+    expect(canonicalSequence(neg, 12, 8)).toEqual([8, 12]);
+    expect(canonicalSequence(neg, 13, 12)).toEqual([12, 13]);
+    expect(parseSwapPairs([[{ id: 8, region: 0, label: "x" }, { id: 12, region: 4 }]])).toEqual([neg[0]]);
+  });
 });

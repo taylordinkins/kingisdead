@@ -1,12 +1,13 @@
 /**
- * Click-order independence for symmetric swaps (Manoeuvre, Outmanoeuvre 1-for-1).
+ * Click-order independence for symmetric swaps (Manoeuvre, Outmanoeuvre 1-for-1, Negotiate).
  * The engine wants the lower region first; the server lists every legal canonical pair in
  * `view.swap_pairs`, and the board lets the player click either follower first.
  */
 export interface SwapPick {
   id: number;
   region: number;
-  faction: number;
+  /** Null for a region-card pick (Negotiate). */
+  faction: number | null;
 }
 /** [lower-region pick, higher-region pick]: the canonical action order. */
 export type SwapPair = [SwapPick, SwapPick];
@@ -48,9 +49,13 @@ export function parseSwapPairs(raw: unknown): SwapPair[] {
   const pick = (p: unknown): SwapPick | null => {
     if (typeof p !== "object" || p === null) return null;
     const o = p as Record<string, unknown>;
-    return Number.isInteger(o.id) && Number.isInteger(o.region) && Number.isInteger(o.faction)
-      ? { id: o.id as number, region: o.region as number, faction: o.faction as number }
-      : null;
+    if (!Number.isInteger(o.id) || !Number.isInteger(o.region)) return null;
+    if (o.faction !== undefined && !Number.isInteger(o.faction)) return null;
+    return {
+      id: o.id as number,
+      region: o.region as number,
+      faction: o.faction === undefined ? null : (o.faction as number),
+    };
   };
   const out: SwapPair[] = [];
   for (const pr of raw) {

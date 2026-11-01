@@ -156,7 +156,7 @@ export function KidBoard({
   const [cardHover, setCardHover] = useState<number | null>(null);
   const [choosing, setChoosing] = useState<number | null>(null);
   const [held, setHeld] = useState<number | null>(null);
-  // Symmetric swap (Manoeuvre, Outmanoeuvre 1-for-1): either follower may be clicked first; the
+  // Symmetric swap (Manoeuvre, Outmanoeuvre 1-for-1, Negotiate cards): either pick may be clicked first; the
   // pair is submitted in the engine's canonical order (lower region first).
   const pairs = v.swap_pairs ?? [];
   const swapping = !!click && pairs.length > 0;
@@ -165,10 +165,13 @@ export function KidBoard({
   const clickable: LegalAction[] = swapping
     ? swapPicks.map((p) => ({
         id: p.id,
-        kind: "follower",
+        kind: p.faction === null ? "region" : "follower",
         region: p.region,
-        faction: p.faction,
-        label: `Swap ${v.faction_names[p.faction] ?? p.faction} in ${v.regions[p.region]?.name ?? p.region}`,
+        ...(p.faction === null ? {} : { faction: p.faction }),
+        label:
+          p.faction === null
+            ? `Swap ${v.regions[p.region]?.name ?? p.region}`
+            : `Swap ${v.faction_names[p.faction] ?? p.faction} in ${v.regions[p.region]?.name ?? p.region}`,
       }))
     : (click?.actions ?? []);
   const labelFor = (a: LegalAction): string => click?.labelFor?.(a) ?? a.label;
@@ -195,7 +198,8 @@ export function KidBoard({
     setHeld(null);
     if (!seq || !click) return;
     void (async () => {
-      await click.onAct(seq[0]);
+      // Stop if the first action was rejected: the second is only legal after it.
+      if ((await click.onAct(seq[0])) === false) return;
       await click.onAct(seq[1]);
     })();
   };
@@ -225,8 +229,8 @@ export function KidBoard({
       {swapping && (
         <p role="status" data-testid="swap-hint">
           {heldId === null
-            ? "Swap: click the first follower (either one of the pair)."
-            : "Swap: click the follower to swap it with."}{" "}
+            ? "Swap: click the first follower or card (either one of the pair)."
+            : "Swap: click the follower or card to swap it with."}{" "}
           {heldId !== null && (
             <button type="button" onClick={() => setHeld(null)}>
               Cancel selection

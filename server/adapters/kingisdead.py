@@ -109,17 +109,19 @@ class KingIsDeadAdapter(GameAdapter):
         return meta
 
     def _swap_pairs(self, state: pyspiel.State) -> list[list[JSON]]:
-        """All legal symmetric swaps (Manoeuvre, Outmanoeuvre 1-for-1) as canonical action pairs.
+        """All legal symmetric swaps (Manoeuvre, Outmanoeuvre 1-for-1, Negotiate) as action pairs.
 
-        Read-only lookahead for the UI, which lets the player click the two followers in either
+        Read-only lookahead for the UI, which lets the player click the two picks in either
         order (the engine's canonical order is lower region first). Empty outside a first pick.
         """
         s = _kid(state)
-        if (
-            s.phase != C.PHASE_SWAP
-            or s.swap_picks
-            or s.swap_mode not in (rules.MODE_MANOEUVRE, rules.MODE_ONE_FOR_ONE)
-        ):
+        negotiate = s.phase == C.PHASE_NEG_FIRST
+        swap = (
+            s.phase == C.PHASE_SWAP
+            and not s.swap_picks
+            and s.swap_mode in (rules.MODE_MANOEUVRE, rules.MODE_ONE_FOR_ONE)
+        )
+        if not (negotiate or swap):
             return []
         pairs: list[list[JSON]] = []
         for a1 in s.legal_actions():
