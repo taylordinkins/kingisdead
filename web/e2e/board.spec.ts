@@ -7,8 +7,8 @@ const CHOOSER = '[data-testid="region-chooser"]';
 async function newGame(page: Page, seed: string) {
   await page.goto("/");
   await page.getByLabel("Players").selectOption("2");
-  await page.getByLabel("Seat 1").selectOption("human");
-  await page.getByLabel("Seat 2").selectOption("random");
+  await page.getByLabel("Seat 0").selectOption("human");
+  await page.getByLabel("Seat 1").selectOption("random");
   await page.getByLabel("Seed (optional)").fill(seed);
   await page.getByRole("button", { name: "Create game" }).click();
   await expect(page.getByText(/^Game \S+ · seats/)).toBeVisible();
@@ -102,8 +102,8 @@ test("editor: load example, start playing vs random bot", async ({ page }) => {
   await page.goto("/#/editor");
   await page.getByLabel("Load example").selectOption({ label: "Basic 2-player setup" });
   await expect(page.getByRole("status").filter({ hasText: /^Valid/ })).toBeVisible();
-  await page.getByLabel("Seat 1").selectOption("human");
-  await page.getByLabel("Seat 2").selectOption("random");
+  await page.getByLabel("Seat 0").selectOption("human");
+  await page.getByLabel("Seat 1").selectOption("random");
   await page.getByRole("button", { name: "Start playing" }).click();
   await expect(page.getByText(/^Game \S+ · seats/)).toBeVisible();
   await expect(page.getByLabel("King is Dead board")).toBeVisible();

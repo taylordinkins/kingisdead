@@ -6,8 +6,8 @@ const SEED = "1";
 async function newGame(page: import("@playwright/test").Page) {
   await page.goto("/");
   await page.getByLabel("Players").selectOption("2");
-  await page.getByLabel("Seat 1").selectOption("human");
-  await page.getByLabel("Seat 2").selectOption("random");
+  await page.getByLabel("Seat 0").selectOption("human");
+  await page.getByLabel("Seat 1").selectOption("random");
   await page.getByLabel("Seed (optional)").fill(SEED);
   await page.getByRole("button", { name: "Create game" }).click();
   await expect(page.getByText(/^Game \S+ · seats/)).toBeVisible();

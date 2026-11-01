@@ -55,7 +55,7 @@ export default function Lobby({ onCreated, onOpenEditor }: Props) {
       {seats.slice(0, players).map((s, i) => (
         <div key={i}>
           <label>
-            Seat {i + 1}{" "}
+            Seat {i}{" "}
             <select
               value={s}
               onChange={(e) =>

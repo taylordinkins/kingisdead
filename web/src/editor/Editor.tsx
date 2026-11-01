@@ -336,10 +336,10 @@ export default function Editor({ onCreated, onExit }: Props) {
           <Section title="Courts" hint="Followers in each player's court. Each court must hold exactly 2 (V11)." open bad={hits(issues, "courts")}>
             {model.courts.map((c, p) => (
               <div key={p} style={hits(issues, `courts.${p}`) ? badBox : box} data-bad={hits(issues, `courts.${p}`) ? "true" : undefined}>
-                <b>Player {p + 1} court</b> ({summary.courtTotals[p]})
+                <b>Player {p} court</b> ({summary.courtTotals[p]})
                 {FACTIONS.map((f) => (
                   <span key={f} style={{ marginLeft: 12 }}>
-                    <FactionTag f={f} /> <Stepper label={`${f} in court ${p + 1}`} value={c[f]} onChange={(n) => update((m) => setCourtFollowers(m, p, f, n))} />
+                    <FactionTag f={f} /> <Stepper label={`${f} in court ${p}`} value={c[f]} onChange={(n) => update((m) => setCourtFollowers(m, p, f, n))} />
                   </span>
                 ))}
               </div>
@@ -351,12 +351,12 @@ export default function Editor({ onCreated, onExit }: Props) {
               <Section title="Hands" hint={`Cards left in each hand (at most ${CARDS_PER_HAND}). Played cards are the ones missing.`} bad={hits(issues, "hands")}>
                 {model.hands.map((h, p) => (
                   <div key={p} style={hits(issues, `hands.${p}`) ? badBox : box} data-bad={hits(issues, `hands.${p}`) ? "true" : undefined}>
-                    <b>Player {p + 1}</b>: {h.length} cards
+                    <b>Player {p}</b>: {h.length} cards
                     <ul style={{ listStyle: "none", padding: 0 }}>
                       {CARDS.map((c: Card) => (
                         <li key={c}>
                           <Stepper
-                            label={`${c.replace("_", " ")} in hand ${p + 1}`}
+                            label={`${c.replace("_", " ")} in hand ${p}`}
                             value={h.filter((x) => x === c).length}
                             onChange={(n) => update((m) => (n > h.filter((x) => x === c).length ? addCard(m, p, c) : removeCard(m, p, c)))}
                           />{" "}
@@ -369,12 +369,12 @@ export default function Editor({ onCreated, onExit }: Props) {
               </Section>
 
               <Section title="Turn state" hint="Whose turn it is, how many struggles are resolved, and passes so far." bad={hits(issues, "toPlay") || hits(issues, "struggles") || hits(issues, "passCount")}>
-                <label title="Player whose turn it is (shown 1-based).">
+                <label title="Player whose turn it is.">
                   To play{" "}
                   <select aria-label="To play" value={model.toPlay} onChange={(e) => update((m) => setToPlay(m, Number(e.target.value)))}>
                     {model.courts.map((_, p) => (
                       <option key={p} value={p}>
-                        Player {p + 1}
+                        Player {p}
                       </option>
                     ))}
                   </select>
@@ -390,11 +390,11 @@ export default function Editor({ onCreated, onExit }: Props) {
               <Section title="Negotiation, last play, empty hands" hint="Per-player discs and history values." bad={hits(issues, "negotiation") || hits(issues, "lastPlay") || hits(issues, "handEmpty")}>
                 {model.courts.map((_, p) => (
                   <div key={p}>
-                    <b>Player {p + 1}</b>{" "}
+                    <b>Player {p}</b>{" "}
                     <label title="Region where this player has a negotiation disc.">
                       Negotiation disc{" "}
                       <select
-                        aria-label={`Negotiation disc ${p + 1}`}
+                        aria-label={`Negotiation disc ${p}`}
                         value={model.negotiation[p] ?? ""}
                         onChange={(e) => update((m) => setNegotiation(m, p, e.target.value === "" ? null : (e.target.value as Region)))}
                       >
@@ -405,13 +405,13 @@ export default function Editor({ onCreated, onExit }: Props) {
                       </select>
                     </label>{" "}
                     <NullableNumber
-                      label={`Last play ${p + 1}`}
+                      label={`Last play ${p}`}
                       title="Index of the previous play in the history (blank = none)."
                       value={model.lastPlay[p] ?? null}
                       onChange={(v) => update((m) => setLastPlay(m, p, v))}
                     />{" "}
                     <NullableNumber
-                      label={`Hand empty ${p + 1}`}
+                      label={`Hand empty ${p}`}
                       title="Time the hand became empty (blank = not empty)."
                       value={model.handEmpty[p] ?? null}
                       onChange={(v) => update((m) => setHandEmpty(m, p, v))}
@@ -489,8 +489,8 @@ export default function Editor({ onCreated, onExit }: Props) {
             {model.courts.map((_, p) => (
               <div key={p}>
                 <label>
-                  Seat {p + 1}{" "}
-                  <select aria-label={`Seat ${p + 1}`} value={seats[p]} onChange={(e) => setSeats(seats.map((x, j) => (j === p ? (e.target.value as SeatType) : x)))}>
+                  Seat {p}{" "}
+                  <select aria-label={`Seat ${p}`} value={seats[p]} onChange={(e) => setSeats(seats.map((x, j) => (j === p ? (e.target.value as SeatType) : x)))}>
                     <option value="human">human</option>
                     <option value="random">random</option>
                   </select>

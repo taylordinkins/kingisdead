@@ -83,7 +83,7 @@ describe("Editor", () => {
     const onCreated = vi.fn();
     render(<Editor onCreated={onCreated} onExit={vi.fn()} />);
     loadExample(0);
-    fireEvent.change(screen.getByLabelText("Seat 2"), { target: { value: "random" } });
+    fireEvent.change(screen.getByLabelText("Seat 1"), { target: { value: "random" } });
     fireEvent.click(screen.getByRole("button", { name: "Start playing" }));
     await waitFor(() => expect(onCreated).toHaveBeenCalledWith("g42"));
     const [path, init] = POST.mock.calls[0] as [string, { body: Record<string, unknown> }];

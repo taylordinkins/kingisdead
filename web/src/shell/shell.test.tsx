@@ -45,7 +45,7 @@ describe("Lobby", () => {
     POST.mockResolvedValue({ data: view({ id: "abc" }) });
     const onCreated = vi.fn();
     render(<Lobby onCreated={onCreated} />);
-    fireEvent.change(screen.getByLabelText("Seat 2"), { target: { value: "human" } });
+    fireEvent.change(screen.getByLabelText("Seat 1"), { target: { value: "human" } });
     fireEvent.change(screen.getByLabelText(/Seed/), { target: { value: "42" } });
     fireEvent.click(screen.getByRole("button", { name: "Create game" }));
     await waitFor(() => expect(onCreated).toHaveBeenCalledWith("abc"));
