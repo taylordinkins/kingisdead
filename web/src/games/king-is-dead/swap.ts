@@ -66,3 +66,23 @@ export function parseSwapPairs(raw: unknown): SwapPair[] {
   }
   return out;
 }
+
+/** A first swap pick held client-side, tagged with the position it was made in. */
+export interface HeldPick {
+  id: number;
+  key: string;
+}
+
+export function positionKey(
+  historyLength: number,
+  currentPlayer: number | null,
+  phase: string,
+  swapPicks: number,
+): string {
+  return `${historyLength}|${currentPlayer}|${phase}|${swapPicks}`;
+}
+
+/** The held action id, or null when it was made in a different position (stale). */
+export function activeHeld(held: HeldPick | null, key: string): number | null {
+  return held !== null && held.key === key ? held.id : null;
+}

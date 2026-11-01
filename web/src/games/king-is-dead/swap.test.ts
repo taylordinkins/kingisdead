@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canonicalSequence, firstPicks, parseSwapPairs, partnersOf, type SwapPair } from "./swap";
+import { activeHeld, canonicalSequence, firstPicks, parseSwapPairs, partnersOf, positionKey, type SwapPair } from "./swap";
 
 const p = (id: number, region: number, faction: number) => ({ id, region, faction });
 // Warwick(5) Scot with Moray(0) Scot / Essex(6) Welsh; canonical = lower region first.
@@ -60,5 +60,17 @@ describe("swap click ordering", () => {
     expect(partnersOf(pair, 21).map((x) => x.id).sort()).toEqual([21, 22]);
     expect(canonicalSequence(pair, 21, 21)).toEqual([21, 21]);
     expect(canonicalSequence(pair, 22, 21)).toEqual([21, 22]);
+  });
+});
+
+describe("held pick staleness", () => {
+  const k = positionKey(5, 0, "play", 0);
+  it("is active only in the position it was made in", () => {
+    expect(activeHeld({ id: 10, key: k }, k)).toBe(10);
+    expect(activeHeld({ id: 10, key: k }, positionKey(6, 0, "play", 0))).toBeNull();
+    expect(activeHeld({ id: 10, key: k }, positionKey(5, 1, "play", 0))).toBeNull();
+    expect(activeHeld({ id: 10, key: k }, positionKey(5, 0, "other", 0))).toBeNull();
+    expect(activeHeld({ id: 10, key: k }, positionKey(5, 0, "play", 1))).toBeNull();
+    expect(activeHeld(null, k)).toBeNull();
   });
 });

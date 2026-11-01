@@ -113,7 +113,8 @@ class KingIsDeadAdapter(GameAdapter):
 
         Read-only lookahead for the UI, which lets the player click the two picks in either
         order (the engine's canonical order is lower region first, or lower faction first for the
-        1-for-2 pair). Empty outside a first pick.
+        1-for-2 pair). Empty unless a first pick (Manoeuvre, Outmanoeuvre 1-for-1, Negotiate) or the
+        Outmanoeuvre 1-for-2 pair step is due.
         """
         s = _kid(state)
         negotiate = s.phase == C.PHASE_NEG_FIRST

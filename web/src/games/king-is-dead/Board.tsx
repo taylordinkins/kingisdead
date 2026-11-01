@@ -6,7 +6,7 @@ import { REGION_SHAPES } from "./board/geometry";
 import { factionStyle } from "./board/factions";
 import { Players } from "./board/Players";
 import ScoringPanel from "./ScoringPanel";
-import { canonicalSequence, firstPicks, partnersOf } from "./swap";
+import { activeHeld, canonicalSequence, firstPicks, type HeldPick, partnersOf, positionKey } from "./swap";
 import { parseKidView, type KidView } from "./types";
 
 type Fname = (f: number | null) => string;
@@ -144,10 +144,13 @@ export function KidBoard({
   hoverRegionFromAction = null,
   click,
   part = "all",
+  historyLength = 0,
 }: {
   /** "main": map and tables; "side": status, seats and results; "all": both (default). */
   part?: "all" | "main" | "side";
   click?: ClickToAct;
+  /** Moves played so far; part of the position a held swap pick belongs to. */
+  historyLength?: number;
   v: KidView;
   /** Regions targeted by the legal actions available to the viewer. */
   legalRegions?: ReadonlySet<number>;
@@ -155,7 +158,10 @@ export function KidBoard({
 }) {
   const [cardHover, setCardHover] = useState<number | null>(null);
   const [choosing, setChoosing] = useState<number | null>(null);
-  const [held, setHeld] = useState<number | null>(null);
+  const [heldRaw, setHeld] = useState<HeldPick | null>(null);
+  const posKey = positionKey(historyLength, v.current_player, v.phase, v.pending?.swap_picks?.length ?? 0);
+  // Derived, not effect-reset: a pick made in another position is never active, even for one render.
+  const held = activeHeld(heldRaw, posKey);
   // Symmetric swap (Manoeuvre, Outmanoeuvre 1-for-1, Negotiate cards): either pick may be clicked first; the
   // pair is submitted in the engine's canonical order (lower region first).
   const pairs = v.swap_pairs ?? [];
@@ -191,7 +197,7 @@ export function KidBoard({
       return;
     }
     if (heldId === null) {
-      setHeld(id);
+      setHeld({ id, key: posKey });
       return;
     }
     const seq = canonicalSequence(pairs, heldId, id);
@@ -366,6 +372,6 @@ export default function Board({
   const click: ClickToAct | undefined =
     humanTurn && canAct && onAct ? { actions: game.legal_actions, onAct, labelFor } : undefined;
   return (
-    <KidBoard part={part} v={v} legalRegions={legalRegions} hoverRegionFromAction={hovered} click={click} />
+    <KidBoard part={part} v={v} historyLength={game.history_length} legalRegions={legalRegions} hoverRegionFromAction={hovered} click={click} />
   );
 }

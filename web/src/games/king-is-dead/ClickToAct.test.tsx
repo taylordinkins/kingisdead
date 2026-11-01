@@ -121,4 +121,30 @@ describe("click-to-act", () => {
     expect(onAct).not.toHaveBeenCalled();
     expect(within(screen.getByRole("group", { name: "P1 hand" })).queryByRole("button")).toBeNull();
   });
+
+  it("drops a held swap pick when the position changes", () => {
+    const onAct = vi.fn().mockResolvedValue(true);
+    const p = getPlugin("king_is_dead");
+    const pk = (id: number, region: number, faction: number) => ({ id, region, faction });
+    const pairs = [[pk(19, 2, 0), pk(23, 7, 2)]];
+    const swapGame = (historyLength: number): GameView => {
+      const base = game({ history_length: historyLength });
+      return { ...base, view: { ...(midgame as object), swap_pairs: pairs } as unknown as GameView["view"] };
+    };
+    const ui = (g: GameView) => p.renderBoard(g, { hoverAction: null, canAct: true, onAct });
+    const { rerender } = render(<>{ui(swapGame(3))}</>);
+    // Pick made in the current position still works (either order).
+    fireEvent.click(screen.getByTestId("region-2"));
+    expect(onAct).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByTestId("region-7"));
+    expect(onAct).toHaveBeenCalledWith(19);
+    onAct.mockClear();
+    // Hold a pick, then the position changes: the pick is stale and must not pair.
+    fireEvent.click(screen.getByTestId("region-2"));
+    rerender(<>{ui(swapGame(4))}</>);
+    fireEvent.click(screen.getByTestId("region-7"));
+    expect(onAct).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByTestId("region-2"));
+    expect(onAct).toHaveBeenCalledWith(19);
+  });
 });

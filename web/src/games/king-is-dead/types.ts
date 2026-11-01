@@ -45,7 +45,7 @@ export interface Scoring {
 }
 
 export interface KidView {
-  /** Legal canonical swap pairs while a Manoeuvre / Outmanoeuvre 1-for-1 first pick is due. */
+  /** Legal canonical swap pairs while a swap pick is due: the first pick of Manoeuvre, Outmanoeuvre 1-for-1 or Negotiate, or the pair step of Outmanoeuvre 1-for-2. */
   swap_pairs: SwapPair[];
   /** Faction names indexed by faction id (from kingisdead/constants.py via the adapter). */
   faction_names: string[];
