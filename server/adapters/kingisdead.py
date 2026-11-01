@@ -112,7 +112,8 @@ class KingIsDeadAdapter(GameAdapter):
         """All legal symmetric swaps (Manoeuvre, Outmanoeuvre 1-for-1, Negotiate) as action pairs.
 
         Read-only lookahead for the UI, which lets the player click the two picks in either
-        order (the engine's canonical order is lower region first). Empty outside a first pick.
+        order (the engine's canonical order is lower region first, or lower faction first for the
+        1-for-2 pair). Empty outside a first pick.
         """
         s = _kid(state)
         negotiate = s.phase == C.PHASE_NEG_FIRST
@@ -121,7 +122,14 @@ class KingIsDeadAdapter(GameAdapter):
             and not s.swap_picks
             and s.swap_mode in (rules.MODE_MANOEUVRE, rules.MODE_ONE_FOR_ONE)
         )
-        if not (negotiate or swap):
+        # Outmanoeuvre 1-for-2: the two pair followers (OUT_FIRST, OUT_SECOND) are canonical by
+        # faction index, so after the single is chosen they too may be clicked in either order.
+        pair = (
+            s.phase == C.PHASE_SWAP
+            and s.swap_mode == rules.MODE_ONE_FOR_TWO
+            and len(s.swap_picks) == 1
+        )
+        if not (negotiate or swap or pair):
             return []
         pairs: list[list[JSON]] = []
         for a1 in s.legal_actions():

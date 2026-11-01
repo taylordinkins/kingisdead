@@ -42,4 +42,23 @@ describe("swap click ordering", () => {
     expect(canonicalSequence(neg, 13, 12)).toEqual([12, 13]);
     expect(parseSwapPairs([[{ id: 8, region: 0, label: "x" }, { id: 12, region: 4 }]])).toEqual([neg[0]]);
   });
+
+  it("Outmanoeuvre 1-for-2 pair in one region: English clicked before Scottish still submits Scottish, English", () => {
+    // Strathclyde(1) holds Scottish(0) and English(2); ids 20 = Scottish, 22 = English.
+    const pair: SwapPair[] = [[p(20, 1, 0), p(22, 1, 2)]];
+    expect(firstPicks(pair).map((x) => x.id).sort()).toEqual([20, 22]);
+    expect(partnersOf(pair, 22).map((x) => x.id)).toEqual([20]);
+    expect(canonicalSequence(pair, 22, 20)).toEqual([20, 22]);
+    expect(canonicalSequence(pair, 20, 22)).toEqual([20, 22]);
+  });
+
+  it("Outmanoeuvre 1-for-2 pair of the same faction needs the same follower clicked twice", () => {
+    const pair: SwapPair[] = [
+      [p(21, 1, 1), p(21, 1, 1)],
+      [p(21, 1, 1), p(22, 1, 2)],
+    ];
+    expect(partnersOf(pair, 21).map((x) => x.id).sort()).toEqual([21, 22]);
+    expect(canonicalSequence(pair, 21, 21)).toEqual([21, 21]);
+    expect(canonicalSequence(pair, 22, 21)).toEqual([21, 22]);
+  });
 });
