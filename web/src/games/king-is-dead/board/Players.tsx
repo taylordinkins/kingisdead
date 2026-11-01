@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import type { KidView } from "../types";
+import Tip from "../../../shell/Tip";
+import { cardText } from "../cardText";
 import { Token, playerStyle } from "./factions";
 
 const STYLE = `
@@ -97,19 +99,22 @@ export function Players({
                 const text = `${cardName(c)}${n > 1 ? ` ×${n}` : ""}`;
                 const act = p === playableSeat && onPlayCard ? playable?.get(c) : undefined;
                 return act ? (
-                  <button
-                    type="button"
-                    className="kid-chip"
-                    key={c}
-                    aria-label={act.label}
-                    onClick={() => onPlayCard?.(act.id)}
-                  >
-                    {text}
-                  </button>
+                  <Tip key={c} text={cardText(c)}>
+                    <button
+                      type="button"
+                      className="kid-chip"
+                      aria-label={act.label}
+                      onClick={() => onPlayCard?.(act.id)}
+                    >
+                      {text}
+                    </button>
+                  </Tip>
                 ) : (
-                  <span className="kid-chip" key={c}>
-                    {text}
-                  </span>
+                  <Tip key={c} text={cardText(c)}>
+                    <span className="kid-chip" tabIndex={0}>
+                      {text}
+                    </span>
+                  </Tip>
                 );
               })}
             </div>
@@ -127,6 +132,16 @@ export function Players({
           </div>
         );
       })}
+      <details className="kid-panel" data-testid="card-guide">
+        <summary>Card guide (tap to read)</summary>
+        <ul style={{ margin: "4px 0", paddingLeft: "1.1em", fontSize: ".85em" }}>
+          {Object.keys(v.card_names).map((id) => (
+            <li key={id}>
+              <strong>{cardName(id)}:</strong> {cardText(id)}
+            </li>
+          ))}
+        </ul>
+      </details>
       <div className="kid-panel" role="group" aria-label="Supply" data-testid="supply">
         <h4>Supply</h4>
         <div className="kid-row">

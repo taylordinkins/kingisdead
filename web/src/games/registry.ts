@@ -28,6 +28,8 @@ export interface GamePlugin {
   seatStyle?(seat: number): { fill: string; ink: string };
   /** Optional richer label for an action button; must not change the action id. */
   actionLabel?(game: GameView, action: LegalAction): string;
+  /** Optional tooltip text for an action button. */
+  actionHelp?(game: GameView, action: LegalAction): string | undefined;
 }
 
 export const fallbackPlugin: GamePlugin = {

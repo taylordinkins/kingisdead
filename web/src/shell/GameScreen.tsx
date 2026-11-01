@@ -193,6 +193,7 @@ export default function GameScreen({
                         onAct={(id) => void act(id)}
                         labelFor={(a) => plugin.actionLabel?.(game, a) ?? a.label}
                         onHover={setHoverAction}
+                        describe={(a) => plugin.actionHelp?.(game, a)}
                       />
                       <p>
                         Current player: P{cp} ({game.seats[cp]})
