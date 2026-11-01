@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { GameView } from "../../shell/useGame";
+import { MapBoard } from "./board/MapBoard";
 import { parseKidView, type KidView, type ScoringStep } from "./types";
 
 type Fname = (f: number | null) => string;
@@ -82,6 +83,7 @@ export function KidBoard({ v }: { v: KidView }) {
       <p>
         Regions resolved: {v.struggles_resolved} of {v.track.length}
       </p>
+      <MapBoard v={v} />
       <Header v={v} fname={fname} cardName={cardName} />
 
       <h3>Power struggle track</h3>
