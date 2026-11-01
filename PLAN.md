@@ -12,9 +12,9 @@
 - [x] Phase 3 — Server + web shell ✋ *playtest #1* (closed 2026-10-31, see docs/phase-reports/phase-3.md; playtest pending)
 - [x] Phase 4 — Board UI + setup editor ✋ *playtest #2* (closed 2026-10-31, see docs/phase-reports/phase-4.md; playtest pending)
 - [x] Phase 5 — Bots (MCTS, heuristic) ✋ *playtest #3* (closed 2026-11-01, see docs/phase-reports/phase-5.md; playtest #3 in progress, 3 reports triaged)
-- [ ] Phase 6 — 4-player teams
-- [ ] Phase 7 — Advanced game (cunning actions)
-- [ ] Phase 8 — Trained policies
+- [ ] Phase 6 — Trained policies
+- [ ] Phase 7 — 4-player teams
+- [ ] Phase 8 — Advanced game (cunning actions)
 
 ---
 
@@ -31,9 +31,9 @@ A faithful, well-tested implementation of *The King is Dead* as a **Python OpenS
 
 | In v1 | Later phases | Out of scope |
 |---|---|---|
-| Base game, 2 and 3 players | 4-player teams (Phase 6) | C++ port (revisit only if training speed demands it) |
-| Random setup + manual setup editor | Advanced game / cunning actions (Phase 7) | Online multiplayer across machines, accounts |
-| Web UI: hotseat, random, MCTS, heuristic seats | Trained-policy opponents (Phase 8) | Mobile-optimised UI |
+| Base game, 2 and 3 players | 4-player teams (Phase 7) | C++ port (revisit only if training speed demands it) |
+| Random setup + manual setup editor | Advanced game / cunning actions (Phase 8) | Online multiplayer across machines, accounts |
+| Web UI: hotseat, random, MCTS, heuristic seats | Trained-policy opponents (Phase 6) | Mobile-optimised UI |
 | Playtest report button + replay export | | Reproducing the published board art |
 
 ## 3. Decisions log
@@ -42,8 +42,8 @@ A faithful, well-tested implementation of *The King is Dead* as a **Python OpenS
 |---|---|---|---|
 | D1 | Language | Python game registered via `pyspiel.register_game` | No C++ build; fastest iteration |
 | D2 | Framework version | Pin `open-spiel==2.0.2`, Python 3.12 | 2.0 is a new major; Phase 0 verifies the Python game API before we build on it |
-| D3 | Player counts | 2 and 3 first; 4 (teams) in Phase 6 | 2-player removes 2 followers per faction (48 total) |
-| D4 | Advanced game | Phase 7, registered as a **separate game** `python_king_is_dead_advanced` | It's imperfect information (hidden hands); `GameType.information` is per registered game |
+| D3 | Player counts | 2 and 3 first; 4 (teams) in Phase 7 | 2-player removes 2 followers per faction (48 total) |
+| D4 | Advanced game | Phase 8, registered as a **separate game** `python_king_is_dead_advanced` | It's imperfect information (hidden hands); `GameType.information` is per registered game |
 | D5 | Web stack | FastAPI backend + React/TypeScript (Vite) frontend, **game-agnostic shell** + per-game board plugin | OpenSpiel has no browser UI of its own (only the terminal `mcts.py` example); the shell is reusable for future games |
 | D6 | Opponents | Hotseat humans, random, MCTS, heuristic; trained policies later | Any seat can be any type |
 | D7 | Action encoding | Sequential sub-decisions (card → targets → summon), same player keeps acting until the turn ends | Small, fixed action space (40 IDs) |
@@ -71,6 +71,7 @@ A faithful, well-tested implementation of *The King is Dead* as a **Python OpenS
 | D29 | Web toolchain (2026-10-31) | Node 20 (nvm) for web work; Vite 5 / Vitest 2 and `rollup@4.67.2` pins stay until cleaned up; Playwright pinned to 1.64.1 | See Backlog |
 | D30 | Scenario sessions and click UI (2026-10-31) | Sessions carry the scenario JSON and replay history over its start state (setups load directly, not as a chance sequence; results checked identical); only a forced PASS auto-plays (R-106), every other single action waits for a click | User-approved; D12 and SCENARIOS §2 amended 2026-11-01 |
 | D31 | Click order for swaps; card tooltips (2026-11-01) | The engine keeps one canonical action sequence per swap (lower region/faction first, unchanged). The server view exposes `swap_pairs`, and the UI accepts the two clicks of Manoeuvre, Outmanoeuvre and Negotiate in either order and submits them canonically. Card effect tooltips paraphrase R-201 and R-210..R-215 | Playtest #3 reports 20261101T180522-891ed6, 20261101T181007-48abf3, 20261101T174750-ff097f; no rule behaviour |
+| D32 | Phase order (2026-11-01) | Trained policies is now Phase 6, 4-player teams Phase 7, Advanced game Phase 8 (was 6/7/8 = teams/advanced/trained) | User's call after Phase 5 closed. The locked spec (R-007 note) and `docs/phase-reports/` history still say "4 players is Phase 6"; the spec text is left alone until an amendment is open |
 
 ## 4. Rules clarifications
 
@@ -163,7 +164,7 @@ Tooling: `uv`, `pytest` + `hypothesis`, `ruff`; `npm` + Vite + Vitest; one Playw
 
 ### 5.2 OpenSpiel game definition (confirmed against 2.0.2, see docs/OPENSPIEL_NOTES.md)
 
-- `short_name="python_king_is_dead"`, `dynamics=SEQUENTIAL`, `chance_mode=EXPLICIT_STOCHASTIC`, `information=PERFECT_INFORMATION`, `utility=ZERO_SUM`, `reward_model=TERMINAL`, `min_num_players=2`, `max_num_players=3` (→ 4 in Phase 6).
+- `short_name="python_king_is_dead"`, `dynamics=SEQUENTIAL`, `chance_mode=EXPLICIT_STOCHASTIC`, `information=PERFECT_INFORMATION`, `utility=ZERO_SUM`, `reward_model=TERMINAL`, `min_num_players=2`, `max_num_players=3` (→ 4 in Phase 7).
 - Parameters: `players` (int, default 2), declared via `parameter_specification={"players": 2}`. `load_game` does not enforce the player-count range for Python games, so `Game.__init__` validates it and builds `GameInfo(num_players=…)` from the parameter.
 - `num_distinct_actions=40`, `max_chance_outcomes=8`, `max_game_length` computed from bounds and counting **player decisions only** (≤8 cards × sub-steps per player + bounded passes). Chance nodes are not counted in 2.0.2 (`random_sim_test` enforces this); bound them separately by overriding `Game.max_chance_nodes_in_history()` (setup draws).
 - Observation via `Game.make_py_observer` (flat float32 `tensor` + named `dict` views + `set_from`/`string_from`); state serialization is the default (history + pickled `__dict__`), so all state attributes must be picklable.
@@ -206,7 +207,7 @@ Perfect information, so information state = observation. Tensor, from the observ
 ### 5.6 Server
 
 - FastAPI; **the action history is the single source of truth** — state is rebuilt by replaying it. This makes undo, rewind, replay and reports trivial and exact.
-- Game-agnostic `GameAdapter` interface: `load(params)`, `view(state, seat)` → JSON, `action_meta(state, id)` → `{label, kind, region?, faction?, card?}`. `view` takes a seat now so hidden hands in Phase 7 need no redesign.
+- Game-agnostic `GameAdapter` interface: `load(params)`, `view(state, seat)` → JSON, `action_meta(state, id)` → `{label, kind, region?, faction?, card?}`. `view` takes a seat now so hidden hands in Phase 8 need no redesign.
 - Endpoints: create game (params, seats, setup mode), get view, post action, back (to start of current human turn), rewind (dev mode), report, export/import replay.
 - Bots run server-side; frontend polls (WebSocket only if polling proves sluggish).
 
@@ -221,7 +222,7 @@ Perfect information, so information state = observation. Tensor, from the observ
 - **Random:** uniform over legal actions. — done in Phase 5
 - **MCTS:** OpenSpiel's `MCTSBot` with random-rollout evaluator; simulations configurable per seat. — done in Phase 5
 - **Heuristic:** greedy one-turn lookahead scoring court strength against projected region control. — done in Phase 5
-- **Trained (Phase 8):** loaded as a seat type through the same bot interface.
+- **Trained (Phase 6):** loaded as a seat type through the same bot interface.
 
 ## 6. Verification strategy
 
@@ -325,9 +326,9 @@ Tasks (approved 2026-10-31; branch `phase-5/bots`):
 - [x] 7. Playwright vs heuristic and `mcts:20`; `CLAUDE.md` bot notes; tick §5.8 → `web/e2e/`, `CLAUDE.md`
 - Note: if MCTS is too slow or weak, swap the rollout evaluator (e.g. heuristic rollouts) rather than rewriting the search.
 
-**Phase 6 — 4-player teams** *(starts with a mini-interview: team returns, partner display)*
-**Phase 7 — Advanced game** *(mini-interview: Spy copying Negotiate/Manoeuvre, Plot reveal UX, hidden-hand hotseat handoff)*
-**Phase 8 — Trained policies** *(mini-interview: algorithm choice, compute budget, evaluation)*
+**Phase 6 — Trained policies** *(starts with a mini-interview: algorithm choice, compute budget, evaluation)*
+**Phase 7 — 4-player teams** *(mini-interview: team returns, partner display)*
+**Phase 8 — Advanced game** *(mini-interview: Spy copying Negotiate/Manoeuvre, Plot reveal UX, hidden-hand hotseat handoff)*
 
 ## 8. Working agreement for agent sessions
 
@@ -372,9 +373,9 @@ Opus runs at phase close and as spot audits only on units touching scoring, powe
 
 ## 9. Open questions (deferred)
 
-- Phase 6: team returns and tiebreak presentation for partners.
-- Phase 7: Spy copying Negotiate when your disc is already used; Spy and the undo block; Plot interaction with draws (D9).
-- Phase 8: algorithm (AlphaZero vs PPO-style), training budget, whether a C++ port is needed for speed.
+- Phase 6: algorithm (AlphaZero vs PPO-style), training budget, whether a C++ port is needed for speed.
+- Phase 7: team returns and tiebreak presentation for partners.
+- Phase 8: Spy copying Negotiate when your disc is already used; Spy and the undo block; Plot interaction with draws (D9).
 
 ### Backlog
 Should-fix and minor findings, tagged with the phase that found them. `/close-phase` appends here.
@@ -389,7 +390,7 @@ Should-fix and minor findings, tagged with the phase that found them. `/close-ph
 - Phase 2 (code-reviewer): scenario-loaded states have empty history, so `serialize()`/`deserialize_state()` returns the initial node (`scenario.py:156-169`). Refuse to serialize or carry the scenario JSON.
 - Phase 2 (code-reviewer, optional): legal actions recomputed 2-3 times per action (`game.py:243,253,264`); `swap_mode` (`rules.py:158-165`) builds the full candidate list to test emptiness; `tests/rules/test_observer.py:309-310` turns a rejected scenario into `pytest.skip` (make it a failure).
 - Phase 2 (rules-auditor, unit 13): the unit 7/8/9 audit items are closed (fixed in c1f2055, or equivalent mutants); no new rule gaps. Mutants `no_void` and `persist_noswap` are equivalent.
-- Phase 3 (unit 9): the KID view exposes every player's hand and the text board shows them all. Fine for hotseat; for networked play or Phase 7 hidden hands, filter the view per seat server-side (user: leave visible for now).
+- Phase 3 (unit 9): the KID view exposes every player's hand and the text board shows them all. Fine for hotseat; for networked play or Phase 8 hidden hands, filter the view per seat server-side (user: leave visible for now).
 - Phase 3 (unit 8): chance outcomes in the action log are labelled "Chance outcome N" because the adapter has no chance labels; add an adapter hook if the log needs better wording.
 - Phase 3 (unit 6): `web/package.json` pins `rollup@4.67.2` (the 4.67.3 tarball 404'd) and Vite 5/Vitest 2 for Node 18; drop the pins after moving to Node 20.
 - Phase 3 (code-reviewer, should-fix): stale poll response can overwrite newer state (`useGame.ts:46-62`; use a mutation counter); polling stops after two identical errors (`useGame.ts:130-133`; re-arm on a poll tick); CI doesn't check `schema.d.ts` is current (add `npm run gen:api && git diff --exit-code src/api/schema.d.ts` to the web job); sessions and report notes are unbounded in memory and on disk (add `max_length`, cap or expire sessions) before the server is reachable from other machines.
@@ -413,6 +414,6 @@ Should-fix and minor findings, tagged with the phase that found them. `/close-ph
 |---|---|
 | OpenSpiel 2.0 Python game API differs from 1.x examples online | Phase 0 spike before any engine code |
 | Rule misreads | Spec review ✋, rule-ID tests, independent audit, playtests |
-| Python too slow for heavy MCTS/RL | Fine for interactive play; revisit a C++ port in Phase 8 only if needed |
+| Python too slow for heavy MCTS/RL | Fine for interactive play; revisit a C++ port in Phase 6 only if needed |
 | Sub-decision encoding bloats search trees | Canonical orderings (§5.3); forced single-action nodes auto-advance in UI |
 | Copyright of rulebook and board art | Rulebook kept local and git-ignored; UI uses an original schematic map |

@@ -125,7 +125,7 @@ def test_R007_supported_player_counts_load(players):
 
 @pytest.mark.parametrize("players", [0, 1, 4, 5, -2])
 def test_R007_other_player_counts_rejected(players):
-    """R-007: any other count (including 4, deferred to Phase 6) is rejected at creation."""
+    """R-007: any other count (including 4, deferred to Phase 7) is rejected at creation."""
     import kingisdead.game  # noqa: F401
 
     with pytest.raises((ValueError, pyspiel.SpielError)):
