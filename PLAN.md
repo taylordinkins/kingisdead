@@ -217,9 +217,9 @@ Perfect information, so information state = observation. Tensor, from the observ
 
 ### 5.8 Bots
 
-- **Random:** uniform over legal actions.
-- **MCTS:** OpenSpiel's `MCTSBot` with random-rollout evaluator; simulations configurable per seat.
-- **Heuristic:** greedy one-turn lookahead scoring court strength against projected region control.
+- **Random:** uniform over legal actions. — done in Phase 5
+- **MCTS:** OpenSpiel's `MCTSBot` with random-rollout evaluator; simulations configurable per seat. — done in Phase 5
+- **Heuristic:** greedy one-turn lookahead scoring court strength against projected region control. — done in Phase 5
 - **Trained (Phase 8):** loaded as a seat type through the same bot interface.
 
 ## 6. Verification strategy
@@ -321,7 +321,7 @@ Tasks (approved 2026-10-31; branch `phase-5/bots`):
 - [x] 4. `tools/tournament.py` (seat rotation, win rate with Wilson CI, JSON output, seeded) → `tools/`
 - [x] 5. Lobby/UI: heuristic and MCTS strength presets, named thinking indicator, regenerate API schema → `web/src/shell/`
 - [x] 6. Strength validation (slow test + recorded tournament, MCTS vs random and vs heuristic) → `tests/bots/test_strength_slow.py`, `docs/phase-reports/`
-- [ ] 7. Playwright vs heuristic and `mcts:20`; `CLAUDE.md` bot notes; tick §5.8 → `web/e2e/`, `CLAUDE.md`
+- [x] 7. Playwright vs heuristic and `mcts:20`; `CLAUDE.md` bot notes; tick §5.8 → `web/e2e/`, `CLAUDE.md`
 - Note: if MCTS is too slow or weak, swap the rollout evaluator (e.g. heuristic rollouts) rather than rewriting the search.
 
 **Phase 6 — 4-player teams** *(starts with a mini-interview: team returns, partner display)*
