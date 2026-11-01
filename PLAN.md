@@ -315,7 +315,7 @@ Task list (approved 2026-10-31, branch `phase-4/board-ui-setup-editor`). Decisio
 - *Exit:* MCTS clearly beats random over a few hundred 2-player games; you play against MCTS and heuristic.
 
 Tasks (approved 2026-10-31; branch `phase-5/bots`):
-- [ ] 1. Heuristic bot: greedy one-turn lookahead, court strength vs projected region control → `kingisdead/bots/heuristic.py`, `tests/bots/`
+- [x] 1. Heuristic bot: greedy one-turn lookahead, court strength vs projected region control → `kingisdead/bots/heuristic.py`, `tests/bots/`
 - [ ] 2. MCTS bot (OpenSpiel `MCTSBot`, thin wrapper) + parameterised seat types `mcts:N`, `heuristic`; schema validation → `kingisdead/bots/mcts.py`, `server/bots.py`, `server/schemas.py`
 - [ ] 3. Bot moves off the session lock (D28): background task, stale-move invalidation on Back/Rewind/human action → `server/sessions.py`, `server/app.py`
 - [ ] 4. `tools/tournament.py` (seat rotation, win rate with Wilson CI, JSON output, seeded) → `tools/`
