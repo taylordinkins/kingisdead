@@ -80,7 +80,7 @@ Example: A 2-player game has exactly 2 negotiation discs.
 ### R-007 — Player count
 Source: rulebook "Setup" p4; PLAN.md D3
 Statement: The base game supports 2 or 3 players. Any other count is rejected when the game is
-created. (4 players is Phase 6.)
+created. (4 players is Phase 7.)
 Example: Creating the game with `players=5` fails.
 
 ### R-008 — Starting hand
