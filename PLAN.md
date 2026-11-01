@@ -307,7 +307,7 @@ Task list (approved 2026-10-31, branch `phase-4/board-ui-setup-editor`). Decisio
 - [x] 6. Scoring breakdown panel, chance labels in the log (adapter hook), history panel polish → `server/adapters/kingisdead.py`, `web/`
 - [x] 7. Setup editor model and live V1–V11 validation → `web/src/editor/`
 - [x] 8. Setup editor UI (mirror a physical table, `setup` and `state` kinds, import/export, start playing) → `web/src/editor/`, `Lobby.tsx`
-- [ ] 9. Playwright: click-through game vs random bot and an editor-built setup; `CLAUDE.md` web notes → `web/e2e/`, `CLAUDE.md`
+- [x] 9. Playwright: click-through game vs random bot and an editor-built setup; `CLAUDE.md` web notes → `web/e2e/`, `CLAUDE.md`
 
 **Phase 5 — Bots ✋ playtest #3**
 - MCTS and heuristic seats; `tools/tournament.py` for bot-vs-bot win rates.

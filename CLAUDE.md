@@ -30,3 +30,11 @@ The main session orchestrates; it delegates rather than writing large changes it
 - A Stop hook runs lint + fast tests when Python files changed; don't end a turn red.
 - The rulebook PDF lives in `docs/rules/` and is git-ignored. Never commit it or copy board art.
 - Commit at each green step with a message that names the rule IDs or task it covers.
+
+## Web notes
+- Layout: board in `web/src/games/king-is-dead/` (`Board.tsx` chooser popover, `board/MapBoard.tsx` SVG map, `board/Players.tsx` hand cards, `ScoringPanel.tsx`); setup editor in `web/src/editor/` (route `#/editor`); shell/hooks in `web/src/shell/` (`useGame.ts`, `GameScreen.tsx`, `Lobby.tsx`); plugin in `plugin.ts`, registered via `web/src/games/registry`.
+- Click-to-act: `GameScreen` passes `{canAct, onAct, hoverAction}` to `plugin.renderBoard`; the board maps clicks on regions/hand cards to legal action ids (several actions in one region open the chooser popover). The action list always remains as a fallback.
+- `plugin.autoAdvance(action, legal)` decides which single legal actions are auto-played; King is Dead only auto-plays the forced PASS (R-106).
+- Editor examples: drop a scenario JSON in `web/src/editor/examples/` and add it to `EXAMPLES` in `examples.ts` (copied from `tests/scenarios`).
+- Gotcha: `editor/serverValidate.ts` ("Check with server") creates a throwaway game session on the API; do not call it per keystroke. Live V1-V11 validation is client-side (`validate.ts`).
+- E2E (`web/e2e/`): `smoke.spec.ts` plays via the action list; `board.spec.ts` clicks the board (`.kid-region[role=button]`, hand chips, `region-chooser`) with a seed, checks Back, and plays to the scoring panel; it also covers editor example/import and Start playing.
