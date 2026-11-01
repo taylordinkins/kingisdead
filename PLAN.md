@@ -51,7 +51,7 @@ A faithful, well-tested implementation of *The King is Dead* as a **Python OpenS
 | D9 | Unresolvable ties | Shared win (draw) among still-tied players | Winners each get (n−k)/(k·(n−1)), losers −1/(n−1); still sums to 0. Chosen over a seat-order house rule to avoid seat bias in RL |
 | D10 | Discard visibility | UI shows every player's full play history | Base game is perfect information anyway |
 | D11 | Bug reports | In-game **Report** button → `playtest/reports/*.json` | Each fixed report becomes a regression test |
-| D12 | Setup | Random setup via chance nodes **plus** a manual setup editor | Editor emits the equivalent chance-outcome sequence, so there's one code path |
+| D12 | Setup | Random setup via chance nodes **plus** a manual setup editor | Amended 2026-11-01 (D30): sessions load a `setup` scenario directly via `load_scenario`; the position equals the chance-outcome sequence (verified on `setup_basic` and 40 random setups), but the editor does not emit one |
 | D13 | Adjacency | Table in §4 C1, confirmed against the physical board | |
 | D14 | Model use (2026-10-30) | Sonnet does routine implementation and test writing; Haiku does search and long test/sim runs; Opus is reserved for rules audits and code review | Main session defaults to Sonnet (`.claude/settings.json`) and orchestrates rather than writing large changes. See §8 |
 | D15 | Spec lock (2026-10-30) | `docs/RULES_SPEC.md` Status line DRAFT → APPROVED → AMENDING; a hook blocks edits while APPROVED | Only the user changes the Status line |
@@ -69,7 +69,7 @@ A faithful, well-tested implementation of *The King is Dead* as a **Python OpenS
 | D27 | Names from the server (2026-10-31) | The KID view sends `faction_names` and `card_names` from `constants.py`; the web has no copy | User-approved after unit 9 |
 | D28 | Per-session locking (2026-10-31) | Handlers stay sync and hold a per-session `RLock`; Phase 5 slow bots must not run inside it | code-reviewer must-fix |
 | D29 | Web toolchain (2026-10-31) | Node 20 (nvm) for web work; Vite 5 / Vitest 2 and `rollup@4.67.2` pins stay until cleaned up; Playwright pinned to 1.64.1 | See Backlog |
-| D30 | Scenario sessions and click UI (2026-10-31) | Sessions carry the scenario JSON and replay history over its start state (setups load directly, not as a chance sequence; results checked identical); only a forced PASS auto-plays (R-106), every other single action waits for a click | User-approved; D12/SCENARIOS §2 amendment awaiting user |
+| D30 | Scenario sessions and click UI (2026-10-31) | Sessions carry the scenario JSON and replay history over its start state (setups load directly, not as a chance sequence; results checked identical); only a forced PASS auto-plays (R-106), every other single action waits for a click | User-approved; D12 and SCENARIOS §2 amended 2026-11-01 |
 
 ## 4. Rules clarifications
 
@@ -213,7 +213,7 @@ Perfect information, so information state = observation. Tensor, from the observ
 
 - **Shell (reusable):** lobby (game, seats, setup), action log, *legal-action list fallback* (any game is playable before its board exists), bot-thinking indicator, Back, Rewind, Report, replay export/import.
 - **King is Dead plugin:** our own schematic SVG map (not the published art), clickable regions and cubes, region-card track with slot numbers and discs, courts, supply, France, end-of-game scoring breakdown that shows each ranking and tiebreak step.
-- **Setup editor:** set court contents, region contents and region-card order; validated against bag counts; emits the equivalent chance sequence.
+- **Setup editor:** set court contents, region contents and region-card order; validated against bag counts; sessions load the result directly (D30), equivalent to the chance sequence.
 
 ### 5.8 Bots
 
