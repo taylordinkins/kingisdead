@@ -94,6 +94,14 @@ Server/UI audit patterns (first seen Phase 3 close, 2026-10-31):
   Recipe: random games (800 in ~1 min) asserting last step "remaining" == winners, plus hand-made
   terminal states (mutate fields on a cloned terminal state) for rank-2 undefined and the
   all-None hand-empty share. Random games never reach rank-2 undefined, so construct it.
+- **Built terminal states that never reach the step they name** (Phase 4 unit 6, 2026-10-31): the
+  "rank-2 undefined" test mutated regions on a random terminal state but kept its courts, so rank 1
+  decided outright and the skip was shape-only. For each built state, print the step chain and
+  check the target step has tied_before > 1. Also check built recent-win against R-303: if all 8
+  regions are controlled, some faction's recent-win must be 8 (fixtures used 7 / 5).
+- **Per-step UI wording that states the final result early**: "share the win" was printed on every
+  step whose remaining set equals the final winners, not only the deciding step (R-404 shares only
+  after step 3). Check outcome text is step-local.
 - **Back/rewind built by truncating and replaying with full legality checks cannot bypass the
   undo block** (B* is rebuilt by replay); confirm `_load` validates every action, then stop there.
 

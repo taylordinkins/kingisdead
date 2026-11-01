@@ -213,7 +213,7 @@ class Session:
         out: list[JSON] = []
         for i, (a, who) in enumerate(zip(self.history, self.actors, strict=True)):
             if who == CHANCE:
-                label = f"Chance outcome {a}"
+                label = self.adapter.chance_label(state, a)
                 actor = None
             else:
                 label = str(self.adapter.action_meta(state, a)["label"])

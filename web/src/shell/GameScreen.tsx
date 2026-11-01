@@ -151,7 +151,7 @@ export default function GameScreen({
             onAct: (id) => void act(id),
           })}
           <h3>Action log</h3>
-          <ActionLog history={game.history} />
+          <ActionLog history={game.history} actorStyle={plugin.seatStyle} />
           {!over && humanTurn && (
             <ActionList
               actions={legalActions(game)}

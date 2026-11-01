@@ -1,3 +1,3 @@
-- [Audit patterns](audit_patterns.md) — recurring defects: local examples, played-vs-effect, doc drift, derived fields, end timing; code: legality, B* reachability, equivalent mutants, golden-only kills, close-phase backlog drift; server/UI: spec UI statements, breakdown shape-only tests; recipes
+- [Audit patterns](audit_patterns.md) — recurring defects: examples, played-vs-effect, doc drift, end timing; code: legality, B*, mutants, goldens; server/UI: spec UI statements, shape-only breakdown tests, built states not reaching step, early share wording
 - [Output policy](output_policy.md) — caller asks for docs/phase-reports/*.md: don't write it, return paste-ready content in the handback
 - [Rulebook source](rulebook_source.md) — PDF location, extraction reliability, page map

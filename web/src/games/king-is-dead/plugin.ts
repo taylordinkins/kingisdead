@@ -2,6 +2,7 @@ import { createElement } from "react";
 import type { LegalAction } from "../../shell/useGame";
 import type { GamePlugin } from "../registry";
 import Board from "./Board";
+import { playerStyle } from "./board/factions";
 import { tryParseKidView } from "./types";
 
 export const kingIsDeadPlugin: GamePlugin = {
@@ -15,6 +16,7 @@ export const kingIsDeadPlugin: GamePlugin = {
       onAct: ui?.onAct,
       labelFor: (a: LegalAction) => kingIsDeadPlugin.actionLabel?.(g, a) ?? a.label,
     }),
+  seatStyle: playerStyle,
   actionLabel: (g, a) => {
     if (a.kind !== "region" || a.region == null) return a.label;
     const v = tryParseKidView(g.view);

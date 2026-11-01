@@ -100,3 +100,80 @@ def test_view_names_match_constants() -> None:
     view = ADAPTER.view(_game(2).new_initial_state(), 0)
     assert view["faction_names"] == list(C.FACTION_NAMES)
     assert view["card_names"] == {str(c): n for c, n in C.CARD_NAMES.items()}
+
+
+def _terminal_state(n: int, seed: int) -> pyspiel.State:
+    rng = random.Random(seed)
+    state = _game(n).new_initial_state()
+    while not state.is_terminal():
+        _step(state, rng)
+    return state
+
+
+@pytest.mark.parametrize("n", [2, 3])
+@pytest.mark.parametrize("seed", range(12))
+def test_last_scoring_step_matches_winners(n: int, seed: int) -> None:
+    state = _terminal_state(n, seed)
+    scoring = ADAPTER.view(state, 0)["scoring"]
+    last = [s for s in scoring["steps"] if not s.get("skipped")][-1]
+    assert last["remaining"] == scoring["winners"] == state.winners()
+
+
+def _coronation_state(n: int) -> pyspiel.State:
+    for seed in range(200):
+        state = _terminal_state(n, seed)
+        if ADAPTER.view(state, 0)["scoring"]["mode"] == "coronation":
+            return state
+    pytest.skip("no coronation playout found")
+
+
+def test_scoring_rank2_undefined_is_skipped() -> None:
+    state = _coronation_state(2)
+    # Built position: faction 0 controls every region, so ranks 2 and 3 are undefined (R-403).
+    state.region_states = [1] * 8
+    state.region_control = [0] * 8
+    state.recent_win = [8, -1, -1]
+    # Players tie on faction-0 followers; rank-2 counts (faction 1) would favour player 0 if used.
+    state.courts = [[2, 5, 3], [2, 1, 0]]
+    state.hand_empty = [9, 4]
+    scoring = ADAPTER.view(state, 0)["scoring"]
+    assert scoring["faction_ranking"] == [0, None, None]
+    steps = {s["name"]: s for s in scoring["steps"]}
+    assert len(steps["rank_1_followers"]["tied_before"]) == 2
+    assert steps["rank_1_followers"]["remaining"] == [0, 1]
+    assert steps["rank_2_followers"] == {
+        "name": "rank_2_followers",
+        "faction": None,
+        "skipped": True,
+    }
+    assert steps["hand_emptied"]["remaining"] == [1]
+    assert scoring["winners"] == state.winners() == [1]
+
+
+def test_scoring_nobody_emptied_hand_shares_win() -> None:
+    state = _coronation_state(2)
+    state.region_states = [1] * 8
+    state.region_control = [0, 0, 0, 0, 1, 1, 1, 1]
+    state.recent_win = [7, 8, -1]
+    state.courts = [[2, 1, 0], [2, 1, 0]]  # tie on rank 1 and rank 2 followers
+    state.hand_empty = [None, None]
+    scoring = ADAPTER.view(state, 0)["scoring"]
+    last = scoring["steps"][-1]
+    assert last["name"] == "hand_emptied"
+    assert last["remaining"] == scoring["winners"] == [0, 1]
+    assert state.winners() == [0, 1]
+
+
+def test_chance_labels_are_meaningful() -> None:
+    state = _game(2).new_initial_state()
+    rng = random.Random(1)
+    labels = []
+    while state.is_chance_node():
+        a = state.chance_outcomes()[0][0]
+        labels.append(ADAPTER.chance_label(state, a))
+        state.apply_action(a)
+        rng.random()
+    assert labels[0].startswith("Setup: region card ")
+    assert any("court draws" in lb for lb in labels)
+    assert any("follower placed in" in lb for lb in labels)
+    assert not any(lb.startswith("Chance outcome") for lb in labels)

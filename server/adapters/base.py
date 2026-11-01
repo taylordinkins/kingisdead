@@ -26,3 +26,7 @@ class GameAdapter(ABC):
     @abstractmethod
     def action_meta(self, state: pyspiel.State, action_id: int) -> JSON:
         """Metadata for an action: label, kind, and optional region/faction/card."""
+
+    def chance_label(self, state: pyspiel.State, action_id: int) -> str:
+        """Label for a chance outcome, given the state at the chance node (override per game)."""
+        return f"Chance outcome {action_id}"

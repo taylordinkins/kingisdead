@@ -4,8 +4,8 @@ import { MapBoard, VIEW_H } from "./board/MapBoard";
 import { REGION_SHAPES } from "./board/geometry";
 import { factionStyle } from "./board/factions";
 import { Players } from "./board/Players";
-import { rankingText } from "./ranking";
-import { parseKidView, type KidView, type ScoringStep } from "./types";
+import ScoringPanel from "./ScoringPanel";
+import { parseKidView, type KidView } from "./types";
 
 type Fname = (f: number | null) => string;
 const player = (p: number | null): string => (p === null ? "none" : `P${p}`);
@@ -13,22 +13,6 @@ const list = (xs: number[] | undefined): string =>
   xs && xs.length ? xs.map(player).join(", ") : "none";
 const words = (s: string): string => s.replace(/_/g, " ");
 
-function ScoringStepRow({ step, fname }: { step: ScoringStep; fname: Fname }) {
-  return (
-    <tr>
-      <th scope="row">{words(step.name)}</th>
-      {step.skipped ? (
-        <td colSpan={3}>skipped</td>
-      ) : (
-        <>
-          <td>{step.faction === null ? "-" : fname(step.faction)}</td>
-          <td>{(step.values ?? []).map((v, p) => `${player(p)}: ${v ?? "-"}`).join(", ")}</td>
-          <td>{list(step.remaining)}</td>
-        </>
-      )}
-    </tr>
-  );
-}
 
 function Header({ v, fname, cardName }: { v: KidView; fname: Fname; cardName: (id: string) => string }): ReactNode {
   const region = (r: number): string => v.regions[r]?.name ?? String(r);
@@ -199,7 +183,6 @@ export function KidBoard({
   const factions = v.faction_names;
   const regionName = (r: number | null): string =>
     r === null ? "(not placed)" : (v.regions[r]?.name ?? `Region ${r}`);
-  const sc = v.scoring;
   return (
     <div aria-label="King is Dead board">
       <p>
@@ -284,76 +267,7 @@ export function KidBoard({
         </tbody>
       </table>
 
-      {v.is_terminal && (
-        <section aria-label="Result">
-          <h3>Result</h3>
-          {v.winners && <p>Winner(s): {list(v.winners)}</p>}
-          {v.returns && (
-            <table aria-label="Scores">
-              <thead>
-                <tr>
-                  <th scope="col">Player</th>
-                  <th scope="col">Score</th>
-                </tr>
-              </thead>
-              <tbody>
-                {v.returns.map((r, p) => (
-                  <tr key={p}>
-                    <th scope="row">{player(p)}</th>
-                    <td>{r}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-          {sc && (
-            <>
-              <h4>Scoring breakdown ({sc.mode})</h4>
-              {sc.faction_ranking && (
-                <p>Faction ranking: {rankingText(sc.faction_ranking, fname)}</p>
-              )}
-              {sc.regions_controlled && (
-                <p>
-                  Regions controlled:{" "}
-                  {sc.regions_controlled.map((n, f) => `${fname(f)} ${n}`).join(", ")}
-                </p>
-              )}
-              {sc.recent_win && (
-                <>
-                  <p>
-                    Recent win:{" "}
-                    {sc.recent_win
-                      .map((n, f) => `${fname(f)} ${n < 0 ? "never" : `struggle ${n}`}`)
-                      .join(", ")}
-                  </p>
-                  <p>
-                    <small>
-                      Recent win = the number of the power struggle in which a faction most
-                      recently took control; never = no win. Breaks ties between factions
-                      controlling equal numbers of regions (higher ranks first).
-                    </small>
-                  </p>
-                </>
-              )}
-              <table aria-label="Scoring steps">
-                <thead>
-                  <tr>
-                    <th scope="col">Step</th>
-                    <th scope="col">Faction</th>
-                    <th scope="col">Values</th>
-                    <th scope="col">Remaining</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sc.steps.map((s, i) => (
-                    <ScoringStepRow key={i} step={s} fname={fname} />
-                  ))}
-                </tbody>
-              </table>
-            </>
-          )}
-        </section>
-      )}
+      {v.is_terminal && <ScoringPanel v={v} fname={fname} />}
     </div>
   );
 }

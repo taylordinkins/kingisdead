@@ -18,6 +18,8 @@ export interface GamePlugin {
   autoAdvance?(action: LegalAction, legalActions: LegalAction[]): boolean;
   title: string;
   renderBoard(game: GameView, ui?: BoardUi): ReactNode;
+  /** Optional seat colours for the action log. */
+  seatStyle?(seat: number): { fill: string; ink: string };
   /** Optional richer label for an action button; must not change the action id. */
   actionLabel?(game: GameView, action: LegalAction): string;
 }
