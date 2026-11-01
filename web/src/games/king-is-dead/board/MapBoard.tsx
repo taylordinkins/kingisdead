@@ -391,7 +391,7 @@ export function MapBoard({ v, onRegionClick, clickableRegions, regionActionLabel
       className="kid-map"
       viewBox={`0 0 ${MAP_WIDTH} ${VIEW_H}`}
       width="100%"
-      style={{ maxWidth: 1000, height: "auto", display: "block" }}
+      style={{ maxWidth: 1000, maxHeight: "calc(100vh - 8rem)", height: "auto", display: "block", margin: "0 auto" }}
       role="group"
       aria-label="King is Dead map"
     >

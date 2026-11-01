@@ -18,6 +18,12 @@ export interface GamePlugin {
   autoAdvance?(action: LegalAction, legalActions: LegalAction[]): boolean;
   title: string;
   renderBoard(game: GameView, ui?: BoardUi): ReactNode;
+  /** Optional map-only half of the board; with renderSide it replaces renderBoard in the shell. */
+  renderMain?(game: GameView, ui?: BoardUi): ReactNode;
+  /** Optional right-column content under the "Your move" panel (status, seats, results). */
+  renderSide?(game: GameView, ui?: BoardUi): ReactNode;
+  /** Optional short phase name shown in the "Your move" panel. */
+  phaseLabel?(game: GameView): string | undefined;
   /** Optional seat colours for the action log. */
   seatStyle?(seat: number): { fill: string; ink: string };
   /** Optional richer label for an action button; must not change the action id. */

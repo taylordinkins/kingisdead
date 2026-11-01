@@ -17,7 +17,8 @@ export default defineConfig({
       cwd: "..",
       url: "http://127.0.0.1:8000/openapi.json",
       env: { KID_DEV: "1", KID_REPORTS_DIR: reportsDir },
-      reuseExistingServer: !process.env.CI,
+      // Never reuse a running API: it would write reports into its own (real) reports dir.
+      reuseExistingServer: false,
       timeout: 60_000,
     },
     {

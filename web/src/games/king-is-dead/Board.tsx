@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import "./board/board.css";
 import type { GameView, LegalAction } from "../../shell/useGame";
 import { MapBoard, VIEW_H } from "./board/MapBoard";
 import { REGION_SHAPES } from "./board/geometry";
@@ -18,7 +19,7 @@ function Header({ v, fname, cardName }: { v: KidView; fname: Fname; cardName: (i
   const region = (r: number): string => v.regions[r]?.name ?? String(r);
   const p = v.pending;
   return (
-    <dl aria-label="Turn status">
+    <dl aria-label="Turn status" className="kid-status">
       <dt>Stage</dt>
       <dd>{words(v.stage)}</dd>
       <dt>Phase</dt>
@@ -141,7 +142,10 @@ export function KidBoard({
   legalRegions,
   hoverRegionFromAction = null,
   click,
+  part = "all",
 }: {
+  /** "main": map and tables; "side": status, seats and results; "all": both (default). */
+  part?: "all" | "main" | "side";
   click?: ClickToAct;
   v: KidView;
   /** Regions targeted by the legal actions available to the viewer. */
@@ -183,8 +187,8 @@ export function KidBoard({
   const factions = v.faction_names;
   const regionName = (r: number | null): string =>
     r === null ? "(not placed)" : (v.regions[r]?.name ?? `Region ${r}`);
-  return (
-    <div aria-label="King is Dead board">
+  const main = (
+    <>
       <p>
         Regions resolved: {v.struggles_resolved} of {v.track.length}
       </p>
@@ -209,14 +213,8 @@ export function KidBoard({
           />
         )}
       </div>
-      <Players
-        v={v}
-        playable={playable}
-        playableSeat={v.current_player}
-        onPlayCard={click ? submit : undefined}
-      />
-      <Header v={v} fname={fname} cardName={cardName} />
-
+      <details className="kid-tables">
+      <summary>Track and region tables</summary>
       <h3>Power struggle track</h3>
       <table aria-label="Region track">
         <thead>
@@ -266,20 +264,39 @@ export function KidBoard({
           ))}
         </tbody>
       </table>
-
+      </details>
+    </>
+  );
+  const side = (
+    <>
+      <Header v={v} fname={fname} cardName={cardName} />
+      <Players
+        v={v}
+        playable={playable}
+        playableSeat={v.current_player}
+        onPlayCard={click ? submit : undefined}
+      />
       {v.is_terminal && <ScoringPanel v={v} fname={fname} />}
+    </>
+  );
+  return (
+    <div aria-label={part === "side" ? "King is Dead status" : "King is Dead board"}>
+      {part !== "side" && main}
+      {part !== "main" && side}
     </div>
   );
 }
 
 export default function Board({
   game,
+  part = "all",
   hoverAction = null,
   canAct = false,
   onAct,
   labelFor,
 }: {
   game: GameView;
+  part?: "all" | "main" | "side";
   hoverAction?: number | null;
   canAct?: boolean;
   onAct?: (actionId: number) => void;
@@ -303,6 +320,6 @@ export default function Board({
   const click: ClickToAct | undefined =
     humanTurn && canAct && onAct ? { actions: game.legal_actions, onAct, labelFor } : undefined;
   return (
-    <KidBoard v={v} legalRegions={legalRegions} hoverRegionFromAction={hovered} click={click} />
+    <KidBoard part={part} v={v} legalRegions={legalRegions} hoverRegionFromAction={hovered} click={click} />
   );
 }

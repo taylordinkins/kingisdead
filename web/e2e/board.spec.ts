@@ -119,3 +119,45 @@ test("editor: pasted JSON import validates", async ({ page }) => {
   await page.getByRole("button", { name: "Import JSON" }).click();
   await expect(page.getByRole("status").filter({ hasText: /^Valid/ })).toBeVisible();
 });
+
+test.describe("layout at 1280x800", () => {
+  test.use({ viewport: { width: 1280, height: 800 } });
+
+  test("Your move panel and the map track are visible without page scroll", async ({ page }) => {
+    await newGame(page, "7");
+    const panel = page.getByRole("region", { name: "Your move" });
+    await expect(panel).toBeVisible();
+    await expect(panel).toContainText(/^Your move: choose/);
+    const inViewport = async (loc: ReturnType<Page["locator"]>) => {
+      const box = await loc.boundingBox();
+      expect(box).not.toBeNull();
+      expect(box!.y).toBeGreaterThanOrEqual(0);
+      expect(box!.y + box!.height).toBeLessThanOrEqual(800);
+    };
+    await inViewport(panel);
+    await inViewport(page.getByRole("group", { name: "King is Dead map" }));
+    await inViewport(page.getByRole("group", { name: "Supply" }));
+    expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBeLessThanOrEqual(800);
+  });
+});
+
+test.describe("narrow layout", () => {
+  test.use({ viewport: { width: 600, height: 900 } });
+
+  test("tabs switch between Play, Board and Log", async ({ page }) => {
+    await newGame(page, "7");
+    const move = page.getByRole("region", { name: "Your move" });
+    const map = page.getByRole("group", { name: "King is Dead map" });
+    const log = page.getByLabel("Action log");
+    await expect(move).toBeVisible();
+    await expect(map).toBeHidden();
+    await page.getByRole("tab", { name: "Board" }).click();
+    await expect(map).toBeVisible();
+    await expect(move).toBeHidden();
+    await page.getByRole("tab", { name: "Log" }).click();
+    await expect(log).toBeVisible();
+    await expect(map).toBeHidden();
+    await page.getByRole("tab", { name: "Play" }).click();
+    await expect(move).toBeVisible();
+  });
+});

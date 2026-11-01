@@ -9,12 +9,17 @@ interface Props {
   onHover?: (id: number | null) => void;
 }
 
+const isCard = (a: LegalAction): boolean => a.kind === "play";
+
+/** Legal actions as buttons; card plays come first as prominent card-like buttons. */
 export default function ActionList({ actions, disabled, onAct, labelFor, onHover }: Props) {
   if (actions.length === 0) return <p>No actions available.</p>;
+  const ordered = [...actions.filter(isCard), ...actions.filter((a) => !isCard(a))];
+  const lastCard = ordered.filter(isCard).length - 1;
   return (
-    <ul aria-label="Legal actions" style={{ listStyle: "none", padding: 0 }}>
-      {actions.map((a) => (
-        <li key={a.id}>
+    <ul aria-label="Legal actions" className="kid-actions">
+      {ordered.map((a, i) => (
+        <li key={a.id} className={isCard(a) ? "kid-card" : undefined} style={i === lastCard && lastCard < ordered.length - 1 ? { marginRight: "100%" } : undefined}>
           <button
             type="button"
             disabled={disabled}

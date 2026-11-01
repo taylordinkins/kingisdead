@@ -23,7 +23,7 @@ function Count({ faction, n, name }: { faction: number; n: number; name: string 
       aria-label={`${n} ${name}`}
       style={{ opacity: n === 0 ? 0.45 : 1 }}
     >
-      <svg width={22} height={22} viewBox="-12 -12 24 24" aria-hidden="true">
+      <svg width={16} height={16} viewBox="-12 -12 24 24" aria-hidden="true">
         <Token faction={faction} x={0} y={0} r={9} />
       </svg>
       ×{n}
@@ -79,7 +79,7 @@ export function Players({
             style={{ borderColor: ps.fill }}
           >
             <h4>
-              <Disc player={p} />
+              <Disc player={p} size={18} />
               {`P${p}`}
               {v.seat === p ? " (you)" : ""}
               {v.current_player === p ? " - to act" : ""}

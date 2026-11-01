@@ -10,7 +10,26 @@ export const kingIsDeadPlugin: GamePlugin = {
   title: "The King is Dead",
   // R-106: only the forced empty-hand PASS is auto-played; other single choices wait for a click
   autoAdvance: (a, legal) => legal.length === 1 && a.kind === "pass",
-  renderBoard: (g, ui) => createElement(Board, { game: g, 
+  phaseLabel: (g) => tryParseKidView(g.view)?.phase.replace(/_/g, " "),
+  renderMain: (g, ui) =>
+    createElement(Board, {
+      game: g,
+      part: "main",
+      hoverAction: ui?.hoverAction ?? null,
+      canAct: ui?.canAct ?? false,
+      onAct: ui?.onAct,
+      labelFor: (a: LegalAction) => kingIsDeadPlugin.actionLabel?.(g, a) ?? a.label,
+    }),
+  renderSide: (g, ui) =>
+    createElement(Board, {
+      game: g,
+      part: "side",
+      hoverAction: ui?.hoverAction ?? null,
+      canAct: ui?.canAct ?? false,
+      onAct: ui?.onAct,
+      labelFor: (a: LegalAction) => kingIsDeadPlugin.actionLabel?.(g, a) ?? a.label,
+    }),
+  renderBoard: (g, ui) => createElement(Board, { game: g,
       hoverAction: ui?.hoverAction ?? null,
       canAct: ui?.canAct ?? false,
       onAct: ui?.onAct,
