@@ -147,4 +147,27 @@ describe("click-to-act", () => {
     fireEvent.click(screen.getByTestId("region-2"));
     expect(onAct).toHaveBeenCalledWith(19);
   });
+
+  it("does not revive a dropped pick when the same position key recurs", () => {
+    const onAct = vi.fn().mockResolvedValue(true);
+    const p = getPlugin("king_is_dead");
+    const pk = (id: number, region: number, faction: number) => ({ id, region, faction });
+    const pairs = [[pk(19, 2, 0), pk(23, 7, 2)]];
+    const swapGame = (historyLength: number): GameView => {
+      const base = game({ history_length: historyLength });
+      return { ...base, view: { ...(midgame as object), swap_pairs: pairs } as unknown as GameView["view"] };
+    };
+    const ui = (g: GameView) => p.renderBoard(g, { hoverAction: null, canAct: true, onAct });
+    const { rerender } = render(<>{ui(swapGame(3))}</>);
+    fireEvent.click(screen.getByTestId("region-2"));
+    rerender(<>{ui(swapGame(4))}</>);
+    rerender(<>{ui(swapGame(3))}</>);
+    fireEvent.click(screen.getByTestId("region-7"));
+    expect(onAct).not.toHaveBeenCalledWith(19);
+    expect(onAct).not.toHaveBeenCalledWith(23);
+    // A fresh pick then works.
+    fireEvent.click(screen.getByTestId("region-2"));
+    fireEvent.click(screen.getByTestId("region-7"));
+    expect(onAct).toHaveBeenCalledWith(19);
+  });
 });

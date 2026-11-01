@@ -11,7 +11,7 @@ Closed 2026-11-01 on branch `phase-5/bots`. Units 1-7 of the task list are ticke
 | `tools/tournament.py` (seeded, seat rotation, Wilson CI, JSON) | `uv run python -m tools.tournament ...`; results in `docs/phase-reports/data/` |
 | MCTS clearly beats random over a few hundred 2-player games | mcts:100 vs random 0.970 over 300 games, 95% CI [0.944, 0.984]; mcts:100 vs heuristic 0.790 over 100 games, CI [0.700, 0.858]; heuristic vs random 0.758 over 1000 games |
 | Fast and slow suites, lint, types | `pytest -q` 881 passed, 2 xfailed (the marker self-tests), 0 xpassed; `pytest -m slow` 191 passed (328 s); ruff, ruff format, pyright clean. After the fix round: `pytest -q` 881 passed, `npm test` 125 passed (16 files), `tsc --noEmit` and `npm run build` clean |
-| Playwright vs heuristic and `mcts:20` | `web/e2e/bots.spec.ts` added in unit 7. **Not re-run at close**: ports 8000/5173 were held by your playtest servers. Stop them and I will run `npm run e2e` |
+| Playwright vs heuristic and `mcts:20` | `web/e2e/bots.spec.ts` added in unit 7. `npm run e2e`: 9 passed (run by you after the swap and tooltip fixes; not re-run by me after the final held-pick fix) |
 | Engine untouched | `git diff master...HEAD -- kingisdead/ docs/RULES_SPEC.md` shows only the new `kingisdead/bots/` files; `actions.py`, `rules.py`, `game.py` and the spec are unchanged, so action IDs are still frozen |
 
 **Still open (yours): playtest #3.** Play against `heuristic` and `mcts:100` (and optionally `mcts:400`); file reports with the in-app Report dialog.
@@ -33,11 +33,11 @@ Closed 2026-11-01 on branch `phase-5/bots`. Units 1-7 of the task list are ticke
 - Must-fix: the client-side held first pick of a swap survived position changes (Back, finishing via the action list, hot-seat hand-over), so a later click could submit a stale pair. The held pick is now derived from a position key (history length, player, phase, pick count) and cannot be stale in any render; regression tests added (8f71bcc).
 - The `swap_pairs` doc comments were corrected (8f71bcc).
 
-Re-check by the same reviewer (CHANGES NEEDED, one should-fix): the must-fix is resolved for position changes that produce a new key, and the two-action submit flows are unaffected. One residual: a stale pick is hidden but not deleted, so it returns if the identical position key recurs (for example hold a pick, press Back, replay the same card). Deferred to the backlog with the fix and test described.
+Re-check by the same reviewer (CHANGES NEEDED, one should-fix): the must-fix is resolved for position changes that produce a new key, and the two-action submit flows are unaffected. One residual: a stale pick is hidden but not deleted, so it returns if the identical position key recurs (for example hold a pick, press Back, replay the same card). Fixed afterwards: the stale pick is now dropped the first time a render sees a different key, with a regression test that fails without the fix (web tests 126 passed).
 
 ## Findings deferred (PLAN.md §9 Backlog)
 
-- Should-fix: the residual held-pick case above; a bot exception racing Back/Rewind/retry can leave a stale `bot_error` and no worker; `mcts:N` has no upper bound and a stale search cannot be cancelled.
+- Should-fix: a bot exception racing Back/Rewind/retry can leave a stale `bot_error` and no worker; `mcts:N` has no upper bound and a stale search cannot be cancelled.
 - Minor: seat regex accepts a trailing newline in Python; `actors` and `history` can desync if the engine raises; Retry bypasses `useGame.run` and restarts a healthy worker; inline-mode 500; tooltip wording gaps; weak missing-pair coverage in `test_swap_pairs.py`; `tools/replay.py` referenced by the triage skill does not exist; no Playwright test for higher-first swap clicks.
 
 ## Decisions

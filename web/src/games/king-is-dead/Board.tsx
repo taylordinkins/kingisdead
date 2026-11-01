@@ -160,7 +160,9 @@ export function KidBoard({
   const [choosing, setChoosing] = useState<number | null>(null);
   const [heldRaw, setHeld] = useState<HeldPick | null>(null);
   const posKey = positionKey(historyLength, v.current_player, v.phase, v.pending?.swap_picks?.length ?? 0);
-  // Derived, not effect-reset: a pick made in another position is never active, even for one render.
+  // A pick made in another position is never active, even for one render (render-time check), and is also
+  // dropped the first time a render sees a different key so an identical key recurring cannot revive it.
+  if (heldRaw !== null && heldRaw.key !== posKey) setHeld(null);
   const held = activeHeld(heldRaw, posKey);
   // Symmetric swap (Manoeuvre, Outmanoeuvre 1-for-1, Negotiate cards): either pick may be clicked first; the
   // pair is submitted in the engine's canonical order (lower region first).
