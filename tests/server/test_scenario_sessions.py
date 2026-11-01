@@ -5,6 +5,7 @@ import random
 from pathlib import Path
 from typing import Any
 
+import pytest
 from fastapi.testclient import TestClient
 
 from server.app import create_app
@@ -101,3 +102,33 @@ def test_num_players_mismatch_422() -> None:
               "scenario": sc},
     )  # fmt: skip
     assert r.status_code == 422
+
+
+def _bad_payloads() -> list[Json]:
+    base = "undo_block_outmanoeuvre.json"
+    a = _scenario(base)
+    a["region_state"] = {"Moray": ["S"]}
+    b = _scenario(base)
+    b["hands"] = [[{"x": 1}], []]
+    c = _scenario(base)
+    c["last_card"]["reference_board"] = [1]
+    d = _scenario(base)
+    d["last_play"] = [[1], None]
+    e = _scenario(base)
+    e["last_card"] = {"type": ["outmanoeuvre"]}
+    return [a, b, c, d, e]
+
+
+def test_wrongly_typed_scenario_values_422() -> None:
+    from kingisdead.scenario import load_scenario
+
+    c = _client()
+    for sc in _bad_payloads():
+        with pytest.raises(ValueError):
+            load_scenario(sc)
+        r = c.post("/api/games", json={"seats": ["human"] * 2, "scenario": sc})
+        assert r.status_code == 422, r.text
+        body = {"game": "king_is_dead", "seats": ["human"] * 2, "seed": 1, "history": [],
+                "params": {}, "scenario": sc}  # fmt: skip
+        r = c.post("/api/games/import", json=body)
+        assert r.status_code == 422, r.text

@@ -177,3 +177,14 @@ def test_chance_labels_are_meaningful() -> None:
     assert any("court draws" in lb for lb in labels)
     assert any("follower placed in" in lb for lb in labels)
     assert not any(lb.startswith("Chance outcome") for lb in labels)
+
+
+def test_neg_first_absent_during_swap_phase() -> None:
+    from kingisdead import constants as C
+    from kingisdead.scenario import load_scenario
+
+    state = load_scenario("tests/scenarios/undo_block_outmanoeuvre.json")
+    state.apply_action(7)
+    assert state.phase == C.PHASE_SWAP
+    state.neg_first = 3  # stale value left over from an earlier Negotiate
+    assert ADAPTER.view(state, 0)["pending"]["neg_first"] is None

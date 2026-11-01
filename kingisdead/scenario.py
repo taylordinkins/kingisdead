@@ -82,7 +82,7 @@ def _state_map(m: object, what: str) -> tuple[list[int], list[int]]:
         r = _region(name)
         if v == "unstable":
             states[r] = C.REGION_UNSTABLE
-        elif v in FACTION_KEYS:
+        elif isinstance(v, str) and v in FACTION_KEYS:
             states[r] = C.REGION_CONTROLLED
             control[r] = FACTION_KEYS[v]
         else:
@@ -95,7 +95,7 @@ def _hand(cards: object) -> dict[int, int]:
         raise ValueError("hand: list expected")
     hand: dict[int, int] = {}
     for c in cards:
-        if c not in CARD_IDS:
+        if not isinstance(c, str) or c not in CARD_IDS:
             raise ValueError(f"unknown card {c!r}")
         hand[CARD_IDS[c]] = hand.get(CARD_IDS[c], 0) + 1
     return hand
@@ -241,7 +241,8 @@ def _validate_state(
     if (last_card_raw is None) != (total == 0):  # V10
         raise _fail("V10", "last_card must be null exactly when no card has been played")
     if last_card_raw is not None:
-        if not isinstance(last_card_raw, dict) or last_card_raw.get("type") not in CARD_IDS:
+        card_type = last_card_raw.get("type") if isinstance(last_card_raw, dict) else None
+        if not isinstance(card_type, str) or card_type not in CARD_IDS:
             raise ValueError("last_card.type must be a card name")
         last_card = CARD_IDS[last_card_raw["type"]]
         mover = last_play.index(total)
@@ -251,6 +252,8 @@ def _validate_state(
             if last_card not in MANOEUVRE_CARDS:
                 raise _fail("V10", "reference_board only allowed for manoeuvre/outmanoeuvre")
             rb = last_card_raw["reference_board"]
+            if not isinstance(rb, dict):
+                raise _fail("V10", "reference_board must be an object")
             rb_regions = _region_map(rb.get("regions", {}), "reference_board.regions")
             rb_states, rb_control = _state_map(
                 rb.get("region_state", {}), "reference_board.region_state"
@@ -296,8 +299,8 @@ def _validate_records(
     """V7."""
     played = [CARDS_PER_HAND - s for s in sizes]
     vals = [v for v in last_play if v is not None]
-    if len(set(vals)) != len(vals) or any(
-        not isinstance(v, int) or not 1 <= v <= total for v in vals
+    if any(not isinstance(v, int) or isinstance(v, bool) for v in vals) or (
+        len(set(vals)) != len(vals) or any(not 1 <= v <= total for v in vals)
     ):
         raise _fail("V7", "last_play values must be distinct integers in 1..total")
     for p, v in enumerate(last_play):

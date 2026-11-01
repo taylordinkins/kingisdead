@@ -96,8 +96,8 @@ def create_app(dev_mode: bool = False, reports_dir: Path | str | None = None) ->
         if scenario is not None:
             try:
                 n: int = load_scenario(scenario).n
-            except ValueError as e:
-                raise HTTPException(422, str(e)) from None
+            except (ValueError, TypeError, AttributeError, KeyError) as e:
+                raise HTTPException(422, f"invalid scenario: {e}") from None
             if params.num_players is not None and params.num_players != n:
                 raise HTTPException(
                     422, f"num_players {params.num_players} does not match scenario ({n})"

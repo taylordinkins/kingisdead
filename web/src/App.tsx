@@ -20,8 +20,10 @@ export default function App() {
   const [editor, setEditor] = useState(isEditor);
 
   useEffect(() => {
-    const onHash = () => setGameId(parseHash());
+    const onHash = () => {
+      setGameId(parseHash());
       setEditor(isEditor());
+    };
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
   }, []);

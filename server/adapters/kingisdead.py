@@ -167,7 +167,9 @@ class KingIsDeadAdapter(GameAdapter):
             "pending": {
                 "card": s.pending_card or None,
                 "assemble_faction": s.assemble_faction if s.phase == C.PHASE_ASSEMBLE else None,
-                "neg_first": s.neg_first if s.phase >= C.PHASE_NEG_SECOND else None,
+                "neg_first": (
+                    s.neg_first if C.PHASE_NEG_SECOND <= s.phase <= C.PHASE_NEG_DISC else None
+                ),
                 "neg_second": s.neg_second if s.phase == C.PHASE_NEG_DISC else None,
                 "swap_mode": s.swap_mode,
                 "swap_picks": [list(p) for p in s.swap_picks],

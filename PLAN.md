@@ -10,7 +10,7 @@
 - [x] Phase 1 — Rules spec ✋ *you review* (closed 2026-10-30, see docs/phase-reports/phase-1.md)
 - [x] Phase 2 — Engine (2–3 players, base game) (closed 2026-10-30, see docs/phase-reports/phase-2.md)
 - [x] Phase 3 — Server + web shell ✋ *playtest #1* (closed 2026-10-31, see docs/phase-reports/phase-3.md; playtest pending)
-- [ ] Phase 4 — Board UI + setup editor ✋ *playtest #2*
+- [x] Phase 4 — Board UI + setup editor ✋ *playtest #2* (closed 2026-10-31, see docs/phase-reports/phase-4.md; playtest pending)
 - [ ] Phase 5 — Bots (MCTS, heuristic) ✋ *playtest #3*
 - [ ] Phase 6 — 4-player teams
 - [ ] Phase 7 — Advanced game (cunning actions)
@@ -69,6 +69,7 @@ A faithful, well-tested implementation of *The King is Dead* as a **Python OpenS
 | D27 | Names from the server (2026-10-31) | The KID view sends `faction_names` and `card_names` from `constants.py`; the web has no copy | User-approved after unit 9 |
 | D28 | Per-session locking (2026-10-31) | Handlers stay sync and hold a per-session `RLock`; Phase 5 slow bots must not run inside it | code-reviewer must-fix |
 | D29 | Web toolchain (2026-10-31) | Node 20 (nvm) for web work; Vite 5 / Vitest 2 and `rollup@4.67.2` pins stay until cleaned up; Playwright pinned to 1.64.1 | See Backlog |
+| D30 | Scenario sessions and click UI (2026-10-31) | Sessions carry the scenario JSON and replay history over its start state (setups load directly, not as a chance sequence; results checked identical); only a forced PASS auto-plays (R-106), every other single action waits for a click | User-approved; D12/SCENARIOS §2 amendment awaiting user |
 
 ## 4. Rules clarifications
 
@@ -385,6 +386,10 @@ Should-fix and minor findings, tagged with the phase that found them. `/close-ph
 - Phase 3 (rules-auditor, should-fix): R-106, a human with an empty hand must click PASS (the spec says UI and bots submit it automatically); fold into Phase 4's forced-single-action auto-advance. The scoring-breakdown test only compares `winners` with itself (`tests/server/test_adapter.py:72-81`): add last-step-equals-winners over seeded games plus built terminal states for rank-2-undefined and nobody-emptied-hand.
 - Phase 3 (rules-auditor, minor): `_narrow` in the adapter copies private `rules._best_record` (can drift); the board prints "Scots > none > none" when ranks 2-3 are undefined (R-403), better wording needed.
 - Phase 3 (code-reviewer, should-fix): `tests/server/test_concurrency.py` takes about 8 s in the fast suite; trim the replay loop or mark it slow and keep a short smoke version. Phase 5: a slow bot runs inside the session lock and stalls polling; if `advance_bots` moves to a background task it must take `s.lock`.
+- Phase 4 (code-reviewer, should-fix): the region chooser in `Board.tsx` stays open across turns and can reappear unasked (reset `choosing` when history length or legal actions change); "Check with server" leaves a throwaway session each click and `serverValidate.ts:20-28` reads `game_id` instead of `id` (add a validate-only endpoint); the "Auto-played" note never clears (`useGame.ts:173`); `hoverAction` can stick after a click (reset on history change in `GameScreen.tsx`); editor stepper `aria-label` hides the number (`Editor.tsx:66`).
+- Phase 4 (code-reviewer, minor): auto-advance "already tried" key skips a forced PASS reached again at the same history length after Back; editor file input not reset after import; `1e400` in a number field becomes `Infinity`/`null`; `download()` anchor not attached to the DOM.
+- Phase 4 (rules-auditor, should-fix): the editor numbers players from 1 but the board, log and spec number from 0 (use one numbering before playtest #2); editor "Last play" and "Hand empty" tooltips should say card-play number per R-401 (not history index); map still shows "Struggle k+1 of 8" and NEXT badge after an early invasion end (gate on `is_terminal`, R-400); `useGame.test.tsx` uses its own predicate, not the shipped `kingIsDeadPlugin.autoAdvance`; D12 and SCENARIOS §2 still describe the chance-sequence conversion (needs user sign-off to amend).
+- Phase 4 (rules-auditor, minor): Assemble banner says "followers" plural (should be "follower", R-212); Courts hint in the editor cites V11 for `state` scenarios; reference board (B*) of the last card is toggle-only in the editor; track cards move by buttons, not drag; Phase 3 backlog items fixed in Phase 4 (chance labels, stale poll and re-arm, R-106 PASS, scoring-breakdown tests, R-403 wording) can be struck; `state.serialize()` of scenario-loaded states still returns the initial state (sessions carry the scenario instead); history log can't group by phase (entries carry no phase).
 
 ## 10. Risks
 
