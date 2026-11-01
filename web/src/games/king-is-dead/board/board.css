@@ -1,0 +1,10 @@
+/* Compact status block and seat panels for the right-hand column. */
+.kid-status { display: grid; grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr)); gap: 0 10px; margin: 0; font-size: 0.8rem; }
+.kid-status > dt, .kid-status > dd { display: inline; margin: 0; }
+.kid-status > dt { opacity: 0.7; }
+.kid-status > dt::after { content: ": "; }
+.kid-tables summary { cursor: pointer; font-size: 0.85rem; }
+.kid-panels { grid-template-columns: minmax(0, 1fr) !important; gap: 4px !important; margin: 0 !important; }
+.kid-panel { padding: 3px 6px !important; font-size: 0.85rem; }
+.kid-panel h4 { margin: 0 0 2px !important; font-size: 0.85rem; }
+.kid-row { gap: 4px !important; margin: 1px 0 !important; }

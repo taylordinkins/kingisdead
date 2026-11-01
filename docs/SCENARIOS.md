@@ -5,8 +5,9 @@
 
 - **Rule tests** load a scenario as a start state (`kingisdead/scenario.py`, Phase 2) and check legal
   actions and outcomes against R-IDs.
-- **The setup editor** (Phase 4) produces and consumes `"kind": "setup"` scenarios and turns them into the
-  chance-outcome sequence of `docs/ACTIONS.md` §3, so there is one code path.
+- **The setup editor** (Phase 4) produces and consumes `"kind": "setup"` scenarios. Sessions load them
+  directly with `load_scenario` (PLAN.md D30); the position is the same as the chance-outcome sequence of
+  `docs/ACTIONS.md` §3 described in §2.
 
 A scenario is **a position, not a history**: it need not be reachable by legal play (the validator only
 checks the constraints in §3), which keeps rule fixtures small.
@@ -54,7 +55,9 @@ A `setup` scenario may use only `format`, `kind`, `description`, `players`, `slo
 
 ## 2. Setup scenarios → chance sequence
 
-The editor converts a valid `setup` scenario to the outcome sequence of `docs/ACTIONS.md` §3:
+A valid `setup` scenario is equivalent to the following outcome sequence of `docs/ACTIONS.md` §3 (sessions
+load it directly rather than replaying the sequence; the equivalence was checked on `setup_basic` and 40
+random setups, Phase 4 close):
 
 1. 8 region picks: the region IDs of `slots`, slot 1 first.
 2. Court draws: for each player in seat order, that player's court as a faction list in ascending

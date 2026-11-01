@@ -108,6 +108,21 @@ class KingIsDeadAdapter(GameAdapter):
                 meta[key] = value
         return meta
 
+    def chance_label(self, state: pyspiel.State, action_id: int) -> str:
+        s = _kid(state)
+        try:
+            if s.stage == C.STAGE_PICKS:
+                region = C.REGION_NAMES[act.decode_chance_outcome(action_id, "region")]
+                return f"Setup: region card {region} for slot {s.setup_picks + 1}"
+            faction = C.FACTION_NAMES[act.decode_chance_outcome(action_id, "faction")]
+            if s.stage == C.STAGE_COURTS:
+                return f"Setup: P{s.court_draws // 2} court draws {faction}"
+            if s.stage == C.STAGE_FILL:
+                return f"Setup: {faction} follower placed in {C.REGION_NAMES[s.fill_region]}"
+        except (ValueError, IndexError):
+            pass
+        return f"Chance outcome {action_id}"
+
     def view(self, state: pyspiel.State, seat: int) -> JSON:
         s = _kid(state)
         terminal = s.is_terminal()
@@ -152,7 +167,9 @@ class KingIsDeadAdapter(GameAdapter):
             "pending": {
                 "card": s.pending_card or None,
                 "assemble_faction": s.assemble_faction if s.phase == C.PHASE_ASSEMBLE else None,
-                "neg_first": s.neg_first if s.phase >= C.PHASE_NEG_SECOND else None,
+                "neg_first": (
+                    s.neg_first if C.PHASE_NEG_SECOND <= s.phase <= C.PHASE_NEG_DISC else None
+                ),
                 "neg_second": s.neg_second if s.phase == C.PHASE_NEG_DISC else None,
                 "swap_mode": s.swap_mode,
                 "swap_picks": [list(p) for p in s.swap_picks],

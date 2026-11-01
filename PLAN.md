@@ -10,7 +10,7 @@
 - [x] Phase 1 — Rules spec ✋ *you review* (closed 2026-10-30, see docs/phase-reports/phase-1.md)
 - [x] Phase 2 — Engine (2–3 players, base game) (closed 2026-10-30, see docs/phase-reports/phase-2.md)
 - [x] Phase 3 — Server + web shell ✋ *playtest #1* (closed 2026-10-31, see docs/phase-reports/phase-3.md; playtest pending)
-- [ ] Phase 4 — Board UI + setup editor ✋ *playtest #2*
+- [x] Phase 4 — Board UI + setup editor ✋ *playtest #2* (closed 2026-10-31, see docs/phase-reports/phase-4.md; playtest pending)
 - [ ] Phase 5 — Bots (MCTS, heuristic) ✋ *playtest #3*
 - [ ] Phase 6 — 4-player teams
 - [ ] Phase 7 — Advanced game (cunning actions)
@@ -51,7 +51,7 @@ A faithful, well-tested implementation of *The King is Dead* as a **Python OpenS
 | D9 | Unresolvable ties | Shared win (draw) among still-tied players | Winners each get (n−k)/(k·(n−1)), losers −1/(n−1); still sums to 0. Chosen over a seat-order house rule to avoid seat bias in RL |
 | D10 | Discard visibility | UI shows every player's full play history | Base game is perfect information anyway |
 | D11 | Bug reports | In-game **Report** button → `playtest/reports/*.json` | Each fixed report becomes a regression test |
-| D12 | Setup | Random setup via chance nodes **plus** a manual setup editor | Editor emits the equivalent chance-outcome sequence, so there's one code path |
+| D12 | Setup | Random setup via chance nodes **plus** a manual setup editor | Amended 2026-11-01 (D30): sessions load a `setup` scenario directly via `load_scenario`; the position equals the chance-outcome sequence (verified on `setup_basic` and 40 random setups), but the editor does not emit one |
 | D13 | Adjacency | Table in §4 C1, confirmed against the physical board | |
 | D14 | Model use (2026-10-30) | Sonnet does routine implementation and test writing; Haiku does search and long test/sim runs; Opus is reserved for rules audits and code review | Main session defaults to Sonnet (`.claude/settings.json`) and orchestrates rather than writing large changes. See §8 |
 | D15 | Spec lock (2026-10-30) | `docs/RULES_SPEC.md` Status line DRAFT → APPROVED → AMENDING; a hook blocks edits while APPROVED | Only the user changes the Status line |
@@ -69,6 +69,7 @@ A faithful, well-tested implementation of *The King is Dead* as a **Python OpenS
 | D27 | Names from the server (2026-10-31) | The KID view sends `faction_names` and `card_names` from `constants.py`; the web has no copy | User-approved after unit 9 |
 | D28 | Per-session locking (2026-10-31) | Handlers stay sync and hold a per-session `RLock`; Phase 5 slow bots must not run inside it | code-reviewer must-fix |
 | D29 | Web toolchain (2026-10-31) | Node 20 (nvm) for web work; Vite 5 / Vitest 2 and `rollup@4.67.2` pins stay until cleaned up; Playwright pinned to 1.64.1 | See Backlog |
+| D30 | Scenario sessions and click UI (2026-10-31) | Sessions carry the scenario JSON and replay history over its start state (setups load directly, not as a chance sequence; results checked identical); only a forced PASS auto-plays (R-106), every other single action waits for a click | User-approved; D12 and SCENARIOS §2 amended 2026-11-01 |
 
 ## 4. Rules clarifications
 
@@ -212,7 +213,7 @@ Perfect information, so information state = observation. Tensor, from the observ
 
 - **Shell (reusable):** lobby (game, seats, setup), action log, *legal-action list fallback* (any game is playable before its board exists), bot-thinking indicator, Back, Rewind, Report, replay export/import.
 - **King is Dead plugin:** our own schematic SVG map (not the published art), clickable regions and cubes, region-card track with slot numbers and discs, courts, supply, France, end-of-game scoring breakdown that shows each ranking and tiebreak step.
-- **Setup editor:** set court contents, region contents and region-card order; validated against bag counts; emits the equivalent chance sequence.
+- **Setup editor:** set court contents, region contents and region-card order; validated against bag counts; sessions load the result directly (D30), equivalent to the chance sequence.
 
 ### 5.8 Bots
 
@@ -298,6 +299,17 @@ Task list (approved 2026-10-30, branch `phase-3/server-web-shell`; server/web un
 - SVG board with click-to-act, region-card track, courts, history, Back/Rewind, scoring breakdown, setup editor.
 - *Exit:* you mirror at least one physical-table setup in the editor and play it through.
 
+Task list (approved 2026-10-31, branch `phase-4/board-ui-setup-editor`). Decision: scenario games (option A) keep the scenario JSON in the session and replay history over its start state; export carries the scenario (closes the Phase 2 scenario-serialize backlog item). The map follows the rulebook's region layout and R-002 adjacency but is our own original, good-looking schematic art (no published art copied); it should look appealing from the first version. No new rule behaviour, so `implementer` writes the tests.
+- [x] 1. Scenario-backed sessions: `scenario` on create, replay over start state, export/import carries it, 422 on invalid → `server/`, `kingisdead/scenario.py`, tests, `schema.d.ts`
+- [x] 2. Board geometry and static SVG: attractive original map, region states, region-card track and discs; follower type shown in Assemble (report 20261031T232540) → `web/src/games/king-is-dead/board/`
+- [x] 3. Courts, hands, supply, negotiation discs; card positions clear (report 20261031T232657) → `web/src/games/king-is-dead/`
+- [x] 4. Click-to-act on the board, action list as fallback → `web/src/games/king-is-dead/`, shell hooks
+- [x] 5. Forced-single-action auto-advance (R-106 empty-hand PASS), stale-poll fix, R-403 rank wording → `web/src/shell/useGame.ts`, board
+- [x] 6. Scoring breakdown panel, chance labels in the log (adapter hook), history panel polish → `server/adapters/kingisdead.py`, `web/`
+- [x] 7. Setup editor model and live V1–V11 validation → `web/src/editor/`
+- [x] 8. Setup editor UI (mirror a physical table, `setup` and `state` kinds, import/export, start playing) → `web/src/editor/`, `Lobby.tsx`
+- [x] 9. Playwright: click-through game vs random bot and an editor-built setup; `CLAUDE.md` web notes → `web/e2e/`, `CLAUDE.md`
+
 **Phase 5 — Bots ✋ playtest #3**
 - MCTS and heuristic seats; `tools/tournament.py` for bot-vs-bot win rates.
 - *Exit:* MCTS clearly beats random over a few hundred 2-player games; you play against MCTS and heuristic.
@@ -374,6 +386,10 @@ Should-fix and minor findings, tagged with the phase that found them. `/close-ph
 - Phase 3 (rules-auditor, should-fix): R-106, a human with an empty hand must click PASS (the spec says UI and bots submit it automatically); fold into Phase 4's forced-single-action auto-advance. The scoring-breakdown test only compares `winners` with itself (`tests/server/test_adapter.py:72-81`): add last-step-equals-winners over seeded games plus built terminal states for rank-2-undefined and nobody-emptied-hand.
 - Phase 3 (rules-auditor, minor): `_narrow` in the adapter copies private `rules._best_record` (can drift); the board prints "Scots > none > none" when ranks 2-3 are undefined (R-403), better wording needed.
 - Phase 3 (code-reviewer, should-fix): `tests/server/test_concurrency.py` takes about 8 s in the fast suite; trim the replay loop or mark it slow and keep a short smoke version. Phase 5: a slow bot runs inside the session lock and stalls polling; if `advance_bots` moves to a background task it must take `s.lock`.
+- Phase 4 (code-reviewer, should-fix): the region chooser in `Board.tsx` stays open across turns and can reappear unasked (reset `choosing` when history length or legal actions change); "Check with server" leaves a throwaway session each click and `serverValidate.ts:20-28` reads `game_id` instead of `id` (add a validate-only endpoint); the "Auto-played" note never clears (`useGame.ts:173`); `hoverAction` can stick after a click (reset on history change in `GameScreen.tsx`); editor stepper `aria-label` hides the number (`Editor.tsx:66`).
+- Phase 4 (code-reviewer, minor): auto-advance "already tried" key skips a forced PASS reached again at the same history length after Back; editor file input not reset after import; `1e400` in a number field becomes `Infinity`/`null`; `download()` anchor not attached to the DOM.
+- Phase 4 (rules-auditor, should-fix): the editor numbers players from 1 but the board, log and spec number from 0 (use one numbering before playtest #2); editor "Last play" and "Hand empty" tooltips should say card-play number per R-401 (not history index); map still shows "Struggle k+1 of 8" and NEXT badge after an early invasion end (gate on `is_terminal`, R-400); `useGame.test.tsx` uses its own predicate, not the shipped `kingIsDeadPlugin.autoAdvance`; D12 and SCENARIOS §2 still describe the chance-sequence conversion (needs user sign-off to amend).
+- Phase 4 (rules-auditor, minor): Assemble banner says "followers" plural (should be "follower", R-212); Courts hint in the editor cites V11 for `state` scenarios; reference board (B*) of the last card is toggle-only in the editor; track cards move by buttons, not drag; Phase 3 backlog items fixed in Phase 4 (chance labels, stale poll and re-arm, R-106 PASS, scoring-breakdown tests, R-403 wording) can be struck; `state.serialize()` of scenario-loaded states still returns the initial state (sessions carry the scenario instead); history log can't group by phase (entries carry no phase).
 
 ## 10. Risks
 

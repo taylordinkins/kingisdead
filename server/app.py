@@ -5,10 +5,11 @@ from __future__ import annotations
 import os
 import random
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import APIRouter, FastAPI, HTTPException, Query
 
+from kingisdead.scenario import load_scenario
 from server.adapters.kingisdead import KingIsDeadAdapter
 from server.reports import DEFAULT_REPORTS_DIR, write_report
 from server.schemas import (
@@ -83,22 +84,42 @@ def create_app(dev_mode: bool = False, reports_dir: Path | str | None = None) ->
                 }
             )
 
-    def make(game: str, params: GameParams, seats: list[str], seed: int, history: list[int]):
+    def make(
+        game: str,
+        params: GameParams,
+        seats: list[str],
+        seed: int,
+        history: list[int],
+        scenario: dict[str, Any] | None = None,
+    ):
+        adapter_params: dict[str, int] = _to_adapter_params(params)
+        if scenario is not None:
+            try:
+                n: int = load_scenario(scenario).n
+            except (ValueError, TypeError, AttributeError, KeyError) as e:
+                raise HTTPException(422, f"invalid scenario: {e}") from None
+            if params.num_players is not None and params.num_players != n:
+                raise HTTPException(
+                    422, f"num_players {params.num_players} does not match scenario ({n})"
+                )
+            adapter_params = {"players": n}
         try:
-            return store.create(game, _to_adapter_params(params), seats, seed, history)
+            return store.create(game, adapter_params, seats, seed, history, scenario)
         except IllegalAction as e:
             raise HTTPException(400, f"invalid history: {e}") from None
         except (SessionError, ValueError) as e:
             raise HTTPException(400, str(e)) from None
 
-    @api.post("/games", operation_id="create_game", responses={400: _ERR})
+    @api.post("/games", operation_id="create_game", responses={400: _ERR, 422: _ERR})
     def create_game(req: CreateGameRequest) -> GameView:
         seed = req.seed if req.seed is not None else random.randrange(2**31)
-        return render(make(req.game, req.params, list(req.seats), seed, []))
+        return render(make(req.game, req.params, list(req.seats), seed, [], req.scenario))
 
-    @api.post("/games/import", operation_id="import_game", responses={400: _ERR})
+    @api.post("/games/import", operation_id="import_game", responses={400: _ERR, 422: _ERR})
     def import_game(body: GameExport) -> GameView:
-        return render(make(body.game, body.params, list(body.seats), body.seed, body.history))
+        return render(
+            make(body.game, body.params, list(body.seats), body.seed, body.history, body.scenario)
+        )
 
     @api.get("/games/{game_id}", operation_id="get_game", responses={404: _ERR})
     def get_game(game_id: str, seat: Annotated[int | None, Query()] = None) -> GameView:
@@ -144,20 +165,26 @@ def create_app(dev_mode: bool = False, reports_dir: Path | str | None = None) ->
                 raise HTTPException(400, str(e)) from None
             return render(s)
 
-    @api.get("/games/{game_id}/export", operation_id="export_game", responses={404: _ERR})
+    @api.get(
+        "/games/{game_id}/export",
+        operation_id="export_game",
+        responses={404: _ERR},
+        response_model_exclude_unset=True,
+    )
     def export_game(game_id: str) -> GameExport:
         s = lookup(game_id)
         with s.lock:
             seats: list[str] = list(s.seats)
-            return GameExport.model_validate(
-                {
-                    "game": GAME_NAME,
-                    "params": _from_adapter_params(s),
-                    "seats": seats,
-                    "seed": s.seed,
-                    "history": list(s.history),
-                }
-            )
+            data: dict[str, Any] = {
+                "game": GAME_NAME,
+                "params": _from_adapter_params(s),
+                "seats": seats,
+                "seed": s.seed,
+                "history": list(s.history),
+            }
+            if s.scenario is not None:  # omitted for plain games (keeps old exports unchanged)
+                data["scenario"] = s.scenario
+            return GameExport.model_validate(data)
 
     @api.post("/games/{game_id}/report", operation_id="report_game", responses={404: _ERR})
     def report_game(game_id: str, req: ReportRequest) -> ReportResponse:
@@ -174,7 +201,7 @@ def create_app(dev_mode: bool = False, reports_dir: Path | str | None = None) ->
                     "params": export.params.model_dump(),
                     "seats": list(export.seats),
                     "seed": export.seed,
-                    "export": export.model_dump(),
+                    "export": export.model_dump(exclude_unset=True),
                     "view": render(s).model_dump(),
                     "history": list(s.history),
                 },

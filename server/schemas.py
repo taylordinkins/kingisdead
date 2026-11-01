@@ -20,6 +20,10 @@ class CreateGameRequest(BaseModel):
     params: GameParams = Field(default_factory=GameParams)
     seats: list[SeatType]
     seed: int | None = None
+    scenario: dict[str, Any] | None = Field(
+        default=None,
+        description="Optional scenario JSON (docs/SCENARIOS.md); the game starts from it.",
+    )
 
 
 class LegalAction(BaseModel):
@@ -79,6 +83,9 @@ class GameExport(BaseModel):
     seats: list[SeatType]
     seed: int
     history: list[int]
+    scenario: dict[str, Any] | None = Field(
+        default=None, description="Scenario the game started from, if any."
+    )
 
 
 class ReportRequest(BaseModel):

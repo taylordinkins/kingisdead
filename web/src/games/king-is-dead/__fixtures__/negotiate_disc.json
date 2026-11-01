@@ -1,0 +1,226 @@
+{
+ "seat": 0,
+ "num_players": 3,
+ "faction_names": [
+  "Scottish",
+  "Welsh",
+  "English"
+ ],
+ "card_names": {
+  "1": "Scottish Support",
+  "2": "Welsh Support",
+  "3": "English Support",
+  "4": "Assemble",
+  "5": "Negotiate",
+  "6": "Manoeuvre",
+  "7": "Outmanoeuvre"
+ },
+ "regions": [
+  {
+   "region": 0,
+   "name": "Moray",
+   "followers": [
+    3,
+    1,
+    1
+   ],
+   "state": "open",
+   "controller": null
+  },
+  {
+   "region": 1,
+   "name": "Strathclyde",
+   "followers": [
+    1,
+    3,
+    1
+   ],
+   "state": "open",
+   "controller": null
+  },
+  {
+   "region": 2,
+   "name": "Lancaster",
+   "followers": [
+    2,
+    0,
+    1
+   ],
+   "state": "open",
+   "controller": null
+  },
+  {
+   "region": 3,
+   "name": "Northumbria",
+   "followers": [
+    1,
+    0,
+    4
+   ],
+   "state": "open",
+   "controller": null
+  },
+  {
+   "region": 4,
+   "name": "Gwynedd",
+   "followers": [
+    0,
+    2,
+    1
+   ],
+   "state": "open",
+   "controller": null
+  },
+  {
+   "region": 5,
+   "name": "Warwick",
+   "followers": [
+    2,
+    0,
+    1
+   ],
+   "state": "open",
+   "controller": null
+  },
+  {
+   "region": 6,
+   "name": "Essex",
+   "followers": [
+    2,
+    0,
+    2
+   ],
+   "state": "open",
+   "controller": null
+  },
+  {
+   "region": 7,
+   "name": "Devon",
+   "followers": [
+    2,
+    0,
+    2
+   ],
+   "state": "open",
+   "controller": null
+  }
+ ],
+ "track": [
+  {
+   "slot": 0,
+   "region": 0,
+   "face_down": false,
+   "discs": []
+  },
+  {
+   "slot": 1,
+   "region": 1,
+   "face_down": false,
+   "discs": []
+  },
+  {
+   "slot": 2,
+   "region": 7,
+   "face_down": false,
+   "discs": []
+  },
+  {
+   "slot": 3,
+   "region": 5,
+   "face_down": false,
+   "discs": []
+  },
+  {
+   "slot": 4,
+   "region": 2,
+   "face_down": false,
+   "discs": []
+  },
+  {
+   "slot": 5,
+   "region": 3,
+   "face_down": false,
+   "discs": []
+  },
+  {
+   "slot": 6,
+   "region": 4,
+   "face_down": false,
+   "discs": []
+  },
+  {
+   "slot": 7,
+   "region": 6,
+   "face_down": false,
+   "discs": []
+  }
+ ],
+ "supply": [
+  4,
+  7,
+  2
+ ],
+ "courts": [
+  [
+   0,
+   1,
+   2
+  ],
+  [
+   0,
+   2,
+   1
+  ],
+  [
+   1,
+   2,
+   0
+  ]
+ ],
+ "hands": [
+  {
+   "1": 1,
+   "2": 1,
+   "3": 1,
+   "4": 1,
+   "6": 1,
+   "7": 1
+  },
+  {
+   "1": 1,
+   "2": 1,
+   "3": 1,
+   "4": 2,
+   "5": 1,
+   "7": 1
+  },
+  {
+   "1": 1,
+   "2": 1,
+   "3": 1,
+   "4": 2,
+   "5": 1,
+   "7": 1
+  }
+ ],
+ "negotiation_discs": [
+  null,
+  null,
+  null
+ ],
+ "current_player": 0,
+ "is_chance": false,
+ "is_terminal": false,
+ "stage": "play",
+ "phase": "negotiate_disc",
+ "pending": {
+  "card": 5,
+  "assemble_faction": null,
+  "neg_first": 0,
+  "neg_second": 4,
+  "swap_mode": 0,
+  "swap_picks": []
+ },
+ "consecutive_passes": 0,
+ "struggles_resolved": 0
+}

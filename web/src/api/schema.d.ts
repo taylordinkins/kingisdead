@@ -157,6 +157,13 @@ export interface components {
              */
             game: string;
             params?: components["schemas"]["GameParams"];
+            /**
+             * Scenario
+             * @description Optional scenario JSON (docs/SCENARIOS.md); the game starts from it.
+             */
+            scenario?: {
+                [key: string]: unknown;
+            } | null;
             /** Seats */
             seats: ("human" | "random")[];
             /** Seed */
@@ -177,6 +184,13 @@ export interface components {
             /** History */
             history: number[];
             params: components["schemas"]["GameParams"];
+            /**
+             * Scenario
+             * @description Scenario the game started from, if any.
+             */
+            scenario?: {
+                [key: string]: unknown;
+            } | null;
             /** Seats */
             seats: ("human" | "random")[];
             /** Seed */
@@ -372,13 +386,13 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Validation Error */
+            /** @description Unprocessable Entity */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -414,13 +428,13 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Validation Error */
+            /** @description Unprocessable Entity */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };

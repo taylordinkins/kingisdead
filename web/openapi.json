@@ -24,6 +24,19 @@
           "params": {
             "$ref": "#/components/schemas/GameParams"
           },
+          "scenario": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optional scenario JSON (docs/SCENARIOS.md); the game starts from it.",
+            "title": "Scenario"
+          },
           "seats": {
             "items": {
               "enum": [
@@ -82,6 +95,19 @@
           },
           "params": {
             "$ref": "#/components/schemas/GameParams"
+          },
+          "scenario": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Scenario the game started from, if any.",
+            "title": "Scenario"
           },
           "seats": {
             "items": {
@@ -527,11 +553,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
-            "description": "Validation Error"
+            "description": "Unprocessable Entity"
           }
         },
         "summary": "Create Game"
@@ -575,11 +601,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
-            "description": "Validation Error"
+            "description": "Unprocessable Entity"
           }
         },
         "summary": "Import Game"

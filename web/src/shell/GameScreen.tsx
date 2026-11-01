@@ -1,10 +1,12 @@
 import { useState, type ReactNode } from "react";
+import "./layout.css";
 import { api } from "../api/client";
-import ActionList from "./ActionList";
 import ActionLog from "./ActionLog";
 import ImportButton from "./ImportButton";
-import { getPlugin } from "../games/registry";
+import { getPlugin, type BoardUi } from "../games/registry";
 import ReportDialog from "./ReportDialog";
+import TabBar, { type ScreenTab } from "./TabBar";
+import YourMove from "./YourMove";
 import {
   errorText,
   currentPlayer,
@@ -20,7 +22,7 @@ interface Props {
   gameId: string;
   pollMs?: PollIntervals;
   /** Slot for the game-specific board (unit 9); overrides the registry plugin. */
-  renderBoard?: (game: GameView) => ReactNode;
+  renderBoard?: (game: GameView, ui?: BoardUi) => ReactNode;
   onExit?: () => void;
   /** Called with the new game id after a replay import. */
   onImported?: (gameId: string) => void;
@@ -50,47 +52,48 @@ export default function GameScreen({
   onExit,
   onImported,
 }: Props) {
-  const { game, error, busy, act, goBack, rewind, botThinking } = useGame(gameId, pollMs);
+  const [gameName, setGameName] = useState("");
+  const { game, error, busy, act, goBack, rewind, botThinking, autoNote } = useGame(
+    gameId,
+    pollMs,
+    { autoAdvance: getPlugin(gameName).autoAdvance },
+  );
+  if (game && game.game !== gameName) setGameName(game.game);
+  const [tab, setTab] = useState<ScreenTab>("play");
+  const [hoverAction, setHoverAction] = useState<number | null>(null);
   const [reporting, setReporting] = useState(false);
   const [rewindTo, setRewindTo] = useState("0");
   const [exportError, setExportError] = useState<string | null>(null);
   const rewindValid = /^\d+$/.test(rewindTo.trim());
+  const plugin = getPlugin(game?.game ?? "");
   const over = game !== null && isTerminal(game);
   const cp = game ? currentPlayer(game) : null;
   const humanTurn = game !== null && cp !== null && game.seats[cp] === "human" && !game.bot_thinking;
 
+  const split = !renderBoard && !!plugin.renderMain && !!plugin.renderSide;
+  const phase = game ? plugin.phaseLabel?.(game) : undefined;
+  const ui: BoardUi | undefined = game
+    ? {
+        hoverAction,
+        canAct: !over && humanTurn && !busy,
+        onAct: (id) => void act(id),
+      }
+    : undefined;
+
   return (
-    <section>
-      {onExit && (
-        <button type="button" onClick={onExit}>
-          Lobby
-        </button>
-      )}
-      {error && <p role="alert">Error: {error}</p>}
-      {!game && !error && <p>Loading…</p>}
-      {game && (
-        <>
-          <p>
+    <section className="kid-screen" data-tab={tab}>
+      <div className="kid-topbar">
+        {onExit && (
+          <button type="button" onClick={onExit}>
+            Lobby
+          </button>
+        )}
+        {game && (
+          <p className="kid-status-line">
             Game {game.id} · seats: {game.seats.join(", ")} · seed {game.seed}
           </p>
-          {botThinking && <p role="status">Bot is thinking…</p>}
-          {over ? (
-            <div aria-label="Game over">
-              <h2>Game over</h2>
-              {game.winners && (
-                <p>Winner(s): {game.winners.map((p) => `P${p}`).join(", ")}</p>
-              )}
-              {game.returns && (
-                <p>Scores: {game.returns.join(", ")}</p>
-              )}
-            </div>
-          ) : (
-            cp !== null && (
-              <p>
-                Current player: P{cp} ({game.seats[cp]})
-              </p>
-            )
-          )}
+        )}
+        {game && (
           <div role="toolbar" aria-label="Game tools">
             <button
               type="button"
@@ -98,7 +101,7 @@ export default function GameScreen({
               onClick={() => void goBack()}
             >
               Back
-            </button>{" "}
+            </button>
             {game.dev_mode && (
               <span>
                 <label>
@@ -107,6 +110,7 @@ export default function GameScreen({
                     value={rewindTo}
                     onChange={(e) => setRewindTo(e.target.value)}
                     inputMode="numeric"
+                    size={4}
                   />
                 </label>{" "}
                 <button
@@ -115,7 +119,7 @@ export default function GameScreen({
                   onClick={() => void rewind(Number(rewindTo.trim()))}
                 >
                   Rewind
-                </button>{" "}
+                </button>
               </span>
             )}
             <button
@@ -128,20 +132,62 @@ export default function GameScreen({
               }}
             >
               Export replay
-            </button>{" "}
-            {onImported && <ImportButton onImported={onImported} />}{" "}
+            </button>
+            {onImported && <ImportButton onImported={onImported} />}
             <button type="button" onClick={() => setReporting(true)}>
               Report a problem
             </button>
-            {exportError && <p role="alert">Export error: {exportError}</p>}
           </div>
+        )}
+      </div>
+      {exportError && <p role="alert">Export error: {exportError}</p>}
+      {error && <p role="alert">Error: {error}</p>}
+      {!game && !error && <p>Loading…</p>}
+      {game && ui && (
+        <>
           {reporting && <ReportDialog gameId={gameId} onClose={() => setReporting(false)} />}
-          {(renderBoard ?? getPlugin(game.game).renderBoard)(game)}
-          <h3>Action log</h3>
-          <ActionLog history={game.history} />
-          {!over && humanTurn && (
-            <ActionList actions={legalActions(game)} disabled={busy} onAct={(id) => void act(id)} />
-          )}
+          <TabBar value={tab} onChange={setTab} />
+          <div className="kid-grid">
+            <div className="kid-pane-board">
+              {split ? plugin.renderMain?.(game, ui) : (renderBoard ?? plugin.renderBoard)(game, ui)}
+            </div>
+            <div className="kid-side">
+              <div className="kid-pane-play">
+                {botThinking && <p role="status">Bot is thinking…</p>}
+                {autoNote && !over && <p role="status">{autoNote} (only legal action)</p>}
+                {over ? (
+                  <div aria-label="Game over">
+                    <h2>Game over</h2>
+                    {game.winners && <p>Winner(s): {game.winners.map((p) => `P${p}`).join(", ")}</p>}
+                    {game.returns && <p>Scores: {game.returns.join(", ")}</p>}
+                  </div>
+                ) : (
+                  cp !== null && (
+                    <>
+                      <YourMove
+                        humanTurn={humanTurn}
+                        waitingFor={`P${cp} (${game.seats[cp]})`}
+                        phase={phase}
+                        actions={legalActions(game)}
+                        busy={busy}
+                        onAct={(id) => void act(id)}
+                        labelFor={(a) => plugin.actionLabel?.(game, a) ?? a.label}
+                        onHover={setHoverAction}
+                      />
+                      <p>
+                        Current player: P{cp} ({game.seats[cp]})
+                      </p>
+                    </>
+                  )
+                )}
+                {split && plugin.renderSide?.(game, ui)}
+              </div>
+              <div className="kid-log kid-pane-log">
+                <h3>Action log</h3>
+                <ActionLog history={game.history} actorStyle={plugin.seatStyle} />
+              </div>
+            </div>
+          </div>
         </>
       )}
     </section>

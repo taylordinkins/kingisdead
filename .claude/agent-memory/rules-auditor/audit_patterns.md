@@ -94,8 +94,36 @@ Server/UI audit patterns (first seen Phase 3 close, 2026-10-31):
   Recipe: random games (800 in ~1 min) asserting last step "remaining" == winners, plus hand-made
   terminal states (mutate fields on a cloned terminal state) for rank-2 undefined and the
   all-None hand-empty share. Random games never reach rank-2 undefined, so construct it.
+- **Built terminal states that never reach the step they name** (Phase 4 unit 6, 2026-10-31): the
+  "rank-2 undefined" test mutated regions on a random terminal state but kept its courts, so rank 1
+  decided outright and the skip was shape-only. For each built state, print the step chain and
+  check the target step has tied_before > 1. Also check built recent-win against R-303: if all 8
+  regions are controlled, some faction's recent-win must be 8 (fixtures used 7 / 5).
+- **Per-step UI wording that states the final result early**: "share the win" was printed on every
+  step whose remaining set equals the final winners, not only the deciding step (R-404 shares only
+  after step 3). Check outcome text is step-local.
 - **Back/rewind built by truncating and replaying with full legality checks cannot bypass the
   undo block** (B* is rebuilt by replay); confirm `_load` validates every action, then stop there.
+
+Board/editor audit patterns (first seen Phase 4 close, 2026-10-31):
+
+- **Phase-gated view fields leak stale values.** The adapter exposed `pending.neg_first` with
+  `phase >= PHASE_NEG_SECOND`, so PHASE_SWAP (7) showed "Negotiation first region: Moray" on every
+  Manoeuvre/Outmanoeuvre. Probe: random games, at each phase assert every pending field is null
+  outside the phases that own it. Check `>=`/`<` gating against the phase enum order.
+- **Terminal-state displays keep "next" cues.** "Struggle k+1 of 8" and a NEXT badge stayed on an
+  invasion-ended board (R-400). Check every progress indicator against is_terminal.
+- **Seat numbering drift.** Editor said "Player 1/Seat 1" (1-based) while board, log and spec use
+  P0 (R-014). Check numbering consistency wherever the user mirrors a physical table.
+- **Hook tests that pass their own predicate.** useGame tests supplied an AUTO predicate instead of
+  the plugin's `autoAdvance`, so the real R-106 predicate was untested. Check the shipped function is
+  what the test exercises.
+- **TS-port differential recipe (worked, 0/1500 mismatches):** Python generator in the scratchpad
+  (random TURN_START snapshots -> state JSON + 1-2 random field mutations, verdict from
+  `load_scenario`), then a temporary `web/src/editor/__auditdiff.test.ts` (vitest only collects
+  under src) that reads the scratch JSON, compares accept/reject and V-code, and is deleted after.
+  Option-A setup loading (load_scenario) was also checked equal to the SCENARIOS §2 chance sequence
+  (vars(), observation, legal actions) on setup_basic + 40 random setups.
 
 **Why:** these recur because spec authors reason from the card text locally and companion docs
 paraphrase the spec.
