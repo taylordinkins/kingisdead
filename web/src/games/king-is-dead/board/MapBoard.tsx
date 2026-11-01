@@ -7,6 +7,10 @@ export interface MapBoardProps {
   v: KidView;
   /** Hook for click-to-act (unit 4); defaults to no-op and regions stay non-interactive. */
   onRegionClick?: (region: number) => void;
+  /** Regions that accept a click; when omitted every region does (if onRegionClick is set). */
+  clickableRegions?: ReadonlySet<number>;
+  /** Accessible name of the click action for a region (the action label). */
+  regionActionLabel?: (region: number) => string | undefined;
   /** Regions to draw with a highlight ring (e.g. legal targets). */
   highlightRegions?: ReadonlySet<number>;
   /** Region cross-highlighted (hovered action or card); drawn with a gold ring on map and track. */
@@ -18,7 +22,7 @@ const TRACK_Y = 652;
 const CARD_W = 114;
 const CARD_H = 116;
 const CARD_PITCH = 122;
-const VIEW_H = TRACK_Y + CARD_H + 16;
+export const VIEW_H = TRACK_Y + CARD_H + 16;
 
 const SERIF = "Georgia, 'Palatino Linotype', 'Book Antiqua', 'Times New Roman', serif";
 
@@ -41,6 +45,9 @@ const STYLE = `
 .kid-region[role=button]{cursor:pointer}
 .kid-region[role=button]:hover path.kid-fill{filter:brightness(1.07)}
 .kid-region:focus-visible path.kid-outline{stroke:var(--gold);stroke-width:4}
+.kid-region:focus,.kid-click:focus{outline:none}
+.kid-click{cursor:pointer}
+.kid-click:focus-visible rect{stroke:var(--gold);stroke-width:7}
 `;
 
 const TERRAINS = ["highland", "moor", "hill", "plain", "marsh", "coast"] as const;
@@ -172,6 +179,7 @@ function RegionView({
   slot,
   onClick,
   onHover,
+  actionLabel,
 }: {
   shape: RegionShape;
   v: KidView;
@@ -181,6 +189,7 @@ function RegionView({
   slot: number | undefined;
   onClick?: (region: number) => void;
   onHover?: (region: number | null) => void;
+  actionLabel?: string;
 }): ReactNode {
   const r = v.regions[shape.index];
   if (!r) return null;
@@ -212,7 +221,7 @@ function RegionView({
       onMouseEnter={onHover ? () => onHover(shape.index) : undefined}
       onMouseLeave={onHover ? () => onHover(null) : undefined}
       role={interactive ? "button" : "group"}
-      aria-label={label}
+      aria-label={interactive && actionLabel ? `${actionLabel}. ${label}` : label}
       tabIndex={interactive ? 0 : undefined}
       onClick={interactive ? () => onClick(shape.index) : undefined}
       onKeyDown={interactive ? key : undefined}
@@ -289,6 +298,7 @@ function TrackCard({
   hovered,
   onHover,
   onClick,
+  actionLabel,
 }: {
   t: TrackSlot;
   v: KidView;
@@ -297,6 +307,7 @@ function TrackCard({
   hovered: boolean;
   onHover?: (region: number | null) => void;
   onClick?: (region: number) => void;
+  actionLabel?: string;
 }): ReactNode {
   const x = 12 + t.slot * CARD_PITCH;
   const name = t.region === null ? "?" : (v.regions[t.region]?.name ?? `Region ${t.region}`);
@@ -304,8 +315,12 @@ function TrackCard({
   const discs = t.discs.map((p) => `P${p}`).join(", ");
   const label = `Slot ${t.slot + 1}: ${name}, ${state}${discs ? `, negotiation discs: ${discs}` : ""}`;
   const cx = x + CARD_W / 2;
+  const clickable = onClick !== undefined && highlighted && t.region !== null;
+  const region = t.region;
   return (
-    <g data-testid={`track-slot-${t.slot}`} data-face-down={t.face_down ? "true" : "false"} data-current={current ? "true" : undefined} role="group" aria-label={label} data-highlighted={highlighted ? "true" : undefined} data-hover={hovered ? "true" : undefined}
+    <g className={clickable ? "kid-click" : undefined} data-testid={`track-slot-${t.slot}`} data-face-down={t.face_down ? "true" : "false"} data-current={current ? "true" : undefined} role={clickable ? "button" : "group"} aria-label={clickable && actionLabel ? `${actionLabel}. ${label}` : label}
+      tabIndex={clickable ? 0 : undefined}
+      onKeyDown={clickable ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(region as number); } } : undefined} data-highlighted={highlighted ? "true" : undefined} data-hover={hovered ? "true" : undefined}
       onMouseEnter={onHover && t.region !== null ? () => onHover(t.region) : undefined}
       onMouseLeave={onHover ? () => onHover(null) : undefined}
       onClick={onClick && highlighted && t.region !== null ? () => onClick(t.region as number) : undefined}
@@ -364,7 +379,7 @@ function AssembleBanner({ v }: { v: KidView }): ReactNode {
   );
 }
 
-export function MapBoard({ v, onRegionClick, highlightRegions, hoverRegion = null, onHoverRegion }: MapBoardProps) {
+export function MapBoard({ v, onRegionClick, clickableRegions, regionActionLabel, highlightRegions, hoverRegion = null, onHoverRegion }: MapBoardProps) {
   const next = v.track.find((t) => !t.face_down);
   const currentSlot = next ? next.slot : -1;
   const currentRegion = next?.region ?? -1;
@@ -396,8 +411,9 @@ export function MapBoard({ v, onRegionClick, highlightRegions, hoverRegion = nul
           highlighted={highlightRegions?.has(s.index) ?? false}
           hovered={hoverRegion === s.index}
           slot={slotOf.get(s.index)}
-          onClick={onRegionClick}
+          onClick={onRegionClick && (clickableRegions?.has(s.index) ?? true) ? onRegionClick : undefined}
           onHover={onHoverRegion}
+          actionLabel={regionActionLabel?.(s.index)}
         />
       ))}
       <Roads />
@@ -427,6 +443,7 @@ export function MapBoard({ v, onRegionClick, highlightRegions, hoverRegion = nul
           hovered={t.region !== null && hoverRegion === t.region}
           onHover={onHoverRegion}
           onClick={onRegionClick}
+          actionLabel={t.region === null ? undefined : regionActionLabel?.(t.region)}
         />
       ))}
     </svg>

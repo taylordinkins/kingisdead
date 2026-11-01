@@ -10,6 +10,9 @@ const STYLE = `
 .kid-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:3px 0}
 .kid-lbl{font-size:.8em;opacity:.8;min-width:3.5em}
 .kid-chip{display:inline-flex;align-items:center;gap:3px;border:1px solid #9b7f4b;border-radius:12px;padding:0 6px;font-size:.85em}
+button.kid-chip{background:inherit;color:inherit;font:inherit;font-size:.85em;cursor:pointer;border-color:#d99a00;border-width:2px}
+button.kid-chip:hover{background:rgba(217,154,0,.25)}
+button.kid-chip:focus-visible{outline:3px solid #d99a00;outline-offset:2px}
 `;
 
 function Count({ faction, n, name }: { faction: number; n: number; name: string }): ReactNode {
@@ -39,7 +42,18 @@ export function Disc({ player, size = 24 }: { player: number; size?: number }): 
 }
 
 /** Per-seat court, hand and negotiation disc, plus the shared supply. */
-export function Players({ v }: { v: KidView }): ReactNode {
+export function Players({
+  v,
+  playable,
+  playableSeat,
+  onPlayCard,
+}: {
+  v: KidView;
+  /** Card id (as in the hand map) -> legal play action; only for the seat `playableSeat`. */
+  playable?: ReadonlyMap<string, { id: number; label: string }>;
+  playableSeat?: number | null;
+  onPlayCard?: (actionId: number) => void;
+}): ReactNode {
   const fnames = v.faction_names;
   const seats = Array.from({ length: v.num_players }, (_, p) => p);
   const cardName = (id: string): string => v.card_names[id] ?? `Card ${id}`;
@@ -79,12 +93,25 @@ export function Players({ v }: { v: KidView }): ReactNode {
             <div className="kid-row" role="group" aria-label={`P${p} hand`}>
               <span className="kid-lbl">Hand</span>
               {hand.length === 0 && <span>empty</span>}
-              {hand.map(([c, n]) => (
-                <span className="kid-chip" key={c}>
-                  {cardName(c)}
-                  {n > 1 ? ` ×${n}` : ""}
-                </span>
-              ))}
+              {hand.map(([c, n]) => {
+                const text = `${cardName(c)}${n > 1 ? ` ×${n}` : ""}`;
+                const act = p === playableSeat && onPlayCard ? playable?.get(c) : undefined;
+                return act ? (
+                  <button
+                    type="button"
+                    className="kid-chip"
+                    key={c}
+                    aria-label={act.label}
+                    onClick={() => onPlayCard?.(act.id)}
+                  >
+                    {text}
+                  </button>
+                ) : (
+                  <span className="kid-chip" key={c}>
+                    {text}
+                  </span>
+                );
+              })}
             </div>
             <div className="kid-row" role="group" aria-label={`P${p} negotiation disc`}>
               <span className="kid-lbl">Disc</span>

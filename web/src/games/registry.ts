@@ -6,6 +6,10 @@ import { kingIsDeadPlugin } from "./king-is-dead/plugin";
 export interface BoardUi {
   /** Id of the legal action currently hovered/focused in the action list. */
   hoverAction: number | null;
+  /** True only on a human seat's turn when no request is in flight and no bot is thinking. */
+  canAct?: boolean;
+  /** Submit a legal action by id (same path as the action list). */
+  onAct?: (actionId: number) => void;
 }
 
 export interface GamePlugin {

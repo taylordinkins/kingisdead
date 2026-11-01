@@ -138,7 +138,11 @@ export default function GameScreen({
             {exportError && <p role="alert">Export error: {exportError}</p>}
           </div>
           {reporting && <ReportDialog gameId={gameId} onClose={() => setReporting(false)} />}
-          {(renderBoard ?? getPlugin(game.game).renderBoard)(game, { hoverAction })}
+          {(renderBoard ?? getPlugin(game.game).renderBoard)(game, {
+            hoverAction,
+            canAct: !over && humanTurn && !busy,
+            onAct: (id) => void act(id),
+          })}
           <h3>Action log</h3>
           <ActionLog history={game.history} />
           {!over && humanTurn && (

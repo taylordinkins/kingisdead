@@ -1,6 +1,8 @@
 import { useState, type ReactNode } from "react";
-import type { GameView } from "../../shell/useGame";
-import { MapBoard } from "./board/MapBoard";
+import type { GameView, LegalAction } from "../../shell/useGame";
+import { MapBoard, VIEW_H } from "./board/MapBoard";
+import { REGION_SHAPES } from "./board/geometry";
+import { factionStyle } from "./board/factions";
 import { Players } from "./board/Players";
 import { parseKidView, type KidView, type ScoringStep } from "./types";
 
@@ -70,17 +72,125 @@ function Header({ v, fname, cardName }: { v: KidView; fname: Fname; cardName: (i
   );
 }
 
+export interface ClickToAct {
+  /** Legal actions the viewer may submit right now (empty/absent when not their turn). */
+  actions: LegalAction[];
+  onAct: (actionId: number) => void;
+  labelFor?: (a: LegalAction) => string;
+}
+
+function RegionChooser({
+  v,
+  region,
+  actions,
+  labelFor,
+  onPick,
+  onClose,
+}: {
+  v: KidView;
+  region: number;
+  actions: LegalAction[];
+  labelFor: (a: LegalAction) => string;
+  onPick: (id: number) => void;
+  onClose: () => void;
+}) {
+  const shape = REGION_SHAPES[region];
+  const name = v.regions[region]?.name ?? `Region ${region}`;
+  const [cx, cy] = shape ? shape.centre : [500, 300];
+  return (
+    <div
+      role="group"
+      aria-label={`Choose an action in ${name}`}
+      data-testid="region-chooser"
+      onKeyDown={(e) => {
+        if (e.key === "Escape") onClose();
+      }}
+      style={{
+        position: "absolute",
+        left: `${Math.min(Math.max((cx / 1000) * 100, 12), 88)}%`,
+        top: `${(cy / VIEW_H) * 100}%`,
+        transform: "translate(-50%, 0)",
+        display: "flex",
+        flexWrap: "wrap",
+        gap: 4,
+        justifyContent: "center",
+        padding: 6,
+        borderRadius: 10,
+        background: "var(--card, #f7efdc)",
+        border: "2px solid #d99a00",
+        boxShadow: "0 3px 10px rgba(0,0,0,.4)",
+        zIndex: 5,
+      }}
+    >
+      {actions.map((a) => {
+        const st = a.faction != null ? factionStyle(a.faction) : null;
+        return (
+          <button
+            type="button"
+            key={a.id}
+            autoFocus={a === actions[0]}
+            onClick={() => onPick(a.id)}
+            style={{
+              background: st?.fill,
+              color: st?.ink,
+              border: `2px solid ${st?.stroke ?? "#444"}`,
+              borderRadius: 8,
+              padding: "4px 8px",
+              cursor: "pointer",
+              font: "inherit",
+            }}
+          >
+            {labelFor(a)}
+          </button>
+        );
+      })}
+      <button type="button" onClick={onClose} aria-label="Cancel choice">
+        ×
+      </button>
+    </div>
+  );
+}
+
 export function KidBoard({
   v,
   legalRegions,
   hoverRegionFromAction = null,
+  click,
 }: {
+  click?: ClickToAct;
   v: KidView;
   /** Regions targeted by the legal actions available to the viewer. */
   legalRegions?: ReadonlySet<number>;
   hoverRegionFromAction?: number | null;
 }) {
   const [cardHover, setCardHover] = useState<number | null>(null);
+  const [choosing, setChoosing] = useState<number | null>(null);
+  const clickable = click?.actions ?? [];
+  const labelFor = (a: LegalAction): string => click?.labelFor?.(a) ?? a.label;
+  const byRegion = new Map<number, LegalAction[]>();
+  const playable = new Map<string, { id: number; label: string }>();
+  for (const a of clickable) {
+    if ((a.kind === "region" || a.kind === "follower") && a.region != null) {
+      byRegion.set(a.region, [...(byRegion.get(a.region) ?? []), a]);
+    } else if (a.kind === "play" && a.card != null) {
+      playable.set(String(a.card), { id: a.id, label: labelFor(a) });
+    }
+  }
+  const submit = (id: number) => {
+    setChoosing(null);
+    click?.onAct(id);
+  };
+  const onRegionClick = (r: number) => {
+    const as = byRegion.get(r) ?? [];
+    if (as.length === 1) submit(as[0]!.id);
+    else if (as.length > 1) setChoosing(r);
+  };
+  const regionLabel = (r: number): string | undefined => {
+    const as = byRegion.get(r);
+    if (!as) return undefined;
+    return as.length === 1 ? labelFor(as[0]!) : `Choose an action in ${v.regions[r]?.name ?? r}`;
+  };
+  const chooserActions = choosing === null ? [] : (byRegion.get(choosing) ?? []);
   const hover = cardHover ?? hoverRegionFromAction;
   const fname: Fname = (f) =>
     f === null ? "none" : (v.faction_names[f] ?? `Faction ${f}`);
@@ -94,13 +204,33 @@ export function KidBoard({
       <p>
         Regions resolved: {v.struggles_resolved} of {v.track.length}
       </p>
-      <MapBoard
+      <div style={{ position: "relative" }}>
+        <MapBoard
+          v={v}
+          highlightRegions={legalRegions}
+          hoverRegion={hover}
+          onHoverRegion={setCardHover}
+          onRegionClick={click ? onRegionClick : undefined}
+          clickableRegions={new Set(byRegion.keys())}
+          regionActionLabel={regionLabel}
+        />
+        {choosing !== null && chooserActions.length > 1 && (
+          <RegionChooser
+            v={v}
+            region={choosing}
+            actions={chooserActions}
+            labelFor={labelFor}
+            onPick={submit}
+            onClose={() => setChoosing(null)}
+          />
+        )}
+      </div>
+      <Players
         v={v}
-        highlightRegions={legalRegions}
-        hoverRegion={hover}
-        onHoverRegion={setCardHover}
+        playable={playable}
+        playableSeat={v.current_player}
+        onPlayCard={click ? submit : undefined}
       />
-      <Players v={v} />
       <Header v={v} fname={fname} cardName={cardName} />
 
       <h3>Power struggle track</h3>
@@ -230,9 +360,15 @@ export function KidBoard({
 export default function Board({
   game,
   hoverAction = null,
+  canAct = false,
+  onAct,
+  labelFor,
 }: {
   game: GameView;
   hoverAction?: number | null;
+  canAct?: boolean;
+  onAct?: (actionId: number) => void;
+  labelFor?: (a: LegalAction) => string;
 }) {
   let v: KidView;
   try {
@@ -245,9 +381,13 @@ export default function Board({
   const humanTurn =
     !game.is_terminal && game.current_player !== null && game.seats[game.current_player] === "human";
   const regionActions = (humanTurn ? game.legal_actions : []).filter(
-    (a) => a.kind === "region" && a.region != null,
+    (a) => (a.kind === "region" || a.kind === "follower") && a.region != null,
   );
   const legalRegions = new Set(regionActions.map((a) => a.region as number));
   const hovered = regionActions.find((a) => a.id === hoverAction)?.region ?? null;
-  return <KidBoard v={v} legalRegions={legalRegions} hoverRegionFromAction={hovered} />;
+  const click: ClickToAct | undefined =
+    humanTurn && canAct && onAct ? { actions: game.legal_actions, onAct, labelFor } : undefined;
+  return (
+    <KidBoard v={v} legalRegions={legalRegions} hoverRegionFromAction={hovered} click={click} />
+  );
 }
