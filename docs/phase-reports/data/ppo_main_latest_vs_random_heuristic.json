@@ -1,0 +1,49 @@
+{
+  "checkpoint": "runs/ppo-main/latest.pt",
+  "greedy": true,
+  "tie_convention": "shared win: k winners (max return) each get 1/k win; game counted in draws if k>1",
+  "git_commit": "12a1692106f5189a9bb26c192414890fb4b0645e",
+  "args": {
+    "checkpoint": "runs/ppo-main/latest.pt",
+    "opponents": "['random', 'heuristic']",
+    "games": "400",
+    "games_for": "[]",
+    "seed": "200",
+    "workers": "6",
+    "json": "docs/phase-reports/data/ppo_main_latest_vs_random_heuristic.json"
+  },
+  "results": [
+    {
+      "checkpoint": "runs/ppo-main/latest.pt",
+      "opponent": "random",
+      "games": 400,
+      "seed": 200,
+      "wins": 327.0,
+      "win_rate": 0.8175,
+      "ci95": [
+        0.7766862383008183,
+        0.8522732349183845
+      ],
+      "draws": 0,
+      "policy_mean_move_seconds": 0.00031773424370372475,
+      "opponent_mean_move_seconds": 5.332567673693255e-05,
+      "mean_plies": 81.2975
+    },
+    {
+      "checkpoint": "runs/ppo-main/latest.pt",
+      "opponent": "heuristic",
+      "games": 400,
+      "seed": 200,
+      "wins": 269.0,
+      "win_rate": 0.6725,
+      "ci95": [
+        0.6250574069613036,
+        0.7166607320318065
+      ],
+      "draws": 0,
+      "policy_mean_move_seconds": 0.000313242779784785,
+      "opponent_mean_move_seconds": 0.0013004676198067543,
+      "mean_plies": 81.5775
+    }
+  ]
+}

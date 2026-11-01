@@ -1,0 +1,33 @@
+{
+  "checkpoint": "runs/ppo-main/latest.pt",
+  "greedy": true,
+  "tie_convention": "shared win: k winners (max return) each get 1/k win; game counted in draws if k>1",
+  "git_commit": "12a1692106f5189a9bb26c192414890fb4b0645e",
+  "args": {
+    "checkpoint": "runs/ppo-main/latest.pt",
+    "opponents": "['mcts:100']",
+    "games": "100",
+    "games_for": "[]",
+    "seed": "201",
+    "workers": "6",
+    "json": "docs/phase-reports/data/ppo_main_latest_vs_mcts100.json"
+  },
+  "results": [
+    {
+      "checkpoint": "runs/ppo-main/latest.pt",
+      "opponent": "mcts:100",
+      "games": 100,
+      "seed": 201,
+      "wins": 42.0,
+      "win_rate": 0.42,
+      "ci95": [
+        0.327982249185113,
+        0.5179369200110473
+      ],
+      "draws": 0,
+      "policy_mean_move_seconds": 0.0003679294881667764,
+      "opponent_mean_move_seconds": 0.43254498821601356,
+      "mean_plies": 83.24
+    }
+  ]
+}
