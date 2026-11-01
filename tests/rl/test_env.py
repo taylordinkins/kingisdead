@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import random
+import subprocess
 import sys
 
 import numpy as np
@@ -32,7 +33,9 @@ def _playout(n: int, seed: int, policy_seed: int = 0, check: bool = True):
 
 
 def test_no_torch_imported():
-    assert "torch" not in sys.modules
+    # Fresh interpreter: torch tests in the same session legitimately import torch.
+    code = "import sys, kingisdead.rl.env; sys.exit('torch' in sys.modules)"
+    assert subprocess.run([sys.executable, "-c", code], check=False).returncode == 0
 
 
 @pytest.mark.parametrize("n", [2, 3])

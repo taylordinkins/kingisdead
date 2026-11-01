@@ -332,7 +332,7 @@ Tasks (approved 2026-10-31; branch `phase-5/bots`):
 
 Tasks (approved 2026-11-01; branch `phase-6/trained-policies`). Interview: spike both algorithms and decide on data; hours of local GPU (RTX 3080, 12 cores, 7 GB RAM) per run, no C++ port; torch is an optional dependency group. No rule behaviour, so `implementer` writes the tests.
 - [x] 1. Training deps and RL environment: optional `train` group, state-to-tensor features, fixed action space with masks, self-play env handling chance nodes → `pyproject.toml`, `kingisdead/rl/env.py`, `tests/rl/`
-- [ ] 2. Network and checkpoints: masked policy/value net, CPU inference, save/load with metadata, git-ignored `runs/`, committed `models/` → `kingisdead/rl/net.py`, `kingisdead/rl/checkpoint.py`
+- [x] 2. Network and checkpoints: masked policy/value net, CPU inference, save/load with metadata, git-ignored `runs/`, committed `models/` → `kingisdead/rl/net.py`, `kingisdead/rl/checkpoint.py`
 - [ ] 3. Spike A: PPO self-play, time-boxed, evaluated vs random/heuristic → `tools/train_ppo.py`, `kingisdead/rl/ppo.py`, `docs/phase-reports/phase-6-spike-ppo.md`
 - [ ] 4. Spike B: AlphaZero (OpenSpiel PyTorch or thin own loop), time-boxed, same evaluation → `tools/train_az.py`, `kingisdead/rl/az.py`, `docs/phase-reports/phase-6-spike-az.md`
 - [ ] 5. ✋ Decision checkpoint: compare spikes, user picks algorithm, log D33, close §9 item → `PLAN.md`
