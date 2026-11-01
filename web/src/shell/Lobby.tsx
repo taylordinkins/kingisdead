@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { api } from "../api/client";
+import { SEAT_PRESETS } from "./seatTypes";
 import type { SeatType } from "./useGame";
 
 interface Props {
@@ -62,8 +63,11 @@ export default function Lobby({ onCreated, onOpenEditor }: Props) {
                 setSeats(seats.map((x, j) => (j === i ? (e.target.value as SeatType) : x)))
               }
             >
-              <option value="human">human</option>
-              <option value="random">random</option>
+              {SEAT_PRESETS.map((p) => (
+                <option key={p.value} value={p.value}>
+                  {p.label}
+                </option>
+              ))}
             </select>
           </label>
         </div>

@@ -319,7 +319,7 @@ Tasks (approved 2026-10-31; branch `phase-5/bots`):
 - [x] 2. MCTS bot (OpenSpiel `MCTSBot`, thin wrapper) + parameterised seat types `mcts:N`, `heuristic`; schema validation → `kingisdead/bots/mcts.py`, `server/bots.py`, `server/schemas.py`
 - [x] 3. Bot moves off the session lock (D28): background task, stale-move invalidation on Back/Rewind/human action → `server/sessions.py`, `server/app.py`
 - [x] 4. `tools/tournament.py` (seat rotation, win rate with Wilson CI, JSON output, seeded) → `tools/`
-- [ ] 5. Lobby/UI: heuristic and MCTS strength presets, named thinking indicator, regenerate API schema → `web/src/shell/`
+- [x] 5. Lobby/UI: heuristic and MCTS strength presets, named thinking indicator, regenerate API schema → `web/src/shell/`
 - [ ] 6. Strength validation (slow test + recorded tournament, MCTS vs random and vs heuristic) → `tests/bots/test_strength_slow.py`, `docs/phase-reports/`
 - [ ] 7. Playwright vs heuristic and `mcts:20`; `CLAUDE.md` bot notes; tick §5.8 → `web/e2e/`, `CLAUDE.md`
 - Note: if MCTS is too slow or weak, swap the rollout evaluator (e.g. heuristic rollouts) rather than rewriting the search.

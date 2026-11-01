@@ -77,7 +77,7 @@ test("click-through game on the board vs random bot", async ({ page }) => {
 
     if (moves === 6 && !backChecked) {
       // Back undoes to the previous human decision point: history length must shrink.
-      await expect(page.getByText(/Bot is thinking/)).toHaveCount(0, { timeout: 10_000 });
+      await expect(page.getByText(/is thinking/)).toHaveCount(0, { timeout: 10_000 });
       const len = (await log.innerText()).length;
       await page.getByRole("button", { name: "Back" }).click();
       await expect(async () => {

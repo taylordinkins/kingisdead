@@ -7,6 +7,7 @@ import { getPlugin, type BoardUi } from "../games/registry";
 import ReportDialog from "./ReportDialog";
 import TabBar, { type ScreenTab } from "./TabBar";
 import YourMove from "./YourMove";
+import { thinkingText } from "./seatTypes";
 import {
   errorText,
   currentPlayer,
@@ -53,7 +54,7 @@ export default function GameScreen({
   onImported,
 }: Props) {
   const [gameName, setGameName] = useState("");
-  const { game, error, busy, act, goBack, rewind, botThinking, autoNote } = useGame(
+  const { game, error, busy, act, goBack, rewind, refresh, botThinking, autoNote } = useGame(
     gameId,
     pollMs,
     { autoAdvance: getPlugin(gameName).autoAdvance },
@@ -153,7 +154,26 @@ export default function GameScreen({
             </div>
             <div className="kid-side">
               <div className="kid-pane-play">
-                {botThinking && <p role="status">Bot is thinking…</p>}
+                {botThinking && cp !== null && (
+                  <p role="status">{thinkingText(game.seats[cp] ?? "", cp)}</p>
+                )}
+                {game.bot_error && !over && (
+                  <div role="alert">
+                    Bot error: {game.bot_error}{" "}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        void api
+                          .POST("/api/games/{game_id}/bots/retry", {
+                            params: { path: { game_id: gameId } },
+                          })
+                          .then(() => refresh())
+                      }
+                    >
+                      Retry
+                    </button>
+                  </div>
+                )}
                 {autoNote && !over && <p role="status">{autoNote} (only legal action)</p>}
                 {over ? (
                   <div aria-label="Game over">
