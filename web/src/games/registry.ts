@@ -14,6 +14,8 @@ export interface BoardUi {
 
 export interface GamePlugin {
   id: string;
+  /** Submit automatically when a human seat has exactly one legal action. */
+  autoAdvanceForced?: boolean;
   title: string;
   renderBoard(game: GameView, ui?: BoardUi): ReactNode;
   /** Optional richer label for an action button; must not change the action id. */

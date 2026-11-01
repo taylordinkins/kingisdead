@@ -7,6 +7,7 @@ import { tryParseKidView } from "./types";
 export const kingIsDeadPlugin: GamePlugin = {
   id: "king_is_dead",
   title: "The King is Dead",
+  autoAdvanceForced: true, // R-106: empty-hand PASS is submitted automatically
   renderBoard: (g, ui) => createElement(Board, { game: g, 
       hoverAction: ui?.hoverAction ?? null,
       canAct: ui?.canAct ?? false,

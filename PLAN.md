@@ -303,7 +303,7 @@ Task list (approved 2026-10-31, branch `phase-4/board-ui-setup-editor`). Decisio
 - [x] 2. Board geometry and static SVG: attractive original map, region states, region-card track and discs; follower type shown in Assemble (report 20261031T232540) → `web/src/games/king-is-dead/board/`
 - [x] 3. Courts, hands, supply, negotiation discs; card positions clear (report 20261031T232657) → `web/src/games/king-is-dead/`
 - [x] 4. Click-to-act on the board, action list as fallback → `web/src/games/king-is-dead/`, shell hooks
-- [ ] 5. Forced-single-action auto-advance (R-106 empty-hand PASS), stale-poll fix, R-403 rank wording → `web/src/shell/useGame.ts`, board
+- [x] 5. Forced-single-action auto-advance (R-106 empty-hand PASS), stale-poll fix, R-403 rank wording → `web/src/shell/useGame.ts`, board
 - [ ] 6. Scoring breakdown panel, chance labels in the log (adapter hook), history panel polish → `server/adapters/kingisdead.py`, `web/`
 - [ ] 7. Setup editor model and live V1–V11 validation → `web/src/editor/`
 - [ ] 8. Setup editor UI (mirror a physical table, `setup` and `state` kinds, import/export, start playing) → `web/src/editor/`, `Lobby.tsx`

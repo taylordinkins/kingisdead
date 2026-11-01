@@ -4,6 +4,7 @@ import { MapBoard, VIEW_H } from "./board/MapBoard";
 import { REGION_SHAPES } from "./board/geometry";
 import { factionStyle } from "./board/factions";
 import { Players } from "./board/Players";
+import { rankingText } from "./ranking";
 import { parseKidView, type KidView, type ScoringStep } from "./types";
 
 type Fname = (f: number | null) => string;
@@ -309,7 +310,7 @@ export function KidBoard({
             <>
               <h4>Scoring breakdown ({sc.mode})</h4>
               {sc.faction_ranking && (
-                <p>Faction ranking: {sc.faction_ranking.map(fname).join(" > ")}</p>
+                <p>Faction ranking: {rankingText(sc.faction_ranking, fname)}</p>
               )}
               {sc.regions_controlled && (
                 <p>

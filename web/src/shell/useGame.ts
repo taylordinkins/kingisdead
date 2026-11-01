@@ -29,12 +29,29 @@ export function errorText(error: unknown): string {
   return typeof error === "string" ? error : "Request failed";
 }
 
-export function useGame(gameId: string, poll: PollIntervals = DEFAULT_POLL) {
+export interface GameOptions {
+  /** Auto-submit when a human seat has exactly one legal action. */
+  autoAdvanceForced?: boolean;
+  /** ms to wait before auto-submitting (default 300). */
+  autoAdvanceDelay?: number;
+}
+
+export function useGame(
+  gameId: string,
+  poll: PollIntervals = DEFAULT_POLL,
+  options: GameOptions = {},
+) {
+  const { autoAdvanceForced = false, autoAdvanceDelay = 300 } = options;
   const [game, setGame] = useState<GameView | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [pollTick, setPollTick] = useState(0);
+  const [autoNote, setAutoNote] = useState<string | null>(null);
   const busyRef = useRef(false);
   const alive = useRef(true);
+  /** Bumped on every local mutation; poll responses started earlier are dropped. */
+  const mutation = useRef(0);
+  const lastAuto = useRef<string | null>(null);
 
   useEffect(() => {
     alive.current = true;
@@ -45,11 +62,12 @@ export function useGame(gameId: string, poll: PollIntervals = DEFAULT_POLL) {
 
   const refresh = useCallback(async () => {
     if (busyRef.current) return;
+    const started = mutation.current;
     try {
       const { data, error: err } = await api.GET("/api/games/{game_id}", {
         params: { path: { game_id: gameId } },
       });
-      if (!alive.current || busyRef.current) return;
+      if (!alive.current || busyRef.current || mutation.current !== started) return;
       if (data) {
         setGame(data);
         setError(null);
@@ -57,13 +75,18 @@ export function useGame(gameId: string, poll: PollIntervals = DEFAULT_POLL) {
         setError(errorText(err));
       }
     } catch (e) {
-      if (alive.current) setError(e instanceof Error ? e.message : "Network error");
+      if (alive.current && mutation.current === started)
+        setError(e instanceof Error ? e.message : "Network error");
+    } finally {
+      // Re-arm polling even when state/error did not change (identical errors).
+      if (alive.current) setPollTick((n) => n + 1);
     }
   }, [gameId]);
 
   const run = useCallback(async (call: () => Promise<{ data?: GameView; error?: unknown }>) => {
     if (busyRef.current) return;
     busyRef.current = true;
+    mutation.current += 1;
     setBusy(true);
     try {
       const { data, error: err } = await call();
@@ -77,6 +100,7 @@ export function useGame(gameId: string, poll: PollIntervals = DEFAULT_POLL) {
     } catch (e) {
       if (alive.current) setError(e instanceof Error ? e.message : "Network error");
     } finally {
+      mutation.current += 1;
       busyRef.current = false;
       if (alive.current) setBusy(false);
     }
@@ -131,7 +155,35 @@ export function useGame(gameId: string, poll: PollIntervals = DEFAULT_POLL) {
     if (game === null || done) return;
     const t = setTimeout(() => void refresh(), interval);
     return () => clearTimeout(t);
-  }, [game, done, interval, refresh, error]);
+  }, [game, done, interval, refresh, error, pollTick]);
 
-  return { game, error, busy, act, goBack, rewind, refresh, botThinking: !!game?.bot_thinking && !done };
+  // Forced-move auto-advance: one legal action on a human seat's turn.
+  useEffect(() => {
+    if (!autoAdvanceForced || game === null || done || busy) return;
+    const cp = currentPlayer(game);
+    if (cp === null || game.seats[cp] !== "human" || game.bot_thinking) return;
+    const legal = legalActions(game);
+    if (legal.length !== 1) return;
+    const only = legal[0]!;
+    const key = `${game.id}:${game.history_length}:${only.id}`;
+    if (lastAuto.current === key) return; // already tried for this state; no loops
+    const t = setTimeout(() => {
+      lastAuto.current = key;
+      setAutoNote(`Auto-played: ${only.label}`);
+      void act(only.id);
+    }, autoAdvanceDelay);
+    return () => clearTimeout(t);
+  }, [game, done, busy, autoAdvanceForced, autoAdvanceDelay, act]);
+
+  return {
+    game,
+    error,
+    busy,
+    act,
+    goBack,
+    rewind,
+    refresh,
+    autoNote,
+    botThinking: !!game?.bot_thinking && !done,
+  };
 }

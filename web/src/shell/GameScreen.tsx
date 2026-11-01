@@ -50,7 +50,13 @@ export default function GameScreen({
   onExit,
   onImported,
 }: Props) {
-  const { game, error, busy, act, goBack, rewind, botThinking } = useGame(gameId, pollMs);
+  const [gameName, setGameName] = useState("");
+  const { game, error, busy, act, goBack, rewind, botThinking, autoNote } = useGame(
+    gameId,
+    pollMs,
+    { autoAdvanceForced: getPlugin(gameName).autoAdvanceForced ?? false },
+  );
+  if (game && game.game !== gameName) setGameName(game.game);
   const [hoverAction, setHoverAction] = useState<number | null>(null);
   const [reporting, setReporting] = useState(false);
   const [rewindTo, setRewindTo] = useState("0");
@@ -76,6 +82,7 @@ export default function GameScreen({
             Game {game.id} · seats: {game.seats.join(", ")} · seed {game.seed}
           </p>
           {botThinking && <p role="status">Bot is thinking…</p>}
+          {autoNote && !over && <p role="status">{autoNote} (only legal action)</p>}
           {over ? (
             <div aria-label="Game over">
               <h2>Game over</h2>
