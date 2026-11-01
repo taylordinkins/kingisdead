@@ -30,8 +30,8 @@ export function errorText(error: unknown): string {
 }
 
 export interface GameOptions {
-  /** Auto-submit when a human seat has exactly one legal action. */
-  autoAdvanceForced?: boolean;
+  /** Auto-submit the sole legal action on a human turn when this returns true. */
+  autoAdvance?: (action: LegalAction, legal: LegalAction[]) => boolean;
   /** ms to wait before auto-submitting (default 300). */
   autoAdvanceDelay?: number;
 }
@@ -41,7 +41,7 @@ export function useGame(
   poll: PollIntervals = DEFAULT_POLL,
   options: GameOptions = {},
 ) {
-  const { autoAdvanceForced = false, autoAdvanceDelay = 300 } = options;
+  const { autoAdvance, autoAdvanceDelay = 300 } = options;
   const [game, setGame] = useState<GameView | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -159,12 +159,13 @@ export function useGame(
 
   // Forced-move auto-advance: one legal action on a human seat's turn.
   useEffect(() => {
-    if (!autoAdvanceForced || game === null || done || busy) return;
+    if (!autoAdvance || game === null || done || busy) return;
     const cp = currentPlayer(game);
     if (cp === null || game.seats[cp] !== "human" || game.bot_thinking) return;
     const legal = legalActions(game);
     if (legal.length !== 1) return;
     const only = legal[0]!;
+    if (!autoAdvance(only, legal)) return;
     const key = `${game.id}:${game.history_length}:${only.id}`;
     if (lastAuto.current === key) return; // already tried for this state; no loops
     const t = setTimeout(() => {
@@ -173,7 +174,7 @@ export function useGame(
       void act(only.id);
     }, autoAdvanceDelay);
     return () => clearTimeout(t);
-  }, [game, done, busy, autoAdvanceForced, autoAdvanceDelay, act]);
+  }, [game, done, busy, autoAdvance, autoAdvanceDelay, act]);
 
   return {
     game,

@@ -25,7 +25,7 @@ function view(over: Partial<GameView> = {}): GameView {
     dev_mode: false,
     current_player: 0,
     is_terminal: false,
-    legal_actions: [{ id: 9, label: "Pass" }],
+    legal_actions: [{ id: 9, label: "Pass", kind: "pass" }],
     returns: null,
     winners: null,
     view: {},
@@ -38,7 +38,10 @@ beforeEach(() => {
   POST.mockReset();
 });
 
-const AUTO = { autoAdvanceForced: true, autoAdvanceDelay: 30 };
+const AUTO = {
+  autoAdvance: (a: { kind?: string | null }) => a.kind === "pass",
+  autoAdvanceDelay: 30,
+};
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 describe("auto-advance", () => {
@@ -84,6 +87,16 @@ describe("auto-advance", () => {
     GET.mockResolvedValue({ data: view() });
     {
       const h = renderHook(() => useGame("g1", POLL, { autoAdvanceDelay: 30 }));
+      await sleep(120);
+      h.unmount();
+    }
+    expect(POST).not.toHaveBeenCalled();
+  });
+
+  it("does not auto-play a lone region, follower or play", async () => {
+    for (const kind of ["region", "follower", "play"]) {
+      GET.mockResolvedValue({ data: view({ legal_actions: [{ id: 3, label: "X", kind }] }) });
+      const h = renderHook(() => useGame("g1", POLL, AUTO));
       await sleep(120);
       h.unmount();
     }

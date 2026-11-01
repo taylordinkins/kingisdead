@@ -14,8 +14,8 @@ export interface BoardUi {
 
 export interface GamePlugin {
   id: string;
-  /** Submit automatically when a human seat has exactly one legal action. */
-  autoAdvanceForced?: boolean;
+  /** Whether the sole legal action on a human turn should be submitted automatically. */
+  autoAdvance?(action: LegalAction, legalActions: LegalAction[]): boolean;
   title: string;
   renderBoard(game: GameView, ui?: BoardUi): ReactNode;
   /** Optional richer label for an action button; must not change the action id. */

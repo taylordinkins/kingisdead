@@ -54,7 +54,7 @@ export default function GameScreen({
   const { game, error, busy, act, goBack, rewind, botThinking, autoNote } = useGame(
     gameId,
     pollMs,
-    { autoAdvanceForced: getPlugin(gameName).autoAdvanceForced ?? false },
+    { autoAdvance: getPlugin(gameName).autoAdvance },
   );
   if (game && game.game !== gameName) setGameName(game.game);
   const [hoverAction, setHoverAction] = useState<number | null>(null);
