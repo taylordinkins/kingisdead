@@ -326,7 +326,21 @@ Tasks (approved 2026-10-31; branch `phase-5/bots`):
 - [x] 7. Playwright vs heuristic and `mcts:20`; `CLAUDE.md` bot notes; tick §5.8 → `web/e2e/`, `CLAUDE.md`
 - Note: if MCTS is too slow or weak, swap the rollout evaluator (e.g. heuristic rollouts) rather than rewriting the search.
 
-**Phase 6 — Trained policies** *(starts with a mini-interview: algorithm choice, compute budget, evaluation)*
+**Phase 6 — Trained policies**
+- Spike PPO self-play and AlphaZero, pick by data, train, serve as seat type `trained:<name>`.
+- *Exit:* trained policy beats heuristic >=60% (Wilson lower bound > 0.5) over 300+ 2-player games and approaches `mcts:100`; playable from the lobby.
+
+Tasks (approved 2026-11-01; branch `phase-6/trained-policies`). Interview: spike both algorithms and decide on data; hours of local GPU (RTX 3080, 12 cores, 7 GB RAM) per run, no C++ port; torch is an optional dependency group. No rule behaviour, so `implementer` writes the tests.
+- [ ] 1. Training deps and RL environment: optional `train` group, state-to-tensor features, fixed action space with masks, self-play env handling chance nodes → `pyproject.toml`, `kingisdead/rl/env.py`, `tests/rl/`
+- [ ] 2. Network and checkpoints: masked policy/value net, CPU inference, save/load with metadata, git-ignored `runs/`, committed `models/` → `kingisdead/rl/net.py`, `kingisdead/rl/checkpoint.py`
+- [ ] 3. Spike A: PPO self-play, time-boxed, evaluated vs random/heuristic → `tools/train_ppo.py`, `kingisdead/rl/ppo.py`, `docs/phase-reports/phase-6-spike-ppo.md`
+- [ ] 4. Spike B: AlphaZero (OpenSpiel PyTorch or thin own loop), time-boxed, same evaluation → `tools/train_az.py`, `kingisdead/rl/az.py`, `docs/phase-reports/phase-6-spike-az.md`
+- [ ] 5. ✋ Decision checkpoint: compare spikes, user picks algorithm, log D33, close §9 item → `PLAN.md`
+- [ ] 6. Full training run of the chosen algorithm: reproducible config, resume, periodic eval; best checkpoint in `models/` → `tools/train_*.py`, `models/`
+- [ ] 7. `trained:<name>` seat type: lazy-loaded Bot, seat pattern, Lobby preset, schema regen, 422 when torch/model missing → `kingisdead/bots/trained.py`, `server/bots.py`, `server/schemas.py`, `web/src/shell/seatTypes.ts`
+- [ ] 8. Strength report: tournament with trained seats vs random/heuristic/`mcts:100`, slow test → `tools/tournament.py`, `tests/bots/test_strength_slow.py`, `docs/phase-reports/phase-6-trained-strength.md`
+- [ ] 9. Playwright vs `trained:<name>`; `CLAUDE.md` bot notes; tick §5.8 → `web/e2e/bots.spec.ts`, `CLAUDE.md`
+- [ ] 10. Phase close: `code-reviewer` on the diff, then `/close-phase`
 **Phase 7 — 4-player teams** *(mini-interview: team returns, partner display)*
 **Phase 8 — Advanced game** *(mini-interview: Spy copying Negotiate/Manoeuvre, Plot reveal UX, hidden-hand hotseat handoff)*
 
