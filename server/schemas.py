@@ -62,7 +62,12 @@ class GameView(BaseModel):
     seats: list[SeatType]
     seat_types: list[SeatType]
     seed: int
-    bot_thinking: bool = Field(description="A bot seat is to move (not yet played).")
+    bot_thinking: bool = Field(
+        description="A bot seat is to move and has not failed (false in the error state)."
+    )
+    bot_error: str | None = Field(
+        default=None, description="Set when the bot worker failed; POST bots/retry to retry."
+    )
     seat: int
     history_length: int
     history: list[HistoryEntry] = Field(description="Labelled action history, oldest first.")

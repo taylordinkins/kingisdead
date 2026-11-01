@@ -317,7 +317,7 @@ Task list (approved 2026-10-31, branch `phase-4/board-ui-setup-editor`). Decisio
 Tasks (approved 2026-10-31; branch `phase-5/bots`):
 - [x] 1. Heuristic bot: greedy one-turn lookahead, court strength vs projected region control → `kingisdead/bots/heuristic.py`, `tests/bots/`
 - [x] 2. MCTS bot (OpenSpiel `MCTSBot`, thin wrapper) + parameterised seat types `mcts:N`, `heuristic`; schema validation → `kingisdead/bots/mcts.py`, `server/bots.py`, `server/schemas.py`
-- [ ] 3. Bot moves off the session lock (D28): background task, stale-move invalidation on Back/Rewind/human action → `server/sessions.py`, `server/app.py`
+- [x] 3. Bot moves off the session lock (D28): background task, stale-move invalidation on Back/Rewind/human action → `server/sessions.py`, `server/app.py`
 - [ ] 4. `tools/tournament.py` (seat rotation, win rate with Wilson CI, JSON output, seeded) → `tools/`
 - [ ] 5. Lobby/UI: heuristic and MCTS strength presets, named thinking indicator, regenerate API schema → `web/src/shell/`
 - [ ] 6. Strength validation (slow test + recorded tournament, MCTS vs random and vs heuristic) → `tests/bots/test_strength_slow.py`, `docs/phase-reports/`

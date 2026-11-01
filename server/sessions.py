@@ -6,6 +6,7 @@ serialised or deserialised through OpenSpiel.
 
 from __future__ import annotations
 
+import logging
 import random
 import threading
 import uuid
@@ -17,6 +18,8 @@ import pyspiel
 from kingisdead.scenario import load_scenario
 from server.adapters.base import JSON, GameAdapter
 from server.bots import bot_rng, get_bot, is_valid_seat_type
+
+log = logging.getLogger(__name__)
 
 CHANCE = -1  # actor marker for chance outcomes in `Session.actors`
 
@@ -56,8 +59,16 @@ class Session:
         seed: int,
         history: Sequence[int] = (),
         scenario: dict[str, Any] | None = None,
+        inline_bots: bool = True,
     ) -> None:
         self.id = session_id
+        # inline_bots: mutations play bot turns synchronously (tests/tools). Otherwise a
+        # background worker does it off the lock (D28).
+        self.inline_bots = inline_bots
+        # Bumped on every mutation of history; lets the worker discard stale results.
+        self.version = 0
+        self.bot_error: str | None = None
+        self._worker_running = False
         # Held by callers (server handlers) around every read/write of this session.
         self.lock = threading.RLock()
         self.adapter = adapter
@@ -80,7 +91,7 @@ class Session:
         self.state: pyspiel.State = self._initial()
         self._load(history)
         self._resolve_chance()
-        self.advance_bots()
+        self._after_mutation()
 
     def _initial(self) -> pyspiel.State:
         if self.scenario is not None:
@@ -101,6 +112,83 @@ class Session:
             return False
         return not self.is_human(self.state.current_player())
 
+    @property
+    def bot_thinking(self) -> bool:
+        """A bot is to move and has not failed (the worker is computing or about to)."""
+        return self.pending_bot and self.bot_error is None
+
+    def _after_mutation(self) -> None:
+        if self.inline_bots:
+            self.advance_bots()
+        else:
+            self.schedule_bots()
+
+    def schedule_bots(self) -> None:
+        """Ensure a background worker is playing pending bot turns (at most one per session)."""
+        with self.lock:
+            if self._worker_running or not self.bot_thinking:
+                return
+            self._worker_running = True
+        try:
+            threading.Thread(
+                target=self._bot_worker, name=f"bots-{self.id[:8]}", daemon=True
+            ).start()
+        except BaseException as e:
+            log.exception("could not start bot worker for session %s", self.id)
+            with self.lock:
+                self.bot_error = f"could not start bot worker: {e}"
+                self._worker_running = False
+            raise
+
+    def _bot_worker(self) -> None:
+        # The flag is cleared only under the lock together with the "nothing pending" check, and
+        # mutators call schedule_bots() under the lock, so a mutation either is seen by the next
+        # loop iteration or sees the flag cleared and spawns a fresh worker (no lost wake-up).
+        try:
+            while True:
+                with self.lock:
+                    if not self.bot_thinking:
+                        self._worker_running = False
+                        return
+                    version = self.version
+                    seat = self.state.current_player()
+                    seat_type = self.seats[seat]
+                    clone = self.state.clone()
+                    rng = bot_rng(self.seed, len(self.history))
+                try:
+                    a = get_bot(seat_type).choose(clone, rng)  # slow part, outside the lock
+                except Exception:
+                    with self.lock:
+                        if self.version != version:
+                            continue  # failure belongs to a stale snapshot; ignore it
+                    raise
+                with self.lock:
+                    if self.version != version:
+                        continue  # stale (back/rewind/etc. happened); re-snapshot
+                    if a not in self.state.legal_actions():
+                        raise IllegalAction(f"bot {seat_type!r} chose illegal action {a}")
+                    self.actors.append(seat)
+                    self.state.apply_action(a)
+                    self.history.append(a)
+                    self.version += 1
+                    self._resolve_chance()
+        except BaseException as e:  # noqa: BLE001
+            log.exception("bot worker for session %s failed", self.id)
+            with self.lock:
+                self.bot_error = f"{type(e).__name__}: {e}"
+                self._worker_running = False
+
+    def retry_bots(self) -> None:
+        """Clear a recorded bot error and restart the worker (caller holds the lock)."""
+        if not self.pending_bot:
+            raise IllegalAction("no bot is to move")
+        self._touch()
+        self._after_mutation()
+
+    def _touch(self) -> None:
+        self.version += 1
+        self.bot_error = None
+
     def advance_bots(self, max_steps: int | None = None) -> int:
         """Play consecutive bot turns (at most `max_steps`); returns the number played.
 
@@ -116,12 +204,14 @@ class Session:
             self.actors.append(seat)
             self.state.apply_action(a)
             self.history.append(a)
+            self.version += 1
             self._resolve_chance()
             steps += 1
         return steps
 
     def _load(self, history: Sequence[int]) -> None:
         """Replace state/history by replaying `history` from scratch, validating every step."""
+        self._touch()
         state = self._initial()
         actors: list[int] = []
         for i, a in enumerate(history):
@@ -150,7 +240,7 @@ class Session:
     def _truncate(self, length: int) -> None:
         self._load(self.history[:length])
         self._resolve_chance()
-        self.advance_bots()
+        self._after_mutation()
 
     def apply(self, action_id: int) -> None:
         """Apply a player action, then auto-resolve following chance nodes."""
@@ -163,8 +253,9 @@ class Session:
         self.actors.append(self.state.current_player())
         self.state.apply_action(action_id)
         self.history.append(action_id)
+        self._touch()
         self._resolve_chance()
-        self.advance_bots()
+        self._after_mutation()
 
     def _human_turn_start(self) -> int:
         """History index where the current (or else the previous) human turn began.
@@ -224,7 +315,8 @@ class Session:
 
 
 class SessionStore:
-    def __init__(self, adapters: Mapping[str, GameAdapter]) -> None:
+    def __init__(self, adapters: Mapping[str, GameAdapter], inline_bots: bool = True) -> None:
+        self.inline_bots = inline_bots
         self.adapters = dict(adapters)
         self.sessions: dict[str, Session] = {}
         self._lock = threading.Lock()
@@ -242,7 +334,14 @@ class SessionStore:
         if game not in self.adapters:
             raise SessionError(f"unknown game {game!r}")
         session = Session(
-            uuid.uuid4().hex, self.adapters[game], params, seats, seed, history, scenario
+            uuid.uuid4().hex,
+            self.adapters[game],
+            params,
+            seats,
+            seed,
+            history,
+            scenario,
+            self.inline_bots,
         )
         with self._lock:
             self.sessions[session.id] = session
