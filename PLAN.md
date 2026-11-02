@@ -223,7 +223,7 @@ Perfect information, so information state = observation. Tensor, from the observ
 - **Random:** uniform over legal actions. — done in Phase 5
 - **MCTS:** OpenSpiel's `MCTSBot` with random-rollout evaluator; simulations configurable per seat. — done in Phase 5
 - **Heuristic:** greedy one-turn lookahead scoring court strength against projected region control. — done in Phase 5
-- **Trained (Phase 6):** loaded as a seat type through the same bot interface.
+- **Trained (Phase 6):** loaded as a seat type through the same bot interface. — done in Phase 6
 
 ## 6. Verification strategy
 
@@ -340,7 +340,7 @@ Tasks (approved 2026-11-01; branch `phase-6/trained-policies`). Interview: spike
 - [x] 6. Full AlphaZero training run (D33). Steps: (a) trainer tweaks: bigger in-run evals (spike's 24-game mcts evals were too noisy to pick checkpoints), best checkpoint chosen by a larger net+MCTS vs heuristic eval, git commit and config in checkpoint meta; (b) run ~3 h at 50 sims, 6 workers, `--resume` available (**budget proposed, not yet confirmed by the user: confirm before launching**; the 90-min spike had only ~10k games and was still improving); (c) final eval with `tools/eval_policy --mode mcts` (>=300 games vs heuristic, 100 vs `mcts:100`, Wilson CI); (d) commit the best model as `models/<name>.pt` (small), report in `docs/phase-reports/phase-6-az-full.md` -> `tools/train_az.py`, `kingisdead/rl/az.py`, `models/`. Done when: net+MCTS beats heuristic >=60% (Wilson lower bound > 0.5) and approaches `mcts:100`.
 - [x] 7. `trained:<name>` seat type: lazy-loaded Bot, seat pattern, Lobby preset, schema regen, 422 when torch/model missing → `kingisdead/bots/trained.py`, `server/bots.py`, `server/schemas.py`, `web/src/shell/seatTypes.ts`
 - [x] 8. Strength report: tournament with trained seats vs random/heuristic/`mcts:100`, slow test → `tools/tournament.py`, `tests/bots/test_strength_slow.py`, `docs/phase-reports/phase-6-trained-strength.md`
-- [ ] 9. Playwright vs `trained:<name>`; `CLAUDE.md` bot notes; tick §5.8 → `web/e2e/bots.spec.ts`, `CLAUDE.md`
+- [x] 9. Playwright vs `trained:<name>`; `CLAUDE.md` bot notes; tick §5.8 → `web/e2e/bots.spec.ts`, `CLAUDE.md`
 - [ ] 10. Phase close: `code-reviewer` on the diff, then `/close-phase`
 **Phase 7 — 4-player teams** *(mini-interview: team returns, partner display)*
 **Phase 8 — Advanced game** *(mini-interview: Spy copying Negotiate/Manoeuvre, Plot reveal UX, hidden-hand hotseat handoff)*

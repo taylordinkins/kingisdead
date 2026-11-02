@@ -43,5 +43,6 @@ The main session orchestrates; it delegates rather than writing large changes it
 - Seat types: `human`, `random`, `heuristic`, `mcts:N`. Validated by pattern in `server/bots.py`; implementations/registry in `kingisdead/bots/`. Lobby presets: `web/src/shell/seatTypes.ts`.
 - Bot moves are computed in a background worker off the session lock (`server/sessions.py`); a result is discarded if the session version changed (stale-move discard).
 - Failures set `bot_error` on the game; the UI shows a Retry button that calls `POST /bots/retry`.
+- Trained: seat type `trained:<name>` loads `models/<name>.pt` (AlphaZero net + MCTS 50 sims; `kingisdead/bots/trained.py`). Torch is imported lazily; creating a game returns 422 if torch or the model is missing, or the game is not 2-player. Lobby preset "Trained (AlphaZero)" = `trained:az-2p-v1`; e2e in `web/e2e/bots.spec.ts`. Strength: `docs/phase-reports/phase-6-trained-strength.md`.
 - Tournament: `uv run python -m tools.tournament --seats heuristic random --games 100 --seed 0 [--workers N --json out.json]`. Strength report: `docs/phase-reports/phase-5-bot-strength.md`.
 - Gotcha: MCTS moves take about 0.4 s at N=100 (more at 400), so the UI shows "<Name> (P#) is thinking…"; heuristic is near-instant. E2E: `web/e2e/bots.spec.ts` (heuristic, `mcts:20`).
