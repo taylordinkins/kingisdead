@@ -72,6 +72,7 @@ A faithful, well-tested implementation of *The King is Dead* as a **Python OpenS
 | D30 | Scenario sessions and click UI (2026-10-31) | Sessions carry the scenario JSON and replay history over its start state (setups load directly, not as a chance sequence; results checked identical); only a forced PASS auto-plays (R-106), every other single action waits for a click | User-approved; D12 and SCENARIOS §2 amended 2026-11-01 |
 | D31 | Click order for swaps; card tooltips (2026-11-01) | The engine keeps one canonical action sequence per swap (lower region/faction first, unchanged). The server view exposes `swap_pairs`, and the UI accepts the two clicks of Manoeuvre, Outmanoeuvre and Negotiate in either order and submits them canonically. Card effect tooltips paraphrase R-201 and R-210..R-215 | Playtest #3 reports 20261101T180522-891ed6, 20261101T181007-48abf3, 20261101T174750-ff097f; no rule behaviour |
 | D32 | Phase order (2026-11-01) | Trained policies is now Phase 6, 4-player teams Phase 7, Advanced game Phase 8 (was 6/7/8 = teams/advanced/trained) | User's call after Phase 5 closed. The R-007 note in the spec was amended to "Phase 7" (user set AMENDING, then back to APPROVED); `docs/phase-reports/` history keeps the old numbering |
+| D33 | Trained-policy algorithm (2026-11-01) | AlphaZero-style: own PyTorch PUCT loop on OpenSpiel `mcts` (OpenSpiel's alpha_zero is JAX), served as net+MCTS (50-100 sims). No C++ port; hours of local GPU per run. PPO spike kept as a cheap fallback | Spikes at equal 90 min: AZ net+MCTS 0.80-0.86 vs heuristic, 0.66-0.70 vs mcts:100; PPO raw 0.67 / 0.42; AZ raw policy alone only 0.44 vs heuristic. See `docs/phase-reports/phase-6-spike-{ppo,az}.md` |
 
 ## 4. Rules clarifications
 
@@ -335,7 +336,7 @@ Tasks (approved 2026-11-01; branch `phase-6/trained-policies`). Interview: spike
 - [x] 2. Network and checkpoints: masked policy/value net, CPU inference, save/load with metadata, git-ignored `runs/`, committed `models/` → `kingisdead/rl/net.py`, `kingisdead/rl/checkpoint.py`
 - [x] 3. Spike A: PPO self-play, time-boxed, evaluated vs random/heuristic → `tools/train_ppo.py`, `kingisdead/rl/ppo.py`, `docs/phase-reports/phase-6-spike-ppo.md`
 - [x] 4. Spike B: AlphaZero (OpenSpiel PyTorch or thin own loop), time-boxed, same evaluation → `tools/train_az.py`, `kingisdead/rl/az.py`, `docs/phase-reports/phase-6-spike-az.md`
-- [ ] 5. ✋ Decision checkpoint: compare spikes, user picks algorithm, log D33, close §9 item → `PLAN.md`
+- [x] 5. ✋ Decision checkpoint: compare spikes, user picks algorithm, log D33, close §9 item → `PLAN.md`
 - [ ] 6. Full training run of the chosen algorithm: reproducible config, resume, periodic eval; best checkpoint in `models/` → `tools/train_*.py`, `models/`
 - [ ] 7. `trained:<name>` seat type: lazy-loaded Bot, seat pattern, Lobby preset, schema regen, 422 when torch/model missing → `kingisdead/bots/trained.py`, `server/bots.py`, `server/schemas.py`, `web/src/shell/seatTypes.ts`
 - [ ] 8. Strength report: tournament with trained seats vs random/heuristic/`mcts:100`, slow test → `tools/tournament.py`, `tests/bots/test_strength_slow.py`, `docs/phase-reports/phase-6-trained-strength.md`
@@ -387,7 +388,7 @@ Opus runs at phase close and as spot audits only on units touching scoring, powe
 
 ## 9. Open questions (deferred)
 
-- Phase 6: algorithm (AlphaZero vs PPO-style), training budget, whether a C++ port is needed for speed.
+- ~~Phase 6: algorithm, training budget, C++ port~~ — closed by D33 (2026-11-01).
 - Phase 7: team returns and tiebreak presentation for partners.
 - Phase 8: Spy copying Negotiate when your disc is already used; Spy and the undo block; Plot interaction with draws (D9).
 
