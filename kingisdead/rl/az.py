@@ -15,6 +15,7 @@ import csv
 import json
 import multiprocessing as mp
 import random
+import subprocess
 import time
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
@@ -70,13 +71,30 @@ class AZConfig:
     weight_decay: float = 1e-4
     eval_every: int = 5
     eval_raw_games: int = 100
-    eval_mcts_games: int = 24
+    eval_mcts_games: int = 24  # net+MCTS vs random (informational)
+    eval_best_games: int = 100  # net+MCTS vs heuristic; picks best.pt (0 = use raw policy)
     seed: int = 0
 
     def to_dict(self) -> dict[str, Any]:
         d = asdict(self)
         d["hidden_sizes"] = list(self.hidden_sizes)
         return d
+
+
+def git_commit() -> str | None:
+    """Best-effort current git commit hash (None if unavailable)."""
+    try:
+        r = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=Path(__file__).resolve().parent,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        h = r.stdout.strip()
+        return h if r.returncode == 0 and h else None
+    except Exception:
+        return None
 
 
 # ---------------------------------------------------------------- search
@@ -385,6 +403,7 @@ def train(
     max_iters: int | None = None,
     resume: bool = False,
     log: Callable[[str], None] = print,
+    run_config: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Time-boxed AlphaZero training. Returns a summary dict."""
     if cfg.num_players != 2:
@@ -438,7 +457,18 @@ def train(
     nrng = np.random.default_rng(cfg.seed + it)
     t0 = time.perf_counter()
     last_eval: dict[str, float] = {}
-    meta_base = {"algorithm": "alphazero", "seed": cfg.seed, "train_config": cfg.to_dict()}
+    meta_base = {
+        "algorithm": "alphazero",
+        "seed": cfg.seed,
+        "train_config": cfg.to_dict(),
+        "git_commit": git_commit(),
+        "run_config": {
+            "minutes": minutes,
+            "max_iters": max_iters,
+            "resume": resume,
+            **(run_config or {}),
+        },
+    }
 
     def elapsed() -> float:
         return elapsed_before + time.perf_counter() - t0
@@ -525,17 +555,13 @@ def train(
                         mapper, eb, cfg.workers, "raw", "heuristic", cfg.eval_raw_games, 0, s + 2
                     ),
                 }
-                if cfg.eval_mcts_games > 0:
-                    for opp in ("random", "heuristic"):
+                for opp, games, sd in (
+                    ("random", cfg.eval_mcts_games, s + 3),
+                    ("heuristic", cfg.eval_best_games, s + 4),
+                ):
+                    if games > 0:
                         res[f"mcts_vs_{opp}"] = evaluate(
-                            mapper,
-                            eb,
-                            cfg.workers,
-                            "mcts",
-                            opp,
-                            cfg.eval_mcts_games,
-                            cfg.eval_sims,
-                            s + 3,
+                            mapper, eb, cfg.workers, "mcts", opp, games, cfg.eval_sims, sd
                         )
                 row.update({k: round(v, 3) for k, v in res.items()})
                 last_eval = res

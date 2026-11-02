@@ -90,6 +90,7 @@ def test_train_smoke_writes_checkpoints(tmp_path):
         eval_every=1,
         eval_raw_games=2,
         eval_mcts_games=2,
+        eval_best_games=2,
         seed=1,
     )
     summary = train(cfg, tmp_path, minutes=5, max_iters=1, log=lambda _s: None)
@@ -98,3 +99,12 @@ def test_train_smoke_writes_checkpoints(tmp_path):
         assert (tmp_path / f).exists()
     _, _, meta = load_checkpoint(tmp_path / "latest.pt")
     assert meta["algorithm"] == "alphazero"
+    assert "git_commit" in meta
+    assert meta["run_config"]["max_iters"] == 1
+    assert meta["train_config"]["eval_best_games"] == 2
+    _, _, bmeta = load_checkpoint(tmp_path / "best.pt")
+    assert "mcts_vs_heuristic" in bmeta["eval_stats"]
+
+    s2 = train(cfg, tmp_path, minutes=5, max_iters=2, resume=True, log=lambda _s: None)
+    assert s2["iters"] == 2
+    assert s2["best"] >= summary["best"]

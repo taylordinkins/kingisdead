@@ -1,8 +1,9 @@
 """AlphaZero-style self-play training (net-guided MCTS; time-boxed, resumable).
 
 Usage: uv run python -m tools.train_az --out runs/az-a --minutes 90 --workers 6 --sims 50
-Writes curve.csv, latest.pt, best.pt (best by MCTS-agent win rate vs heuristic), state.json,
-optim.pt to --out. The replay buffer is not persisted (it refills after --resume).
+Writes curve.csv, latest.pt, best.pt (best by net+MCTS win rate vs
+heuristic over --eval-best-games), state.json, optim.pt to --out.
+The replay buffer is not persisted (it refills after --resume).
 """
 
 import argparse
@@ -42,6 +43,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--eval-every", type=int, default=d.eval_every)
     ap.add_argument("--eval-raw-games", type=int, default=d.eval_raw_games)
     ap.add_argument("--eval-mcts-games", type=int, default=d.eval_mcts_games)
+    ap.add_argument(
+        "--eval-best-games",
+        type=int,
+        default=d.eval_best_games,
+        help="net+MCTS vs heuristic games per eval (picks best.pt), spread over workers",
+    )
     a = ap.parse_args(argv)
     cfg = AZConfig(
         hidden_sizes=tuple(a.hidden),
@@ -62,9 +69,11 @@ def main(argv: list[str] | None = None) -> int:
         eval_every=a.eval_every,
         eval_raw_games=a.eval_raw_games,
         eval_mcts_games=a.eval_mcts_games,
+        eval_best_games=a.eval_best_games,
         seed=a.seed,
     )
-    summary = train(cfg, a.out, a.minutes, a.max_iters, a.resume)
+    run_config = {"cli": vars(a) | {"out": str(a.out)}}
+    summary = train(cfg, a.out, a.minutes, a.max_iters, a.resume, run_config=run_config)
     print(json.dumps(summary, indent=2))
     return 0
 
