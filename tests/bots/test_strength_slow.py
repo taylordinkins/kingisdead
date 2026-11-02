@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import pytest
 
+from kingisdead.bots.trained import MODELS_DIR
 from tools.tournament import run_tournament
 
 pytestmark = pytest.mark.slow
@@ -34,3 +35,15 @@ def test_mcts_vs_heuristic_runs_and_is_not_clearly_worse():
     assert res["games"] == 20
     # Recorded only; assert MCTS is not clearly worse (upper CI bound above 0.25).
     assert _rate(res, 0)["ci95"][1] > 0.25
+
+
+def test_trained_beats_heuristic():
+    pytest.importorskip("torch")
+    if not (MODELS_DIR / "az-2p-v1.pt").is_file():
+        pytest.skip("models/az-2p-v1.pt not present")
+    # True win rate is about 0.9 (docs/phase-reports/phase-6-trained-strength.md). Requiring >= 14
+    # of 20 games (seeded, so deterministic given the model): if the true rate were 0.85 the chance
+    # of falling below is about 2%, at 0.9 about 0.2%. Chance level (0.5) passes with only 5.8%.
+    res = run_tournament(["trained:az-2p-v1", "heuristic"], games=20, seed=21, workers=WORKERS)
+    assert res["games"] == 20
+    assert _rate(res, 0)["wins"] >= 14

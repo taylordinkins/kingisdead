@@ -1,0 +1,55 @@
+{
+  "seats": [
+    "trained:az-2p-v1",
+    "heuristic"
+  ],
+  "games": 200,
+  "seed": 201,
+  "rotate": true,
+  "tie_convention": "shared win: k winners (max return) each get 1/k win; game counted in draws if k>1",
+  "draws": 0,
+  "mean_plies": 89.665,
+  "mean_game_seconds": 1.4673454502600363,
+  "bots": [
+    {
+      "slot": 0,
+      "seat_type": "trained:az-2p-v1",
+      "wins": 174.0,
+      "win_rate": 0.87,
+      "ci95": [
+        0.8163353692726989,
+        0.9097185863477437
+      ],
+      "mean_move_seconds": 0.03173591515177671,
+      "seat_counts": [
+        100,
+        100
+      ]
+    },
+    {
+      "slot": 1,
+      "seat_type": "heuristic",
+      "wins": 26.0,
+      "win_rate": 0.13,
+      "ci95": [
+        0.09028141365225628,
+        0.18366463072730121
+      ],
+      "mean_move_seconds": 0.0013098617635602366,
+      "seat_counts": [
+        100,
+        100
+      ]
+    }
+  ],
+  "args": {
+    "seats": "['trained:az-2p-v1', 'heuristic']",
+    "games": "200",
+    "seed": "201",
+    "rotate": "True",
+    "workers": "6",
+    "json": "docs/phase-reports/data/trained_vh.json",
+    "quiet": "False"
+  },
+  "git_commit": "19548a62858c4d5cfc1639218f016407eb3b225f"
+}
