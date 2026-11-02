@@ -54,3 +54,11 @@ def test_cli_games_for_and_json(ckpt, tmp_path):
     assert rc == 0
     res = json.loads(out.read_text())["results"]
     assert [(r["opponent"], r["games"]) for r in res] == [("random", 2), ("heuristic", 3)]
+
+
+def test_evaluate_policy_mcts_mode(ckpt):
+    r = evaluate_policy(str(ckpt), "random", games=2, seed=1, mode="mcts", sims=4)
+    assert r["mode"] == "mcts" and r["sims"] == 4
+    assert r["policy_mean_move_seconds"] > 0
+    again = evaluate_policy(str(ckpt), "random", games=2, seed=1, mode="mcts", sims=4)
+    assert again["wins"] == r["wins"]

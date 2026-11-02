@@ -1,5 +1,8 @@
 """Evaluate a trained checkpoint (greedy argmax over legal actions) against built-in bots.
 
+Modes: --mode raw (default, greedy policy head) or --mode mcts --sims N (net-guided PUCT search via
+kingisdead.rl.az.NetMCTS, no Dirichlet noise, most-visited action).
+
 Usage: uv run python -m tools.eval_policy --checkpoint runs/ppo-main/best.pt \
     --opponents random heuristic mcts:100 --games 300 --seed 200 --workers 6 --json out.json
 Per-opponent game counts: --games-for mcts:100=100. Seats rotate by game index; ties are shared
@@ -38,11 +41,31 @@ def _net(path: str) -> Any:
     return _NET_CACHE[path]
 
 
-def play_one(checkpoint: str, opponent: str, seed: int, index: int) -> dict:
+_AGENT_CACHE: dict[tuple[str, int], Any] = {}
+
+
+def _agent(checkpoint: str, sims: int) -> Any:
+    key = (checkpoint, sims)
+    if key not in _AGENT_CACHE:
+        from kingisdead.rl.az import NetMCTS
+
+        _AGENT_CACHE[key] = NetMCTS(_net(checkpoint), sims)  # no Dirichlet noise
+    return _AGENT_CACHE[key]
+
+
+def play_one(
+    checkpoint: str,
+    opponent: str,
+    seed: int,
+    index: int,
+    mode: str = "raw",
+    sims: int = 50,
+) -> dict:
     """Policy is slot 0, opponent slot 1; the policy sits in seat index % 2."""
     from kingisdead.rl.env import features, legal_mask
 
     net = _net(checkpoint)
+    agent = _agent(checkpoint, sims) if mode == "mcts" else None
     seat_of = [index % 2, (index + 1) % 2]
     slot_of_seat = {s: b for b, s in enumerate(seat_of)}
     gseed = game_seed(seed, index)
@@ -61,7 +84,9 @@ def play_one(checkpoint: str, opponent: str, seed: int, index: int) -> dict:
             p = state.current_player()
             slot = slot_of_seat[p]
             t0 = time.perf_counter()
-            if slot == 0:
+            if slot == 0 and agent is not None:
+                a = agent.choose(state, bot_rng(gseed, hist))
+            elif slot == 0:
                 a = net.act(features(state, p), legal_mask(state), greedy=True)
             else:
                 a = opp.choose(state, bot_rng(gseed, hist))
@@ -90,11 +115,19 @@ def _play(args: tuple) -> dict:
 
 
 def evaluate_policy(
-    checkpoint: str, opponent: str, games: int, seed: int, workers: int = 1
+    checkpoint: str,
+    opponent: str,
+    games: int,
+    seed: int,
+    workers: int = 1,
+    mode: str = "raw",
+    sims: int = 50,
 ) -> dict:
+    if mode not in ("raw", "mcts"):
+        raise ValueError(f"invalid mode {mode!r}")
     if opponent == "human" or not is_valid_seat_type(opponent):
         raise ValueError(f"invalid opponent {opponent!r}")
-    jobs = [(str(checkpoint), opponent, seed, i) for i in range(games)]
+    jobs = [(str(checkpoint), opponent, seed, i, mode, sims) for i in range(games)]
     if workers > 1 and games > 1:
         with Pool(workers) as pool:
             res = pool.map(_play, jobs, chunksize=max(1, games // (workers * 4)))
@@ -112,6 +145,8 @@ def evaluate_policy(
         "opponent": opponent,
         "games": games,
         "seed": seed,
+        "mode": mode,
+        "sims": sims if mode == "mcts" else None,
         "wins": wins,
         "win_rate": wins / games if games else 0.0,
         "ci95": [lo, hi],
@@ -132,6 +167,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--workers", type=int, default=1)
+    ap.add_argument("--mode", choices=["raw", "mcts"], default="raw")
+    ap.add_argument("--sims", type=int, default=50, help="simulations per move for --mode mcts")
     ap.add_argument("--json", type=Path)
     args = ap.parse_args(argv)
     overrides: dict[str, int] = {}
@@ -144,7 +181,13 @@ def main(argv: list[str] | None = None) -> int:
     try:
         for opp in args.opponents:
             r = evaluate_policy(
-                str(args.checkpoint), opp, overrides.get(opp, args.games), args.seed, args.workers
+                str(args.checkpoint),
+                opp,
+                overrides.get(opp, args.games),
+                args.seed,
+                args.workers,
+                args.mode,
+                args.sims,
             )
             results.append(r)
             print(
@@ -158,6 +201,7 @@ def main(argv: list[str] | None = None) -> int:
         out = {
             "checkpoint": str(args.checkpoint),
             "greedy": True,
+            "mode": args.mode,
             "tie_convention": TIE_CONVENTION,
             "git_commit": _git_commit(),
             "args": {k: str(v) for k, v in vars(args).items()},

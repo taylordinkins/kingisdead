@@ -334,7 +334,7 @@ Tasks (approved 2026-11-01; branch `phase-6/trained-policies`). Interview: spike
 - [x] 1. Training deps and RL environment: optional `train` group, state-to-tensor features, fixed action space with masks, self-play env handling chance nodes → `pyproject.toml`, `kingisdead/rl/env.py`, `tests/rl/`
 - [x] 2. Network and checkpoints: masked policy/value net, CPU inference, save/load with metadata, git-ignored `runs/`, committed `models/` → `kingisdead/rl/net.py`, `kingisdead/rl/checkpoint.py`
 - [x] 3. Spike A: PPO self-play, time-boxed, evaluated vs random/heuristic → `tools/train_ppo.py`, `kingisdead/rl/ppo.py`, `docs/phase-reports/phase-6-spike-ppo.md`
-- [ ] 4. Spike B: AlphaZero (OpenSpiel PyTorch or thin own loop), time-boxed, same evaluation → `tools/train_az.py`, `kingisdead/rl/az.py`, `docs/phase-reports/phase-6-spike-az.md`
+- [x] 4. Spike B: AlphaZero (OpenSpiel PyTorch or thin own loop), time-boxed, same evaluation → `tools/train_az.py`, `kingisdead/rl/az.py`, `docs/phase-reports/phase-6-spike-az.md`
 - [ ] 5. ✋ Decision checkpoint: compare spikes, user picks algorithm, log D33, close §9 item → `PLAN.md`
 - [ ] 6. Full training run of the chosen algorithm: reproducible config, resume, periodic eval; best checkpoint in `models/` → `tools/train_*.py`, `models/`
 - [ ] 7. `trained:<name>` seat type: lazy-loaded Bot, seat pattern, Lobby preset, schema regen, 422 when torch/model missing → `kingisdead/bots/trained.py`, `server/bots.py`, `server/schemas.py`, `web/src/shell/seatTypes.ts`

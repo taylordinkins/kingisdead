@@ -1,0 +1,56 @@
+{
+  "checkpoint": "runs/az-a/best.pt",
+  "greedy": true,
+  "mode": "raw",
+  "tie_convention": "shared win: k winners (max return) each get 1/k win; game counted in draws if k>1",
+  "git_commit": "a8680eb6539d3b37cf7ba2da62e859b6f5791b6f",
+  "args": {
+    "checkpoint": "runs/az-a/best.pt",
+    "opponents": "['random', 'heuristic']",
+    "games": "400",
+    "games_for": "[]",
+    "seed": "300",
+    "workers": "6",
+    "mode": "raw",
+    "sims": "50",
+    "json": "docs/phase-reports/data/az_main_best_raw.json"
+  },
+  "results": [
+    {
+      "checkpoint": "runs/az-a/best.pt",
+      "opponent": "random",
+      "games": 400,
+      "seed": 300,
+      "mode": "raw",
+      "sims": null,
+      "wins": 239.0,
+      "win_rate": 0.5975,
+      "ci95": [
+        0.5487332989658665,
+        0.6444117361171958
+      ],
+      "draws": 0,
+      "policy_mean_move_seconds": 0.00032526804759710045,
+      "opponent_mean_move_seconds": 5.089099036427776e-05,
+      "mean_plies": 84.59
+    },
+    {
+      "checkpoint": "runs/az-a/best.pt",
+      "opponent": "heuristic",
+      "games": 400,
+      "seed": 300,
+      "mode": "raw",
+      "sims": null,
+      "wins": 193.0,
+      "win_rate": 0.4825,
+      "ci95": [
+        0.4339296820630707,
+        0.5314032603579181
+      ],
+      "draws": 0,
+      "policy_mean_move_seconds": 0.0003455637726260615,
+      "opponent_mean_move_seconds": 0.0012704027686612808,
+      "mean_plies": 81.3475
+    }
+  ]
+}
