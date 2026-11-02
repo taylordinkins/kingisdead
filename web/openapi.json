@@ -40,7 +40,7 @@
           "seats": {
             "items": {
               "description": "human, random, heuristic, mcts, or mcts:N (N simulations, 1..100000).",
-              "pattern": "^(human|random|heuristic|mcts(:([1-9][0-9]{0,4}|100000))?)$",
+              "pattern": "^(human|random|heuristic|mcts(:([1-9][0-9]{0,4}|100000))?|trained:[a-z0-9_-]+)$",
               "type": "string"
             },
             "title": "Seats",
@@ -110,7 +110,7 @@
           "seats": {
             "items": {
               "description": "human, random, heuristic, mcts, or mcts:N (N simulations, 1..100000).",
-              "pattern": "^(human|random|heuristic|mcts(:([1-9][0-9]{0,4}|100000))?)$",
+              "pattern": "^(human|random|heuristic|mcts(:([1-9][0-9]{0,4}|100000))?|trained:[a-z0-9_-]+)$",
               "type": "string"
             },
             "title": "Seats",
@@ -241,7 +241,7 @@
           "seat_types": {
             "items": {
               "description": "human, random, heuristic, mcts, or mcts:N (N simulations, 1..100000).",
-              "pattern": "^(human|random|heuristic|mcts(:([1-9][0-9]{0,4}|100000))?)$",
+              "pattern": "^(human|random|heuristic|mcts(:([1-9][0-9]{0,4}|100000))?|trained:[a-z0-9_-]+)$",
               "type": "string"
             },
             "title": "Seat Types",
@@ -250,7 +250,7 @@
           "seats": {
             "items": {
               "description": "human, random, heuristic, mcts, or mcts:N (N simulations, 1..100000).",
-              "pattern": "^(human|random|heuristic|mcts(:([1-9][0-9]{0,4}|100000))?)$",
+              "pattern": "^(human|random|heuristic|mcts(:([1-9][0-9]{0,4}|100000))?|trained:[a-z0-9_-]+)$",
               "type": "string"
             },
             "title": "Seats",
