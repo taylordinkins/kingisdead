@@ -9,8 +9,10 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, FastAPI, HTTPException, Query
 
+from kingisdead.bots.trained import TrainedUnavailable
 from kingisdead.scenario import load_scenario
 from server.adapters.kingisdead import KingIsDeadAdapter
+from server.bots import check_seat_available
 from server.reports import DEFAULT_REPORTS_DIR, write_report
 from server.schemas import (
     ActionRequest,
@@ -112,6 +114,12 @@ def create_app(
                     422, f"num_players {params.num_players} does not match scenario ({n})"
                 )
             adapter_params = {"players": n}
+        n_players = adapter_params.get("players", 2)
+        for t in seats:
+            try:
+                check_seat_available(t, n_players)
+            except TrainedUnavailable as e:
+                raise HTTPException(422, str(e)) from None
         try:
             return store.create(game, adapter_params, seats, seed, history, scenario)
         except IllegalAction as e:

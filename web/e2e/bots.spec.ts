@@ -49,3 +49,44 @@ test("human vs heuristic bot", async ({ page }) => {
 test("human vs MCTS Easy (mcts:20)", async ({ page }) => {
   await playVsBot(page, "mcts:20", /MCTS Easy \(P1\) is thinking/);
 });
+
+test("human vs trained AlphaZero (trained:az-2p-v1)", async ({ page, request }) => {
+  test.setTimeout(120_000);
+  // Trained seats need PyTorch (the optional `train` group) and models/az-2p-v1.pt; CI has neither.
+  const probe = await request.post("/api/games", {
+    data: { game: "king_is_dead", params: { num_players: 2 }, seats: ["human", "trained:az-2p-v1"], seed: 11 },
+  });
+  if (probe.status() === 422) {
+    const detail = JSON.stringify(await probe.json().catch(() => ({})));
+    test.skip(/PyTorch|model file/.test(detail), `trained seats unavailable on this server: ${detail}`);
+  }
+  await page.goto("/");
+  await page.getByLabel("Players").selectOption("2");
+  await page.getByLabel("Seat 0").selectOption("human");
+  await page.getByLabel("Seat 1").selectOption({ label: "Trained (AlphaZero)" });
+  await page.getByLabel("Seed (optional)").fill("11");
+  await page.getByRole("button", { name: "Create game" }).click();
+  await expect(page.getByText(/^Game \S+ · seats/)).toBeVisible();
+  await expect(page.getByText(/Bot error/)).toHaveCount(0);
+  const log = page.getByLabel("Action log");
+  const list = page.getByRole("list", { name: "Legal actions" }).getByRole("button").and(page.locator(":enabled"));
+  let humanMoves = 0;
+  for (let i = 0; i < 20 && humanMoves < 3; i++) {
+    if (await page.getByLabel("Game over").isVisible()) break;
+    if (await list.count()) {
+      const before = await log.innerText();
+      await list.first().click({ timeout: 2_000 }).catch(() => {});
+      await expect(async () => {
+        expect(await log.innerText()).not.toBe(before);
+      }).toPass({ timeout: 5_000 });
+      humanMoves++;
+    }
+    for (let j = 0; j < 300; j++) {
+      if ((await list.count()) > 0 || (await page.getByLabel("Game over").isVisible())) break;
+      await page.waitForTimeout(100);
+    }
+    await expect(page.getByText(/Bot error/)).toHaveCount(0);
+  }
+  expect(humanMoves).toBeGreaterThanOrEqual(3);
+  expect(await log.innerText()).toMatch(/P1/);
+});

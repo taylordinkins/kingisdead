@@ -1,0 +1,55 @@
+{
+  "seats": [
+    "trained:az-2p-v1",
+    "random"
+  ],
+  "games": 100,
+  "seed": 200,
+  "rotate": true,
+  "tie_convention": "shared win: k winners (max return) each get 1/k win; game counted in draws if k>1",
+  "draws": 0,
+  "mean_plies": 88.23,
+  "mean_game_seconds": 1.2825820946098794,
+  "bots": [
+    {
+      "slot": 0,
+      "seat_type": "trained:az-2p-v1",
+      "wins": 90.0,
+      "win_rate": 0.9,
+      "ci95": [
+        0.8256326956323347,
+        0.9447714583868639
+      ],
+      "mean_move_seconds": 0.029438097515747903,
+      "seat_counts": [
+        50,
+        50
+      ]
+    },
+    {
+      "slot": 1,
+      "seat_type": "random",
+      "wins": 10.0,
+      "win_rate": 0.1,
+      "ci95": [
+        0.05522854161313613,
+        0.1743673043676654
+      ],
+      "mean_move_seconds": 5.4524243054973516e-05,
+      "seat_counts": [
+        50,
+        50
+      ]
+    }
+  ],
+  "args": {
+    "seats": "['trained:az-2p-v1', 'random']",
+    "games": "100",
+    "seed": "200",
+    "rotate": "True",
+    "workers": "6",
+    "json": "docs/phase-reports/data/trained_vr.json",
+    "quiet": "False"
+  },
+  "git_commit": "19548a62858c4d5cfc1639218f016407eb3b225f"
+}

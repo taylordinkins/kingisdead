@@ -12,7 +12,7 @@
 - [x] Phase 3 — Server + web shell ✋ *playtest #1* (closed 2026-10-31, see docs/phase-reports/phase-3.md; playtest pending)
 - [x] Phase 4 — Board UI + setup editor ✋ *playtest #2* (closed 2026-10-31, see docs/phase-reports/phase-4.md; playtest pending)
 - [x] Phase 5 — Bots (MCTS, heuristic) ✋ *playtest #3* (closed 2026-11-01, see docs/phase-reports/phase-5.md; playtest #3 in progress, 3 reports triaged)
-- [ ] Phase 6 — Trained policies
+- [x] Phase 6 — Trained policies (closed 2026-11-02, see docs/phase-reports/phase-6.md)
 - [ ] Phase 7 — 4-player teams
 - [ ] Phase 8 — Advanced game (cunning actions)
 
@@ -72,6 +72,8 @@ A faithful, well-tested implementation of *The King is Dead* as a **Python OpenS
 | D30 | Scenario sessions and click UI (2026-10-31) | Sessions carry the scenario JSON and replay history over its start state (setups load directly, not as a chance sequence; results checked identical); only a forced PASS auto-plays (R-106), every other single action waits for a click | User-approved; D12 and SCENARIOS §2 amended 2026-11-01 |
 | D31 | Click order for swaps; card tooltips (2026-11-01) | The engine keeps one canonical action sequence per swap (lower region/faction first, unchanged). The server view exposes `swap_pairs`, and the UI accepts the two clicks of Manoeuvre, Outmanoeuvre and Negotiate in either order and submits them canonically. Card effect tooltips paraphrase R-201 and R-210..R-215 | Playtest #3 reports 20261101T180522-891ed6, 20261101T181007-48abf3, 20261101T174750-ff097f; no rule behaviour |
 | D32 | Phase order (2026-11-01) | Trained policies is now Phase 6, 4-player teams Phase 7, Advanced game Phase 8 (was 6/7/8 = teams/advanced/trained) | User's call after Phase 5 closed. The R-007 note in the spec was amended to "Phase 7" (user set AMENDING, then back to APPROVED); `docs/phase-reports/` history keeps the old numbering |
+| D33 | Trained-policy algorithm (2026-11-01) | AlphaZero-style: own PyTorch PUCT loop on OpenSpiel `mcts` (OpenSpiel's alpha_zero is JAX), served as net+MCTS (50-100 sims). No C++ port; hours of local GPU per run. PPO spike kept as a cheap fallback | Spikes at equal 90 min: AZ net+MCTS 0.80-0.86 vs heuristic, 0.66-0.70 vs mcts:100; PPO raw 0.67 / 0.42; AZ raw policy alone only 0.44 vs heuristic. See `docs/phase-reports/phase-6-spike-{ppo,az}.md` |
+| D34 | Trained seat serving (2026-11-02) | `trained:<name>` caches only the loaded net (under a lock); each `choose` builds its own `NetMCTS` (evaluator cache, RNG, MCTSBot), 2-player games only, 422 at game creation if torch/model missing. Torch-importing modules carry `# pyright: reportMissingImports=false` so CI pyright passes without the `train` group. Shipped model `models/az-2p-v1.pt` | Code-reviewer findings 1-3 (shared mutable search state across session threads; torch-free CI). See `docs/phase-reports/phase-6.md` |
 
 ## 4. Rules clarifications
 
@@ -222,7 +224,7 @@ Perfect information, so information state = observation. Tensor, from the observ
 - **Random:** uniform over legal actions. — done in Phase 5
 - **MCTS:** OpenSpiel's `MCTSBot` with random-rollout evaluator; simulations configurable per seat. — done in Phase 5
 - **Heuristic:** greedy one-turn lookahead scoring court strength against projected region control. — done in Phase 5
-- **Trained (Phase 6):** loaded as a seat type through the same bot interface.
+- **Trained (Phase 6):** loaded as a seat type through the same bot interface. — done in Phase 6
 
 ## 6. Verification strategy
 
@@ -326,7 +328,21 @@ Tasks (approved 2026-10-31; branch `phase-5/bots`):
 - [x] 7. Playwright vs heuristic and `mcts:20`; `CLAUDE.md` bot notes; tick §5.8 → `web/e2e/`, `CLAUDE.md`
 - Note: if MCTS is too slow or weak, swap the rollout evaluator (e.g. heuristic rollouts) rather than rewriting the search.
 
-**Phase 6 — Trained policies** *(starts with a mini-interview: algorithm choice, compute budget, evaluation)*
+**Phase 6 — Trained policies**
+- Spike PPO self-play and AlphaZero, pick by data, train, serve as seat type `trained:<name>`.
+- *Exit:* trained policy beats heuristic >=60% (Wilson lower bound > 0.5) over 300+ 2-player games and approaches `mcts:100`; playable from the lobby.
+
+Tasks (approved 2026-11-01; branch `phase-6/trained-policies`). Interview: spike both algorithms and decide on data; hours of local GPU (RTX 3080, 12 cores, 7 GB RAM) per run, no C++ port; torch is an optional dependency group. No rule behaviour, so `implementer` writes the tests.
+- [x] 1. Training deps and RL environment: optional `train` group, state-to-tensor features, fixed action space with masks, self-play env handling chance nodes → `pyproject.toml`, `kingisdead/rl/env.py`, `tests/rl/`
+- [x] 2. Network and checkpoints: masked policy/value net, CPU inference, save/load with metadata, git-ignored `runs/`, committed `models/` → `kingisdead/rl/net.py`, `kingisdead/rl/checkpoint.py`
+- [x] 3. Spike A: PPO self-play, time-boxed, evaluated vs random/heuristic → `tools/train_ppo.py`, `kingisdead/rl/ppo.py`, `docs/phase-reports/phase-6-spike-ppo.md`
+- [x] 4. Spike B: AlphaZero (OpenSpiel PyTorch or thin own loop), time-boxed, same evaluation → `tools/train_az.py`, `kingisdead/rl/az.py`, `docs/phase-reports/phase-6-spike-az.md`
+- [x] 5. ✋ Decision checkpoint: compare spikes, user picks algorithm, log D33, close §9 item → `PLAN.md`
+- [x] 6. Full AlphaZero training run (D33). Steps: (a) trainer tweaks: bigger in-run evals (spike's 24-game mcts evals were too noisy to pick checkpoints), best checkpoint chosen by a larger net+MCTS vs heuristic eval, git commit and config in checkpoint meta; (b) run ~3 h at 50 sims, 6 workers, `--resume` available (**budget proposed, not yet confirmed by the user: confirm before launching**; the 90-min spike had only ~10k games and was still improving); (c) final eval with `tools/eval_policy --mode mcts` (>=300 games vs heuristic, 100 vs `mcts:100`, Wilson CI); (d) commit the best model as `models/<name>.pt` (small), report in `docs/phase-reports/phase-6-az-full.md` -> `tools/train_az.py`, `kingisdead/rl/az.py`, `models/`. Done when: net+MCTS beats heuristic >=60% (Wilson lower bound > 0.5) and approaches `mcts:100`.
+- [x] 7. `trained:<name>` seat type: lazy-loaded Bot, seat pattern, Lobby preset, schema regen, 422 when torch/model missing → `kingisdead/bots/trained.py`, `server/bots.py`, `server/schemas.py`, `web/src/shell/seatTypes.ts`
+- [x] 8. Strength report: tournament with trained seats vs random/heuristic/`mcts:100`, slow test → `tools/tournament.py`, `tests/bots/test_strength_slow.py`, `docs/phase-reports/phase-6-trained-strength.md`
+- [x] 9. Playwright vs `trained:<name>`; `CLAUDE.md` bot notes; tick §5.8 → `web/e2e/bots.spec.ts`, `CLAUDE.md`
+- [x] 10. Phase close: `code-reviewer` on the diff, then `/close-phase`
 **Phase 7 — 4-player teams** *(mini-interview: team returns, partner display)*
 **Phase 8 — Advanced game** *(mini-interview: Spy copying Negotiate/Manoeuvre, Plot reveal UX, hidden-hand hotseat handoff)*
 
@@ -373,7 +389,7 @@ Opus runs at phase close and as spot audits only on units touching scoring, powe
 
 ## 9. Open questions (deferred)
 
-- Phase 6: algorithm (AlphaZero vs PPO-style), training budget, whether a C++ port is needed for speed.
+- ~~Phase 6: algorithm, training budget, C++ port~~ — closed by D33 (2026-11-01).
 - Phase 7: team returns and tiebreak presentation for partners.
 - Phase 8: Spy copying Negotiate when your disc is already used; Spy and the undo block; Plot interaction with draws (D9).
 
@@ -407,6 +423,9 @@ Should-fix and minor findings, tagged with the phase that found them. `/close-ph
 - Phase 5 (rules-auditor, minor): card tooltip wording in `cardText.ts`: Manoeuvre/Outmanoeuvre "may not undo the previous..." omits that the block ends once any other card is played (R-217) and that same-result swaps and no-ops are blocked too (R-216); Assemble omits that a faction with an empty supply is skipped (R-212); Negotiate omits "fewer than two eligible cards: no effect, disc stays" (R-213, R-006); Outmanoeuvre 1-for-1 omits that regions must border and that "impossible" includes blocked by R-216. `tests/server/test_swap_pairs.py` checks every listed pair is legal but not that every legal swap is listed, and has no undo-block cases (the auditor's independent oracle found 0 mismatches over about 6,000 decisions; consider keeping it as a slow test).
 - Phase 5 (code-reviewer re-check, minor): between the two `onAct` calls of a swap pair the board accepts ordinary clicks (the server rejects illegal ones). The held-pick revival it also found was fixed before merge.
 - Phase 5 (tooling): `tools/replay.py`, referenced by the `/triage-report` skill, does not exist (triage rebuilt state from the saved report view instead); add it or fix the skill. No Playwright test yet clicks swap cards/followers in the reverse (higher-first) order. The `protect_spec.py` hook also fires on Bash commands that merely contain the spec's filename, even read-only (see the Phase 1 item).
+- Phase 6 (code-reviewer, minor): AZ trainer writes `latest.pt`, `state.json` and `curve.csv` non-atomically (a crash can duplicate a curve row or leave `latest.pt` one iteration ahead); the replay buffer is not persisted on `--resume`.
+- Phase 6 (code-reviewer, minor): `torch.set_num_threads(1)` is process-wide (fine for the server; revisit if training shares a process); `TrainedBot` loads the model before the single-legal-action shortcut; the Lobby offers the trained preset in 3-player games, which only returns a clear 422.
+- Phase 6 (eval): trained vs `mcts:100` measured 0.87 (n=100, eval_policy) and 0.79 (n=100, tournament); true rate probably ~0.8. A larger run (more minutes, 100+ sims) is the obvious next lever if more strength is wanted.
 
 ## 10. Risks
 

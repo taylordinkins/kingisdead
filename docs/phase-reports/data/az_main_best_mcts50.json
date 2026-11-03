@@ -1,0 +1,56 @@
+{
+  "checkpoint": "runs/az-a/best.pt",
+  "greedy": true,
+  "mode": "mcts",
+  "tie_convention": "shared win: k winners (max return) each get 1/k win; game counted in draws if k>1",
+  "git_commit": "a8680eb6539d3b37cf7ba2da62e859b6f5791b6f",
+  "args": {
+    "checkpoint": "runs/az-a/best.pt",
+    "opponents": "['heuristic', 'mcts:100']",
+    "games": "200",
+    "games_for": "['mcts:100=100']",
+    "seed": "300",
+    "workers": "6",
+    "mode": "mcts",
+    "sims": "50",
+    "json": "docs/phase-reports/data/az_main_best_mcts50.json"
+  },
+  "results": [
+    {
+      "checkpoint": "runs/az-a/best.pt",
+      "opponent": "heuristic",
+      "games": 200,
+      "seed": 300,
+      "mode": "mcts",
+      "sims": 50,
+      "wins": 169.0,
+      "win_rate": 0.845,
+      "ci95": [
+        0.7883919410627441,
+        0.8886043148536146
+      ],
+      "draws": 0,
+      "policy_mean_move_seconds": 0.03253272364331116,
+      "opponent_mean_move_seconds": 0.0014388852805104957,
+      "mean_plies": 84.475
+    },
+    {
+      "checkpoint": "runs/az-a/best.pt",
+      "opponent": "mcts:100",
+      "games": 100,
+      "seed": 300,
+      "mode": "mcts",
+      "sims": 50,
+      "wins": 66.0,
+      "win_rate": 0.66,
+      "ci95": [
+        0.5627754565831095,
+        0.74538620502457
+      ],
+      "draws": 0,
+      "policy_mean_move_seconds": 0.03630649890219843,
+      "opponent_mean_move_seconds": 0.5071183576360841,
+      "mean_plies": 85.18
+    }
+  ]
+}

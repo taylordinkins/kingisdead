@@ -26,3 +26,6 @@ docs/rules/*
 .DS_Store
 .idea/
 .vscode/
+
+# Training scratch output (promoted models go in models/)
+runs/

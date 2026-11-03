@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { SEAT_PRESETS, seatTypeName, thinkingText } from "./seatTypes";
 
 describe("seat presets", () => {
-  it("offers human, random, heuristic and three MCTS strengths", () => {
+  it("offers human, random, heuristic and three MCTS strengths and the trained model", () => {
     expect(SEAT_PRESETS.map((p) => p.value)).toEqual([
       "human",
       "random",
@@ -10,6 +10,7 @@ describe("seat presets", () => {
       "mcts:20",
       "mcts:100",
       "mcts:400",
+      "trained:az-2p-v1",
     ]);
   });
   it("names seat types", () => {
