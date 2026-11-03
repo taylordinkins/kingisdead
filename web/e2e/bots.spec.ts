@@ -50,8 +50,16 @@ test("human vs MCTS Easy (mcts:20)", async ({ page }) => {
   await playVsBot(page, "mcts:20", /MCTS Easy \(P1\) is thinking/);
 });
 
-test("human vs trained AlphaZero (trained:az-2p-v1)", async ({ page }) => {
+test("human vs trained AlphaZero (trained:az-2p-v1)", async ({ page, request }) => {
   test.setTimeout(120_000);
+  // Trained seats need PyTorch (the optional `train` group) and models/az-2p-v1.pt; CI has neither.
+  const probe = await request.post("/api/games", {
+    data: { game: "king_is_dead", params: { num_players: 2 }, seats: ["human", "trained:az-2p-v1"], seed: 11 },
+  });
+  if (probe.status() === 422) {
+    const detail = JSON.stringify(await probe.json().catch(() => ({})));
+    test.skip(/PyTorch|model file/.test(detail), `trained seats unavailable on this server: ${detail}`);
+  }
   await page.goto("/");
   await page.getByLabel("Players").selectOption("2");
   await page.getByLabel("Seat 0").selectOption("human");
