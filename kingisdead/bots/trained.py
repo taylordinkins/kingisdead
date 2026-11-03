@@ -1,4 +1,5 @@
 # pyright: basic
+# pyright: reportMissingImports=false
 # torch is an optional dependency (group `train`), imported lazily; strict checking is relaxed here.
 """Trained-network seat bot (`trained:<name>`, model file `models/<name>.pt`). No rule behaviour.
 
@@ -10,6 +11,7 @@ from __future__ import annotations
 
 import random
 import re
+import threading
 from pathlib import Path
 from typing import Any
 
@@ -43,42 +45,49 @@ def check_available(name: str) -> None:
         raise TrainedUnavailable(f"model file models/{name}.pt not found")
 
 
-class TrainedBot:
-    def __init__(self, name: str, sims: int = TRAINED_SIMS) -> None:
-        self.name = name
-        self.sims = sims
-        self._net: Any = None
-        self._agent: Any = None
-        self._algorithm: str | None = None
+_LOAD_LOCK = threading.Lock()
+_LOADED: dict[str, tuple[Any, str | None]] = {}
 
-    def _load(self) -> None:
-        check_available(self.name)
+
+def _load_net(name: str) -> tuple[Any, str | None]:
+    """Load (net, algorithm) once per model name, published fully built under a lock."""
+    with _LOAD_LOCK:
+        hit = _LOADED.get(name)
+        if hit is not None:
+            return hit
+        check_available(name)
         import torch
 
         from kingisdead.rl.checkpoint import load_checkpoint
 
         torch.set_num_threads(1)
         try:
-            net, _config, meta = load_checkpoint(model_path(self.name))
+            net, _config, meta = load_checkpoint(model_path(name))
         except Exception as e:
-            raise TrainedUnavailable(f"cannot load models/{self.name}.pt: {e}") from None
-        self._net = net
-        self._algorithm = meta.get("algorithm")
-        if self._algorithm == "alphazero":
-            from kingisdead.rl.az import NetMCTS
+            raise TrainedUnavailable(f"cannot load models/{name}.pt: {e}") from None
+        net.eval()
+        res = (net, meta.get("algorithm"))
+        _LOADED[name] = res
+        return res
 
-            self._agent = NetMCTS(net, self.sims)
+
+class TrainedBot:
+    """Thread-safe: only the loaded net is shared; every `choose` builds its own search objects."""
+
+    def __init__(self, name: str, sims: int = TRAINED_SIMS) -> None:
+        self.name = name
+        self.sims = sims
 
     def choose(self, state: pyspiel.State, rng: random.Random) -> int:
-        if self._net is None:
-            self._load()
+        net, algorithm = _load_net(self.name)
         legal = state.legal_actions()
         if len(legal) == 1:
             return int(legal[0])
-        if self._agent is not None:
-            return int(self._agent.choose(state, rng))
+        if algorithm == "alphazero":
+            from kingisdead.rl.az import NetMCTS
+
+            return int(NetMCTS(net, self.sims).choose(state, rng))
         from kingisdead.rl.env import features, legal_mask
 
-        net: Any = self._net
         p = state.current_player()
         return int(net.act(features(state, p), legal_mask(state), greedy=True))

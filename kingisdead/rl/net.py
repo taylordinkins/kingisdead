@@ -1,4 +1,5 @@
 # pyright: basic
+# pyright: reportMissingImports=false
 # torch is an optional dependency (group `train`), so strict checking is relaxed in this file.
 """Masked policy/value network. Torch is imported only here and in checkpoint.py."""
 

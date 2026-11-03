@@ -63,6 +63,7 @@ def test_three_players_422() -> None:
         json={"params": {"num_players": 3}, "seats": ["human", "human", "trained:az-2p-v1"]},
     )
     assert r.status_code == 422
+    assert "2-player" in r.text
 
 
 def test_bot_returns_legal_action() -> None:

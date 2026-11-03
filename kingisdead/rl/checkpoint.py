@@ -1,4 +1,5 @@
 # pyright: basic
+# pyright: reportMissingImports=false
 # torch is an optional dependency (group `train`), so strict checking is relaxed in this file.
 """Save/load trained networks as plain-dict torch files (loaded with weights_only=True)."""
 

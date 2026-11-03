@@ -1,4 +1,5 @@
 # pyright: basic
+# pyright: reportMissingImports=false
 # torch is an optional dependency (group `train`), so strict checking is relaxed in this file.
 """Self-play PPO with action masking (2 players, zero-sum). No rule behaviour lives here.
 
